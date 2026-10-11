@@ -109,6 +109,7 @@ def check_page(browser, base, hbase, host_dir, name, w, h, framed, is_tool, args
             # compare with the real screen width: phone Chrome zooms out to fit wide pages, so innerWidth grows too
             over = target.evaluate('document.documentElement.scrollWidth') - w
             if over > 1: errs.append(f'scrolls sideways on a phone by {over}px')
+        errs += check_theme(target)
         if is_tool and framed and not args.no_switch:
             errs += check_switch(page, target, base, name)
         if name == 'video-layers.html' and vp_name_is_desktop(w) and not framed:
@@ -144,6 +145,26 @@ def check_switch(page, frame, base, name):
         if f: return []
         page.wait_for_timeout(100)
     return [f'switching to {other["h"]} did not load it']
+
+def check_theme(target):
+    """The light/dark switch is next to the page name, visible, and flips the page's background both ways."""
+    btn = target.query_selector('#ptTheme')
+    if not btn: return ['no light/dark switch']
+    if not btn.is_visible(): return ['light/dark switch is hidden']
+    box = btn.bounding_box()
+    if box and (box['width'] < 30 or box['height'] < 30): return [f'light/dark switch is too small ({box["width"]:.0f}x{box["height"]:.0f})']
+    bg = lambda: target.evaluate('getComputedStyle(document.body).backgroundColor')
+    before, mode = bg(), target.evaluate('ptTheme.get()')
+    btn.click()
+    after, mode2 = bg(), target.evaluate('ptTheme.get()')
+    btn.click()
+    back = bg()
+    errs = []
+    if mode2 == mode: errs.append('light/dark switch did not change the mode')
+    elif after == before: errs.append(f'switching to {mode2} did not change the page colours')
+    if back != before: errs.append('switching back did not restore the colours')
+    target.evaluate("try{localStorage.removeItem('pt-theme')}catch(e){}")
+    return errs
 
 def check_models(target):
     """Load each background-remover model through the page's own loader (falls back to .txt copies in artifacts)."""

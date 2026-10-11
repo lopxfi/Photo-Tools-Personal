@@ -6,7 +6,9 @@ https://lopxfi.github.io/Photo-Tools-Personal/ (owner renamed from `latieros` to
 ## How the repo is laid out
 - The top-level files **are** the site. There is no source folder and no build step: edit the `.html` pages directly.
 - Each tool is one self-contained HTML page (styles + script inline). Every page starts with the same head block
-  (doctype, manifest, icons, offline registration). Keep it identical when adding a tool.
+  (doctype, manifest, icons, offline registration, and the light/dark switch block `#pt-theme-css` + `#pt-theme-js`,
+  which adds the switch next to the page's `<h1>` and keeps the choice in localStorage `pt-theme`). Keep it identical
+  when adding a tool; `build.py check` compares the switch block across pages.
 - `index.html` is the home page; `share.html` receives files from the phone's Share menu; `sw.js` is the offline worker.
 - `vendor/mediapipe/` is the background remover used by Video Layers (see its README). `.tflite` models can't be served
   inside Claude artifacts, so `video-layers.html` falls back to `<model>.tflite.txt` (base64) when the `.tflite` is missing.

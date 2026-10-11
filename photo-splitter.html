@@ -14,6 +14,33 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Photo Tools">
 <script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&window.top===window.self)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}catch(e){}</script>
+<style id="pt-theme-css">
+/* light/dark switch, added next to each page's name; same on every page */
+:root header button.pt-theme{flex:none;display:inline-grid;place-items:center;width:34px;height:34px;min-width:0;padding:0;margin:0;border:1px solid var(--line);border-radius:50%;background:var(--panel);color:var(--ink);cursor:pointer;align-self:center;box-shadow:none;font:inherit;line-height:0}
+:root header button.pt-theme:hover{border-color:var(--accent);color:var(--accent);background:var(--panel)}
+:root header button.pt-theme:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+:root header button.pt-theme svg{width:18px;height:18px;display:block}
+header:not(.top){position:relative;padding-right:46px}
+header:not(.top)>button.pt-theme{position:absolute;top:0;right:0}
+</style>
+<script id="pt-theme-js">/* light or dark: follows the device until you pick one with the switch; the choice is kept for every tool */
+(function(){var K='pt-theme',d=document.documentElement,C={light:'#F2F1F6',dark:'#121118'},mq=matchMedia('(prefers-color-scheme: dark)'),
+SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>',
+MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>';
+var mem=null;function saved(){try{var v=localStorage.getItem(K);if(v==='light'||v==='dark')return v;}catch(e){}return mem;}
+function now(){return saved()||(mq.matches?'dark':'light');}
+function apply(){var t=saved(),cur=now();if(t)d.setAttribute('data-theme',t);else d.removeAttribute('data-theme');
+  document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=C[t||(/dark/.test(m.media)?'dark':'light')];});
+  var b=document.getElementById('ptTheme');if(b){var n=cur==='dark'?'light':'dark';b.setAttribute('aria-label','Switch to '+n+' mode');b.title='Switch to '+n+' mode';b.innerHTML=cur==='dark'?SUN:MOON;}}
+window.ptTheme={get:now,set:function(t){mem=t;try{localStorage.setItem(K,t);}catch(e){}apply();}};
+apply();
+addEventListener('storage',function(e){if(e.key===K)apply();});
+try{mq.addEventListener('change',apply);}catch(e){}
+document.addEventListener('DOMContentLoaded',function(){var h=document.querySelector('header');if(!h||document.getElementById('ptTheme'))return;
+  var b=document.createElement('button');b.type='button';b.id='ptTheme';b.className='pt-theme';
+  b.addEventListener('click',function(){ptTheme.set(now()==='dark'?'light':'dark');});
+  var t=h.querySelector('h1');if(t&&h.classList.contains('top'))t.after(b);else h.prepend(b);apply();});
+})();</script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -239,7 +266,7 @@ const LAYS=[
    help:'The older X layout for two photos: side by side, each one tall.'}];
 const SHAPES=[['4:5',4/5],['1:1',1],['3:4',3/4],['2:3',2/3],['9:16',9/16],['16:9',16/9]];
 const THEMES={light:{bg:'#FFFFFF',ink:'#0F1419',muted:'#536471',line:'#EFF3F4',skel:'#E7ECF0'},dim:{bg:'#15202B',ink:'#F7F9F9',muted:'#8B98A5',line:'#38444D',skel:'#273340'},dark:{bg:'#000000',ink:'#E7E9EA',muted:'#71767B',line:'#2F3336',skel:'#202327'}};
-const DEF=()=>({v:2,layout:'strip',n:3,shape:'free',cuts:null,first:0,gap:.005,sgap:0,z:1,px:0,py:0,bgMode:'blur',bg:'#000000',theme:matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light',nums:true,fmt:'jpg'});
+const DEF=()=>({v:2,layout:'strip',n:3,shape:'free',cuts:null,first:0,gap:.005,sgap:0,z:1,px:0,py:0,bgMode:'blur',bg:'#000000',theme:(window.ptTheme?ptTheme.get():matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'),nums:true,fmt:'jpg'});
 let S=DEF(),IMG=null,BLOB=null,NAME='',SAMPLE=true;
 const lay=()=>LAYS.find(l=>l.k===S.layout)||LAYS[0];
 const shapeR=()=>(SHAPES.find(s=>s[0]===S.shape)||SHAPES[0])[1];

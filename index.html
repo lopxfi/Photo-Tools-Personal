@@ -13,6 +13,33 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Photo Tools">
 <script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&window.top===window.self)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}catch(e){}</script>
+<style id="pt-theme-css">
+/* light/dark switch, added next to each page's name; same on every page */
+:root header button.pt-theme{flex:none;display:inline-grid;place-items:center;width:34px;height:34px;min-width:0;padding:0;margin:0;border:1px solid var(--line);border-radius:50%;background:var(--panel);color:var(--ink);cursor:pointer;align-self:center;box-shadow:none;font:inherit;line-height:0}
+:root header button.pt-theme:hover{border-color:var(--accent);color:var(--accent);background:var(--panel)}
+:root header button.pt-theme:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+:root header button.pt-theme svg{width:18px;height:18px;display:block}
+header:not(.top){position:relative;padding-right:46px}
+header:not(.top)>button.pt-theme{position:absolute;top:0;right:0}
+</style>
+<script id="pt-theme-js">/* light or dark: follows the device until you pick one with the switch; the choice is kept for every tool */
+(function(){var K='pt-theme',d=document.documentElement,C={light:'#F2F1F6',dark:'#121118'},mq=matchMedia('(prefers-color-scheme: dark)'),
+SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>',
+MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>';
+var mem=null;function saved(){try{var v=localStorage.getItem(K);if(v==='light'||v==='dark')return v;}catch(e){}return mem;}
+function now(){return saved()||(mq.matches?'dark':'light');}
+function apply(){var t=saved(),cur=now();if(t)d.setAttribute('data-theme',t);else d.removeAttribute('data-theme');
+  document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=C[t||(/dark/.test(m.media)?'dark':'light')];});
+  var b=document.getElementById('ptTheme');if(b){var n=cur==='dark'?'light':'dark';b.setAttribute('aria-label','Switch to '+n+' mode');b.title='Switch to '+n+' mode';b.innerHTML=cur==='dark'?SUN:MOON;}}
+window.ptTheme={get:now,set:function(t){mem=t;try{localStorage.setItem(K,t);}catch(e){}apply();}};
+apply();
+addEventListener('storage',function(e){if(e.key===K)apply();});
+try{mq.addEventListener('change',apply);}catch(e){}
+document.addEventListener('DOMContentLoaded',function(){var h=document.querySelector('header');if(!h||document.getElementById('ptTheme'))return;
+  var b=document.createElement('button');b.type='button';b.id='ptTheme';b.className='pt-theme';
+  b.addEventListener('click',function(){ptTheme.set(now()==='dark'?'light':'dark');});
+  var t=h.querySelector('h1');if(t&&h.classList.contains('top'))t.after(b);else h.prepend(b);apply();});
+})();</script>
 
 <title>Photo Tools</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,7 +52,8 @@
   --f-display:"Unbounded","Familjen Grotesk",system-ui,sans-serif;
   --f-body:"Familjen Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
-@media (prefers-color-scheme: dark){:root{--bg:#121118; --panel:#1B1A23; --ink:#EEEDF4; --muted:#9D9AAE; --line:#2F2D3B; --accent:#9C88FF; color-scheme:dark}}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#121118; --panel:#1B1A23; --ink:#EEEDF4; --muted:#9D9AAE; --line:#2F2D3B; --accent:#9C88FF; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#121118; --panel:#1B1A23; --ink:#EEEDF4; --muted:#9D9AAE; --line:#2F2D3B; --accent:#9C88FF; color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--f-body);padding-inline:16px;padding-block:calc(48px + env(safe-area-inset-top,0px)) 48px}
 main{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:28px}

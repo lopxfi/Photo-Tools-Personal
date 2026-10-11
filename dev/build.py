@@ -56,6 +56,14 @@ def check():
                 problems.append(f'{page}: missing {name}')
         if page not in files:
             problems.append(f'{page}: not in sw.js FILES, so it will not work offline')
+    # the light/dark switch is one shared block; every page must carry the same copy
+    theme_re = re.compile(r'<style id="pt-theme-css">.*?</script>', re.S)
+    blocks = {p: (theme_re.search(read(p)) or [None])[0] for p in pages}
+    for p, b in blocks.items():
+        if b is None: problems.append(f'{p}: missing the light/dark switch block')
+    ref = blocks.get('index.html')
+    for p, b in blocks.items():
+        if b and ref and b != ref: problems.append(f'{p}: light/dark switch block differs from index.html')
     for t in tools:
         if f'href="{t}"' not in index:
             problems.append(f'index.html: no link to {t}')
