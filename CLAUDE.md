@@ -24,7 +24,8 @@ https://lopxfi.github.io/Photo-Tools-Personal/ (owner renamed from `latieros` to
 
 ## Test copy in Claude
 - `python3 dev/build.py artifact` stages the whole site into `dist/site/` and writes `dist/site.publish.json`
-  (`file_path`, `files` map, and the existing artifact `url`). Publish with the Artifact tool using those values.
+  (`file_path`, `files` map, `capabilities`, and the existing artifact `url`). Publish with the Artifact tool using those
+  values; keep `capabilities: {downloads: true}` or saving won't work inside Claude.
   Pass `url` from a new session so it updates the same artifact instead of making a new one.
 - `python3 dev/test.py --artifact [--shots]` tests the staged copy (screenshots go to `dist/shots/`).
 - `--tool <page>.html` stages a single tool, for the older one-tool-per-artifact copies listed in `dev/artifacts.json`.

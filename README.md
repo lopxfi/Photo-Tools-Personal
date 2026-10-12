@@ -17,6 +17,7 @@ A small set of personal browser tools for dressing up photos, making short video
 | [Photo Splitter](#photo-splitter) | Cuts one photo into 2, 3 or 4 pieces that join back into the whole picture as you swipe through a post on X, with your own cut lines and your choice of which piece comes first. |
 | [Chat Reel](#chat-reel) | Turns a text conversation into a video, timing every message on a timeline. Group chats, reactions, replies, voice notes and unsent messages, in iPhone, Android, DM, WhatsApp-style, Discord-style or lock-screen looks, or as a sci-fi transmission screen, a retro game cutscene, a video call, a social post with comments, or bubbles over your own video. |
 | [Metadata Scrubber](#metadata-scrubber) | Strips prompts, location and hidden data out of photos and videos and saves clean copies under random names, optionally under a size limit. |
+| [Watermark](#watermark) | Puts your name or logo on one photo or a whole batch, with ready-made looks (corner signature, label, stamp, proof band, tiled) or your own saved watermarks. |
 | [Video Layers](#video-layers) | Puts pictures, videos, text, music and your voice together and exports a new video or GIF. Automatic background removal, green screen, motion paths with keyframes and one-tap layouts. |
 | [Delivery Reel](#delivery-reel) | Plays out an order from a made-up delivery app, from placed to delivered, and ends on the delivered screen. A courier chat on the way and a doorstep photo or video that opens full screen. |
 | [Visual Novel](#visual-novel) | Scenes with characters, expressions and choices that branch. Play it in the page, export a video of a path, or save a playable file anyone can open. |
@@ -333,6 +334,35 @@ Removes everything from a photo or video except the picture and sound themselves
 
 ---
 
+## Watermark
+
+Puts your name or logo on your photos. Add one photo or a whole batch; every photo gets the same watermark in the same spot, sized to match.
+
+### Your watermark
+- **Words:** one or more lines, with quick buttons for ©, the year and @.
+- **Logo:** add a picture (a PNG with a see-through background looks best), before or above the words, in its own colors or in the text color.
+- **Style:** seven fonts, size, color, how see-through it is, a tilt, and a shadow, outline, box or band across the photo behind it.
+
+### Presets
+- **Ready-made looks:** corner signature, small copyright, label, handwritten, center stamp, proof band, and tiled all over (faint or strong). Presets change only the look and the spot; your words and logo stay.
+- **My watermarks:** save your words, logo and look under a name, like "Instagram" or "Client proofs", and use them again with one tap. They're kept in the browser.
+
+### Position
+- **Nine spots** (corners, edges, middle) with a distance from the edge, or drag it anywhere in the preview, or tap where you want it.
+- **Just this photo:** tick "Dragging moves it on this photo only" to nudge the mark off a face or a detail on one photo. The others keep their spot.
+- **Tiled:** repeat it across the whole photo at an angle, with your own spacing, so it can't be cropped out.
+
+### Saving
+- **Save as** the same format as each photo, or JPG, PNG or WebP, with a quality slider.
+- **Size:** keep each photo's size or make long ones 4K, 2048 or 1080 pixels.
+- **Names:** random (like the other tools) or your file names with `-wm` added.
+- **Clean copies:** saved photos have none of the original's hidden data (no location, camera details or prompts).
+- **Save** one photo, all of them, or a ZIP, or share them straight from your phone.
+
+For videos, add your logo or text as a layer in [Video Layers](#video-layers).
+
+---
+
 ## Video Layers
 
 Puts pictures, videos, text, music and your voice together and makes a new video or GIF. The first picture or video you add fills the frame. Anything after it goes on top as an overlay, and each layer gets its own bar on the timeline.
@@ -516,6 +546,7 @@ Open each tool once while you're online so everything, fonts included, is saved 
 | `photo-splitter.html` | Photo Splitter |
 | `chat-reel.html` | Chat Reel |
 | `metadata-scrubber.html` | Metadata Scrubber |
+| `watermark.html` | Watermark |
 | `video-layers.html` | Video Layers |
 | `manifest.webmanifest` | App name, icons, shortcuts and the Share menu entry for installing |
 | `sw.js` | Offline support: keeps the tools and fonts on your device, and receives files shared from other apps |
