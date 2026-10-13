@@ -268,11 +268,18 @@ Write a branching story and play it, export it, or hand it to someone as a file 
 - **Scenes:** the first one is where the story starts. Each has its own background.
 
 ### Characters
-- **Your art:** one picture per expression (a PNG with a see-through background works best), named as you like.
-- **Drawn stand-ins:** without pictures, a drawn character with eight expressions (neutral, happy, sad, angry, surprised, shy, thinking, smug), four hair styles, hair colors, skin tones, outfit and eye colors. Whoever is talking lights up; the others dim.
+- **Cast:** every character as a tile with their face, how many expressions they have and how many lines they speak. Tap one to edit it, or make a new one.
+- **Profile:** name, name color, where they usually stand, size, higher or lower, and face the other way (mirror). Tap the portrait to see them on the stage.
+- **Expressions:** all of a character's expressions in one gallery. Rename, preview on the stage, replace, make one the default, or delete (it tells you if a scene uses it). Each one has **Add to scene**: pick a scene, show them or give them a line, and where they stand; it goes in after the step you have selected, and you land on it ready to type.
+- **Moving portraits:** an expression can be a picture, a GIF, an animated WebP or PNG, or a video (MP4, WebM). Videos and GIFs play on a loop without sound, in the preview, the video export and the playable file. A see-through WebM (from Background Remover, say) stands on the scene like a cut-out; for a video or GIF shot on a green screen, tick **Remove green screen**.
+- **Adding:** pick several files at once or drop them on the gallery; each becomes an expression, named from its file name ("mina_happy.gif" becomes Happy).
+- **In the story:** every scene a character is in, one tap to jump there.
+- **Duplicate** a character with all their expressions, or remove one.
+- **Drawn stand-ins:** without your own art, a drawn character with eight expressions (neutral, happy, sad, angry, surprised, shy, thinking, smug), four hair styles, hair colors, skin tones, outfit and eye colors. Whoever is talking lights up; the others dim.
+- In the Scenes tab, Line and Show steps pick the expression from a row of faces.
 
 ### Backgrounds
-- Six built-in scenes (field, sunset, night platform, room, hallway, black) or your own pictures, cropped to fill, with a crossfade when they change.
+- Six built-in scenes (field, sunset, night platform, room, hallway, black) or your own pictures, GIFs or videos (they loop), cropped to fill, with a crossfade when they change.
 
 ### Look
 - Widescreen or tall; five text-box styles (Glass, Classic, Paper, Minimal, Neon); accent color; rounded, serif or plain lettering; text speed and text sounds; a title screen.
@@ -281,8 +288,8 @@ Write a branching story and play it, export it, or hand it to someone as a file 
 - **Play it:** tap (or Space, Enter, or 1–4 for choices) to move through it in the page.
 - **Watch:** the video path with a timeline; lines move on by themselves and each choice takes the marked option.
 - **Video:** MP4, WebM or GIF of the video path.
-- **Playable file:** one HTML file with the whole story and its pictures inside. It opens in any browser on any device, with working choices, a restart button and full screen.
-- **Projects** save as files with the pictures included; work is also kept in the browser.
+- **Playable file:** one HTML file with the whole story and its pictures, GIFs and videos inside. It opens in any browser on any device, with working choices, a restart button and full screen.
+- **Projects** save as files with the pictures, GIFs and videos included; work is also kept in the browser.
 
 ---
 

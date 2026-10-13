@@ -156,6 +156,45 @@ input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line
 .expr{display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center;font-size:12px}
 .expr .thumb{width:84px;height:84px;border-radius:10px}
 .expr input[type=text]{font-size:13px;padding:5px 6px;text-align:center}
+.cast{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.castc{flex-direction:column;align-items:stretch;gap:6px;padding:6px;text-align:left;min-width:0}
+.castc.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--chip)}
+.castc .nm{display:flex;align-items:center;gap:6px;font-weight:600;font-size:13px;min-width:0}
+.castc .nm span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.castc .meta{font-size:11px;color:var(--muted);line-height:1.3}
+.castc.add{justify-content:flex-start;border-style:dashed}
+.castc.add .plus{display:grid;place-items:center;aspect-ratio:1;border-radius:8px;font-size:34px;color:var(--muted);background:var(--bg)}
+.face{display:block;width:100%;aspect-ratio:1;overflow:hidden;border-radius:8px;
+  background:var(--stage) conic-gradient(var(--check) 25%,transparent 0 50%,var(--check) 0 75%,transparent 0) 0 0/14px 14px}
+.face>*{width:100%;height:100%;object-fit:cover;object-position:50% 10%;display:block}
+.face.empty{background:var(--bg)}
+.big{padding:0;border:0;background:none;display:block;width:100%;border-radius:8px}
+.big:hover{border:0}
+.prof{display:grid;grid-template-columns:120px minmax(0,1fr);gap:12px;align-items:start}
+.prof .face{aspect-ratio:3/4}
+.xgal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;border-radius:10px}
+.xgal.drop{outline:2px dashed var(--accent);outline-offset:4px}
+.xcard{border:1px solid var(--line);border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:6px;background:var(--bg);position:relative;min-width:0}
+.xcard .badge{position:absolute;left:12px;top:12px;font:700 10px/1 var(--f-body);background:rgba(0,0,0,.66);color:#fff;padding:4px 6px;border-radius:5px;letter-spacing:.06em;pointer-events:none}
+.xcard .badge.def{left:auto;right:12px;background:var(--accent);color:var(--accent-ink)}
+.xcard input[type=text]{font-size:13px;padding:5px 7px;background:var(--panel)}
+.xcard .xname{font-size:13px;font-weight:500;padding:2px 4px}
+.xcard .acts{display:flex;flex-wrap:wrap;gap:4px}
+.xcard .acts button,.xcard .acts .btn{padding:6px 8px;font-size:12px}
+.xcard .uses{font-size:11px;color:var(--muted)}
+.xcard .chk{font-size:12px}
+.field>label.chk{justify-content:flex-start;font-weight:400}
+.xcard .acts .ib{padding:6px 7px}
+.addto{display:flex;flex-direction:column;gap:8px;padding:8px;border:1px solid var(--accent);border-radius:8px;background:var(--panel)}
+.addto select{font-size:13px;padding:6px 8px}
+.addto .seg-b button{padding:6px 8px;font-size:12px}
+.xpick{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px}
+.xp{flex-direction:column;gap:3px;padding:4px;width:70px;flex:none;font-size:11px;line-height:1.2;background:var(--panel)}
+.xp .face{width:60px}
+.xp>span:last-child{max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xp[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--chip)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{padding:6px 11px;font-size:12px;border-radius:99px}
 .bgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
 .bgc{display:flex;flex-direction:column;gap:4px;font-size:12px;text-align:center}
 .bgc .thumb{width:100%;height:68px;border-radius:8px}
@@ -181,6 +220,8 @@ input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line
   .tabs{top:0}
   .app:has(.side :is(input,textarea):focus) canvas#cv{max-height:16vh}
 }
+/* on a computer, the preview stays in view while you edit a long scene */
+@media (min-width:901px) and (min-height:620px){.stage{position:sticky;top:12px}}
 @media (max-width:900px) and (max-height:560px){.stage{position:static;box-shadow:none}canvas#cv{max-height:70vh}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -331,7 +372,71 @@ function SAMPLE(){const a='c_'+rkey(),b='c_'+rkey(),s1='s_'+rkey(),s2='s_'+rkey(
         {k:'narr',text:'The city looked different in daylight. Smaller, somehow.'},
         {k:'end',text:'The End'}]}]};}
 let P=SAMPLE();
-const IMGS={};   /* image id -> Image (expressions and backgrounds) */
+const IMGS={};   /* media id -> a picture, a playing video, or a moving picture split into frames (expressions and backgrounds) */
+/* ---------- moving portraits: videos loop without sound; GIFs (and animated WebP or PNG) are split into frames ---------- */
+const MEDIA_HOST=(()=>{try{const d=document.createElement('div');d.setAttribute('aria-hidden','true');d.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;overflow:hidden;opacity:0;pointer-events:none';(document.body||document.documentElement).append(d);return d;}catch(e){return null;}})();
+function makeVideo(url){const v=document.createElement('video');v.muted=true;v.defaultMuted=true;v.loop=true;v.playsInline=true;v.autoplay=true;v.preload='auto';v.setAttribute('muted','');v.setAttribute('playsinline','');v.src=url;if(MEDIA_HOST)MEDIA_HOST.append(v);
+  return new Promise(res=>{let done=false;const fin=ok=>{if(done)return;done=true;if(ok){v.play().catch(()=>{});res(v);}else{v.remove();res(null);}};
+    v.addEventListener('loadeddata',()=>fin(true),{once:true});v.addEventListener('error',()=>fin(false),{once:true});setTimeout(()=>fin(v.readyState>=2),15000);});}
+function mkAnim(frames,delays){let total=0;const at=delays.map(d=>{const s=total;total+=d;return s;});return{anim:true,frames,delays,at,total:total||100,width:frames[0].width,height:frames[0].height};}
+function frameOf(a,now){const t=((now*1000)%a.total+a.total)%a.total;let lo=0,hi=a.at.length-1;while(lo<hi){const m=(lo+hi+1)>>1;if(a.at[m]<=t)lo=m;else hi=m-1;}return a.frames[lo];}
+const srcAt=(s,now)=>s&&s.anim?frameOf(s,now):s;
+/* GIF: read the frames out of the file ourselves (a canvas only ever draws a GIF's first frame) */
+function gifLzwDecode(min,data,n){const out=new Uint8Array(n),clear=1<<min,eoi=clear+1,pre=new Int16Array(4096),suf=new Uint8Array(4096),len=new Uint16Array(4096);
+  for(let i=0;i<clear;i++){pre[i]=-1;suf[i]=i;len[i]=1;}
+  let size=min+1,mask=(1<<size)-1,next=eoi+1,bits=0,acc=0,pos=0,o=0,old=-1,first=0;
+  while(o<n){while(bits<size&&pos<data.length){acc|=data[pos++]<<bits;bits+=8;}if(bits<size)break;const code=acc&mask;acc>>>=size;bits-=size;
+    if(code===clear){size=min+1;mask=(1<<size)-1;next=eoi+1;old=-1;continue;}if(code===eoi)break;
+    if(old<0){if(code>=clear)break;out[o++]=suf[code];first=suf[code];old=code;continue;}
+    const cur=code<next?code:old,L=len[cur];let t=cur,w=o+L-1;while(t>=0){if(w<n)out[w]=suf[t];first=suf[t];w--;t=pre[t];}o+=L;
+    if(code>=next){if(o<n)out[o]=first;o++;}
+    if(next<4096){pre[next]=old;suf[next]=first;len[next]=len[old]+1;next++;if(next>mask&&size<12){size++;mask=(1<<size)-1;}}
+    old=code;}
+  return out;}
+function gifFrames(b){if(b.length<13||b[0]!==71||b[1]!==73||b[2]!==70)return null;let p=6;const u8=()=>b[p++],u16=()=>{const v=b[p]|(b[p+1]<<8);p+=2;return v;};
+  const GW=u16(),GH=u16(),fl=u8();u8();u8();let gct=null;if(fl&0x80){const n=2<<(fl&7);gct=b.subarray(p,p+n*3);p+=n*3;}
+  if(!GW||!GH)return null;const maxF=Math.max(8,Math.min(400,Math.floor(6e7/(GW*GH))));
+  const comp=document.createElement('canvas');comp.width=GW;comp.height=GH;const cg=comp.getContext('2d'),img=cg.createImageData(GW,GH),px=img.data;
+  let delay=100,trans=-1,disp=0;const frames=[],delays=[];
+  while(p<b.length){const t=u8();
+    if(t===0x3B)break;
+    if(t===0x21){const lab=u8();if(lab===0xF9){u8();const f=u8();delay=u16()*10;const ti=u8();u8();trans=f&1?ti:-1;disp=(f>>2)&7;}else{let s;while(p<b.length&&(s=u8()))p+=s;}continue;}
+    if(t!==0x2C)break;
+    const x=u16(),y=u16(),w=u16(),h=u16(),f=u8();let ct=gct;if(f&0x80){const n=2<<(f&7);ct=b.subarray(p,p+n*3);p+=n*3;}
+    const min=u8(),parts=[];let s,tot=0;while(p<b.length&&(s=u8())){parts.push(b.subarray(p,p+s));tot+=s;p+=s;}
+    const data=new Uint8Array(tot);let o=0;for(const q of parts){data.set(q,o);o+=q.length;}
+    if(!ct){continue;}
+    const idx=gifLzwDecode(min,data,w*h),prev=disp===3?px.slice():null;
+    let rows=null;if(f&0x40){rows=[];[[0,8],[4,8],[2,4],[1,2]].forEach(([s0,st])=>{for(let r=s0;r<h;r+=st)rows.push(r);});}
+    for(let i=0;i<w*h;i++){const ci=idx[i];if(ci===trans)continue;const r=rows?rows[(i/w)|0]:(i/w)|0,cx=x+i%w,cy=y+r;if(cx>=GW||cy>=GH)continue;const q=(cy*GW+cx)*4;px[q]=ct[ci*3];px[q+1]=ct[ci*3+1];px[q+2]=ct[ci*3+2];px[q+3]=255;}
+    cg.putImageData(img,0,0);const fc=document.createElement('canvas');fc.width=GW;fc.height=GH;fc.getContext('2d').drawImage(comp,0,0);frames.push(fc);delays.push(delay<20?100:delay);
+    if(disp===2){for(let r=0;r<h;r++)for(let c=0;c<w;c++){const cx=x+c,cy=y+r;if(cx<GW&&cy<GH)px[(cy*GW+cx)*4+3]=0;}}else if(prev)px.set(prev);
+    trans=-1;disp=0;delay=100;if(frames.length>=maxF)break;}
+  return frames.length?mkAnim(frames,delays):null;}
+/* animated pictures: GIF by hand; animated WebP or PNG through the browser's image decoder where there is one. Null when it doesn't move. */
+async function decodeAnim(blob){const type=blob.type||'';
+  if(/gif/i.test(type)){try{const a=gifFrames(new Uint8Array(await blob.arrayBuffer()));if(a&&a.frames.length>1)return a;}catch(e){}return null;}
+  if(typeof ImageDecoder==='undefined'||!/webp|png|avif/i.test(type))return null;
+  try{const dec=new ImageDecoder({data:await blob.arrayBuffer(),type});await dec.tracks.ready;const n=dec.tracks.selectedTrack?dec.tracks.selectedTrack.frameCount:1;
+    if(n<2){dec.close();return null;}const frames=[],delays=[];
+    for(let i=0;i<Math.min(n,400);i++){const r=await dec.decode({frameIndex:i}),vf=r.image,c=document.createElement('canvas');c.width=vf.displayWidth;c.height=vf.displayHeight;c.getContext('2d').drawImage(vf,0,0);delays.push(Math.max(20,(vf.duration||1e5)/1000));vf.close();frames.push(c);}
+    dec.close();return mkAnim(frames,delays);}catch(e){return null;}}
+/* green screen on a portrait: the screen color turns see-through, frame by frame */
+const KEYC={};
+function keyGuess(d,w,h){let r=0,g=0,b=0,n=0;const take=i=>{r+=d[i];g+=d[i+1];b+=d[i+2];n++;};for(let x=0;x<w;x+=4){take(x*4);take(((h-1)*w+x)*4);}for(let y=0;y<h;y+=4){take(y*w*4);take((y*w+w-1)*4);}
+  return'#'+[r,g,b].map(v=>Math.round(v/Math.max(1,n)).toString(16).padStart(2,'0')).join('');}
+function keyOut(d,hex,amt){const[kr,kg,kb]=hexRGB(hex),cb=(r,g,b)=>-.168736*r-.331264*g+.5*b,cr=(r,g,b)=>.5*r-.418688*g-.081312*b;
+  const kcb=cb(kr,kg,kb),kcr=cr(kr,kg,kb),kl=Math.max(22,Math.hypot(kcb,kcr)),t0=.06+amt*.5,t1=t0+.12,near=t1+.35,dom=kg>=kr&&kg>=kb?1:kb>=kr?2:0;
+  for(let i=0;i<d.length;i+=4){const r=d[i],g=d[i+1],b=d[i+2],nd=Math.hypot(cb(r,g,b)-kcb,cr(r,g,b)-kcr)/kl;if(nd<=t0){d[i+3]=0;continue;}
+    if(nd<near){const f=.5*(nd<t1?1:1-(nd-t1)/(near-t1));if(dom===1){const m=Math.max(r,b);if(g>m)d[i+1]=g-(g-m)*f;}else if(dom===2){const m=Math.max(r,g);if(b>m)d[i+2]=b-(b-m)*f;}else{const m=Math.max(g,b);if(r>m)d[i]=r-(r-m)*f;}}
+    if(nd<t1){const a=(nd-t0)/(t1-t0);d[i+3]=d[i+3]*a*a*(3-2*a);}}}
+function keyedSrc(ex,src){const[iw,ih]=dimsOf(src);if(!iw||!ih)return src;const k=Math.min(1,900/ih),w=Math.max(1,Math.round(iw*k)),hh=Math.max(1,Math.round(ih*k));
+  const c=KEYC[ex.id]||(KEYC[ex.id]={cv:document.createElement('canvas'),sid:null,set:''});
+  const sid=src.videoWidth?src.currentTime:src,set=(ex.keyTol==null?.35:ex.keyTol)+'|'+(ex.keyColor||'')+'|'+w;if(c.sid===sid&&c.set===set&&c.cv.width)return c.cv;
+  const cv2=c.cv;if(cv2.width!==w||cv2.height!==hh){cv2.width=w;cv2.height=hh;}const g=cv2.getContext('2d',{willReadFrequently:true});g.clearRect(0,0,w,hh);g.drawImage(src,0,0,w,hh);
+  try{const im=g.getImageData(0,0,w,hh);if(!isHex(ex.keyColor))ex.keyColor=keyGuess(im.data,w,hh);keyOut(im.data,ex.keyColor,ex.keyTol==null?.35:ex.keyTol);g.putImageData(im,0,0);}catch(e){}
+  c.sid=sid;c.set=(ex.keyTol==null?.35:ex.keyTol)+'|'+(ex.keyColor||'')+'|'+w;return cv2;}
+
 const sceneById=id=>P.scenes.find(s=>s.id===id)||null;
 const charById=id=>P.chars.find(c=>c.id===id)||null;
 const bgById=id=>P.bgs.find(b=>b.id===id)||null;
@@ -397,8 +502,8 @@ function drawFigure(ch,expr,x,bottom,h,now){const L=ch.look||{},skin=SKINC[L.ski
   else if(e==='smug'){ctx.moveTo(-30,my+4);ctx.quadraticCurveTo(10,my+18,40,my-10);ctx.stroke();}
   else{ctx.moveTo(-26,my+2);ctx.quadraticCurveTo(0,my+14,26,my+2);ctx.stroke();}
   ctx.restore();}
-/* the art for a character's expression: an uploaded image if there is one (falling back to the first), otherwise the drawn figure */
-function charArt(ch,expr){const ex=(ch.exprs||[]).find(e=>e.id===expr&&IMGS[e.img])||(ch.exprs||[]).find(e=>IMGS[e.img]);return ex?IMGS[ex.img]:null;}
+/* the art for a character's expression at this moment: your picture, GIF frame or video frame (falling back to the first expression), otherwise the drawn figure */
+function charArt(ch,expr,now){const ok=e=>e&&IMGS[e.img];const ex=(ch.exprs||[]).find(e=>e.id===expr&&ok(e))||(ch.exprs||[]).find(ok);if(!ex)return null;let s=srcAt(IMGS[ex.img],now||0);if(ex.key)s=keyedSrc(ex,s)||s;return s;}
 /* ---------- layout and the text box themes ---------- */
 function lay(){const wd=W>H;return wd?{wd,box:{x:W*.08,y:H*.70,w:W*.84,h:H*.26},fs:42,lh:58,name:38,charH:H*.92,feet:H,figB:H+40,pos:{left:W*.24,center:W*.5,right:W*.76},choiceW:W*.5}
   :{wd,box:{x:W*.05,y:H*.73,w:W*.9,h:H*.21},fs:40,lh:56,name:36,charH:H*.52,feet:H*.8,figB:H*.79,pos:{left:W*.3,center:W*.5,right:W*.7},choiceW:W*.84};}
@@ -444,15 +549,17 @@ function tap(g,now){if(!g.started){startG(g,now);return;}if(g.ended){startG(g,no
   if(st.k==='card'&&now-g.t0<.6)return;advance(g,now);}
 function choose(g,idx,now){if(!g.st||g.st.k!=='choice'||g.choice>=0)return;g.choice=idx;g.choiceT=now;}
 /* ---------- drawing ---------- */
-function drawBg(g,now){const cur=bgSource(g.bg);drawCover(cur,{x:0,y:0,w:W,h:H});if(g.prevBg&&now-g.bgT<.7){ctx.save();ctx.globalAlpha=1-smooth((now-g.bgT)/.7);drawCover(bgSource(g.prevBg),{x:0,y:0,w:W,h:H});ctx.restore();}}
+function drawBg(g,now){const cur=srcAt(bgSource(g.bg),now);drawCover(cur,{x:0,y:0,w:W,h:H});if(g.prevBg&&now-g.bgT<.7){ctx.save();ctx.globalAlpha=1-smooth((now-g.bgT)/.7);drawCover(srcAt(bgSource(g.prevBg),now),{x:0,y:0,w:W,h:H});ctx.restore();}}
 let LAYER=null;
 function withLayer(fn,alpha,dim){if(!LAYER||LAYER.width!==W||LAYER.height!==H){LAYER=document.createElement('canvas');LAYER.width=W;LAYER.height=H;}const o=ctx;ctx=LAYER.getContext('2d');ctx.clearRect(0,0,W,H);fn();
   if(dim){ctx.globalCompositeOperation='source-atop';ctx.fillStyle='rgba(0,0,10,.4)';ctx.fillRect(0,0,W,H);ctx.globalCompositeOperation='source-over';}ctx=o;ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(LAYER,0,0);ctx.restore();}
 function drawChars(g,now,speaking){const L=lay();const ids=Object.keys(g.chars);
   ids.forEach(id=>{const c=g.chars[id],ch=charById(id);if(!ch)return;const ein=smooth((now-c.enterT)/.45);let a=ein;if(c.leaveT!=null){const leave=smooth((now-c.leaveT)/.4);a=Math.min(a,1-leave);if(leave>=1){delete g.chars[id];return;}}
-    const x=L.pos[c.pos]||L.pos.center,dx=(c.pos==='left'?-1:c.pos==='right'?1:0)*(1-ein)*60,active=speaking===id,art=charArt(ch,c.expr);
-    withLayer(()=>{if(art){const[iw,ih]=dimsOf(art),hh=L.charH,ww=hh*iw/ih,bob=active?Math.sin(now*6)*3:0;ctx.drawImage(art,x-ww/2+dx,L.feet-hh+bob,ww,hh);}
-      else drawFigure(ch,c.expr,x+dx,L.figB,L.charH,now);},a,!active&&!!speaking);});}
+    const x=L.pos[c.pos]||L.pos.center,dx=(c.pos==='left'?-1:c.pos==='right'?1:0)*(1-ein)*60,active=speaking===id,art=charArt(ch,c.expr,now);
+    const sc=clamp(+ch.scale||1,.3,2),lift=(+ch.lift||0)*H,cx=x+dx;
+    withLayer(()=>{ctx.save();if(ch.flip){ctx.translate(cx,0);ctx.scale(-1,1);ctx.translate(-cx,0);}
+      if(art){const[iw,ih]=dimsOf(art);if(iw&&ih){const hh=L.charH*sc,ww=hh*iw/ih,bob=active?Math.sin(now*6)*3:0;ctx.drawImage(art,cx-ww/2,L.feet-hh+bob-lift,ww,hh);}}
+      else drawFigure(ch,c.expr,cx,L.figB-lift,L.charH*sc,now);ctx.restore();},a,!active&&!!speaking);});}
 function drawBox(g,now){const st=g.st;if(!st||(st.k!=='say'&&st.k!=='narr'))return;const L=lay(),T=themeC(),B=L.box,ch=st.k==='say'?charById(st.who):null,{txt,done}=typed(g,now);
   ctx.save();
   if(T.gradient){const gr=ctx.createLinearGradient(0,B.y-H*.12,0,H);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(.5,'rgba(0,0,0,.6)');gr.addColorStop(1,'rgba(0,0,0,.85)');ctx.fillStyle=gr;ctx.fillRect(0,B.y-H*.12,W,H-B.y+H*.12);}
@@ -488,7 +595,7 @@ function drawCard(g,now){const st=g.st;if(!st||st.k!=='card')return;const L=lay(
 function drawEnd(g,now){const L=lay(),q=clamp((now-g.endT)/.8,0,1),st=g.st;ctx.save();ctx.fillStyle=`rgba(0,0,0,${.8*q})`;ctx.fillRect(0,0,W,H);ctx.globalAlpha=q;
   ctx.font=F(L.fs*1.6,600,fontOf());ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String((st&&st.k==='end'&&st.text)||'The End'),W/2,H/2-20);
   if(MODE!=='watch'){ctx.font=F(L.fs*.7,400,fontOf());ctx.fillStyle='rgba(255,255,255,.7)';ctx.fillText('Tap to play again',W/2,H/2+L.lh*1.4);}ctx.restore();}
-function drawTitle(now){const L=lay(),sc=P.scenes[0];drawCover(bgSource(sc?sc.bg:'dark'),{x:0,y:0,w:W,h:H});ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,H);
+function drawTitle(now){const L=lay(),sc=P.scenes[0];drawCover(srcAt(bgSource(sc?sc.bg:'dark'),now),{x:0,y:0,w:W,h:H});ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(0,0,W,H);
   ctx.font=F(L.fs*2.1,700,fontOf());ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor='rgba(0,0,0,.6)';ctx.shadowBlur=20;const tl=wrap(P.title||'Untitled',W*.84);tl.forEach((l,j)=>ctx.fillText(l,W/2,H*.42+(j-(tl.length-1)/2)*L.lh*2.2));
   if(P.author){ctx.font=F(L.fs*.8,400,fontOf());ctx.fillStyle='rgba(255,255,255,.8)';ctx.fillText(P.author,W/2,H*.42+(tl.length/2)*L.lh*2.2+30);}
   ctx.shadowBlur=0;if(Math.floor(now*1.2)%2===0){ctx.font=F(L.fs*.75,500,fontOf());ctx.fillStyle='#fff';ctx.fillText('Tap to start',W/2,H*.78);}}
@@ -554,7 +661,8 @@ function stepCard(sc,st,i){const card=h('div',{class:'step'+(i===SELSTEP?' sel':
     h('button',{type:'button',class:'ib','aria-label':'Move down',disabled:i===sc.steps.length-1,onclick:e=>{e.stopPropagation();[sc.steps[i+1],sc.steps[i]]=[sc.steps[i],sc.steps[i+1]];SELSTEP=i+1;changed();}},'↓'),
     h('button',{type:'button',class:'ib','aria-label':'Duplicate',onclick:e=>{e.stopPropagation();sc.steps.splice(i+1,0,clone(st));changed();}},'⧉'),h('button',{type:'button',class:'ib','aria-label':'Delete step',onclick:e=>{e.stopPropagation();sc.steps.splice(i,1);SELSTEP=-1;changed();}},'✕'))));
   const soft=()=>{save();previewFrom(sc.id,i,true);};
-  if(st.k==='say'){const ch=charById(st.who);card.append(h('div',{class:'grid2'},selF('st-who-'+i,'Who',charOpts(),st.who,v=>{st.who=v;st.expr='neutral';changed();}),selF('st-ex-'+i,'Expression',exprOpts(ch),st.expr,v=>{st.expr=v;soft();})),
+  const pickWho=v=>{st.who=v;st.expr=(firstExpr(charById(v))||{id:'neutral'}).id;changed();};
+  if(st.k==='say'){const ch=charById(st.who);card.append(...[selF('st-who-'+i,'Who',charOpts(),st.who,pickWho),exprPick('st-ex-'+i,ch,st.expr,v=>{st.expr=v;soft();})].filter(Boolean),
     segB('st-pos-'+i,'Stands',[['','Where they are'],['left','Left'],['center','Middle'],['right','Right']],st.pos||'',v=>{st.pos=v;soft();}),areaF('st-t-'+i,'',st.text,v=>{st.text=v;soft();},'What they say'));}
   else if(st.k==='narr'||st.k==='card'||st.k==='end')card.append(areaF('st-t-'+i,'',st.text,v=>{st.text=v;soft();},st.k==='narr'?'Narration, in italics':st.k==='card'?'Text on a black card':'The End'));
   else if(st.k==='choice'){card.append(textF('st-p-'+i,'Prompt (optional)',st.prompt,v=>{st.prompt=v;soft();},'A line above the options'));const opts=h('div',{class:'opts'});
@@ -562,42 +670,156 @@ function stepCard(sc,st,i){const card=h('div',{class:'step'+(i===SELSTEP?' sel':
       const tx=h('input',{type:'text',value:o.text,'aria-label':'Option text',oninput:e=>{o.text=e.target.value;soft();}}),go=selF('st-go-'+i+'-'+j,'',[['','(stay here)'],...sceneOpts()],o.go||'',v=>{o.go=v;save();});
       opts.append(h('div',{class:'opt'},rad,tx,go,h('button',{type:'button',class:'ib','aria-label':'Remove option',onclick:()=>{if(st.opts.length<=2){toast('A choice needs two options.');return;}st.opts.splice(j,1);if(!st.opts.some(x=>x.auto))st.opts[0].auto=true;changed();}},'✕')));});
     card.append(h('div',{class:'field'},h('span',{class:'flabel'},'Options',h('span',{class:'rv'},'● the one taken in the video')),opts),st.opts.length<4?h('div',{class:'addrow'},h('button',{type:'button',onclick:()=>{st.opts.push({text:'Another option',go:'',auto:false});changed();}},'+ Option')):null);}
-  else if(st.k==='show'){const ch=charById(st.who);card.append(h('div',{class:'grid2'},selF('st-who-'+i,'Who',charOpts(),st.who,v=>{st.who=v;st.expr='neutral';changed();}),selF('st-ex-'+i,'Expression',exprOpts(ch),st.expr,v=>{st.expr=v;soft();})),segB('st-pos-'+i,'Stands',[['left','Left'],['center','Middle'],['right','Right']],st.pos||'right',v=>{st.pos=v;soft();}));}
+  else if(st.k==='show'){const ch=charById(st.who);card.append(...[selF('st-who-'+i,'Who',charOpts(),st.who,pickWho),exprPick('st-ex-'+i,ch,st.expr,v=>{st.expr=v;soft();})].filter(Boolean),segB('st-pos-'+i,'Stands',[['left','Left'],['center','Middle'],['right','Right']],st.pos||'right',v=>{st.pos=v;soft();}));}
   else if(st.k==='hide')card.append(selF('st-who-'+i,'Who',charOpts(),st.who,v=>{st.who=v;soft();}));
   else if(st.k==='bg')card.append(selF('st-bg-'+i,'Background',bgOpts(),st.bg,v=>{st.bg=v;soft();}));
   else if(st.k==='fx')card.append(segB('st-fx-'+i,'Effect',[['shake','Shake'],['flash','Flash']],st.kind||'shake',v=>{st.kind=v;soft();}));
   else if(st.k==='jump')card.append(selF('st-go-'+i,'Go to',sceneOpts(),st.go,v=>{st.go=v;save();}));
   return card;}
 /* ---------- characters ---------- */
-function peoplePane(p){const list=h('div',{class:'people'});
-  P.chars.forEach((ch,i)=>{const d=h('details',{class:'person',open:i===0||P.chars.length<=3});const sum=h('summary',{},h('span',{class:'dot',style:'background:'+ch.color}),h('span',{},ch.name||'Character'),h('span',{class:'spacer'}),h('span',{class:'rv'},(ch.exprs||[]).some(e=>IMGS[e.img])?'your art':'drawn'));d.append(sum);
-    d.append(h('div',{class:'grid2'},textF('ch-n-'+i,'Name',ch.name,v=>{ch.name=v;save();drawNow();}),colorF('ch-c-'+i,'Name color',ch.color,v=>{ch.color=v;save();drawNow();})));
-    d.append(segB('ch-side-'+i,'Usually stands',[['left','Left'],['center','Middle'],['right','Right']],ch.side||'left',v=>{ch.side=v;save();}));
-    const ex=h('div',{class:'exprs'});(ch.exprs||[]).forEach((e,j)=>{const im=IMGS[e.img];ex.append(h('div',{class:'expr'},im?h('img',{class:'thumb',src:im.src,alt:''}):h('span',{class:'thumb'}),h('input',{type:'text',value:e.name,'aria-label':'Expression name',oninput:ev=>{e.name=ev.target.value;save();}}),
-      h('div',{class:'row'},h('label',{class:'btn','for':'ex-up-'+i+'-'+j},'Change',fileInp('ex-up-'+i+'-'+j,'image/*',f=>setImg(e,f))),h('button',{type:'button',class:'ib','aria-label':'Remove',onclick:()=>{dropImg(e.img);ch.exprs.splice(j,1);changed();}},'✕'))));});
-    d.append(h('div',{class:'field'},h('span',{class:'flabel'},'Expressions (your art)'),ex,h('div',{class:'addrow'},h('label',{class:'btn','for':'ex-add-'+i},'+ Add an expression picture',fileInp('ex-add-'+i,'image/*',async f=>{const e={id:'e_'+rkey(),name:guessExpr(f.name),img:''};ch.exprs=ch.exprs||[];ch.exprs.push(e);await setImg(e,f);}))),
-      h('p',{class:'help'},'A PNG with a see-through background works best: head and shoulders or full body, any size. Add one picture per expression and name them. Without pictures, a drawn character stands in with the eight built-in expressions.')));
-    if(!(ch.exprs||[]).some(e=>IMGS[e.img])){const L=ch.look||(ch.look={hair:0,skin:0,style:0,outfit:'#3E63DD',eyes:'#3A3A3A'});
-      d.append(h('div',{class:'field'},h('span',{class:'flabel'},'Drawn look'),segB('ch-hs-'+i,'Hair style',[[0,'Short'],[1,'Long'],[2,'Flat'],[3,'Buns']],L.style|0,v=>{L.style=v;save();drawNow();}),
-        h('div',{class:'row'},HAIRC.map((c,k)=>h('button',{type:'button',class:'ib','aria-label':'Hair color '+(k+1),'aria-pressed':String((L.hair|0)===k),style:'padding:4px',onclick:()=>{L.hair=k;save();drawNow();renderSide();}},h('span',{class:'dot',style:`width:20px;height:20px;background:${c};outline:${(L.hair|0)===k?'2px solid var(--accent)':'none'};outline-offset:2px`})))),
-        h('div',{class:'row'},SKINC.map((c,k)=>h('button',{type:'button',class:'ib','aria-label':'Skin tone '+(k+1),style:'padding:4px',onclick:()=>{L.skin=k;save();drawNow();renderSide();}},h('span',{class:'dot',style:`width:20px;height:20px;background:${c};outline:${(L.skin|0)===k?'2px solid var(--accent)':'none'};outline-offset:2px`})))),
-        h('div',{class:'grid2'},colorF('ch-o-'+i,'Outfit',L.outfit,v=>{L.outfit=v;save();drawNow();}),colorF('ch-e-'+i,'Eyes',L.eyes,v=>{L.eyes=v;save();drawNow();}))));}
-    d.append(h('div',{class:'addrow'},h('button',{type:'button',onclick:()=>{if(!confirm(`Remove ${ch.name}? Their lines stay but will need a new speaker.`))return;(ch.exprs||[]).forEach(e=>dropImg(e.img));P.chars.splice(i,1);changed();}},'Remove character')));
-    list.append(d);});
-  p.append(sec('Characters',list,h('div',{class:'addrow'},h('button',{type:'button',onclick:()=>{const n=P.chars.length;P.chars.push({id:'c_'+rkey(),name:['Alex','Sam','Jo','Kai','Noor','Theo'][n%6],color:PCOL[n%PCOL.length],side:n%2?'right':'left',look:{hair:(n*3)%HAIRC.length,skin:n%SKINC.length,style:n%4,outfit:PCOL[(n+2)%PCOL.length],eyes:'#3A3A3A'},exprs:[]});changed();}},'+ Add character'))));}
-function guessExpr(name){const b=String(name||'').toLowerCase();for(const[k,l]of EXPRS)if(b.includes(k))return l;return'Expression '+(1+Math.floor(Math.random()*9));}
-function fileInp(id,accept,on){const inp=h('input',{type:'file',id,accept});inp.onchange=()=>{const f=inp.files[0];inp.value='';if(f)on(f);};return inp;}
-/* images live in the browser's database; a project file carries them as data URLs */
-async function setImg(holder,file){const id=holder.img||('i_'+rkey());const im=await loadImg(file);if(!im){toast('That picture couldn’t be opened.');return;}IMGS[id]=im;holder.img=id;await putImg(id,file);changed();}
-function dropImg(id){if(!id)return;delete IMGS[id];putImg(id,null);}
+/* Each character has a list of expressions. An expression is a picture, a GIF (or animated WebP/PNG) or a video.
+   Without any of your art, a drawn character stands in, with eight built-in expressions. */
+let CHSEL=null,ADDTO=null;
+const URLS={},BLOBS={},POSTER={};
+const KIND_LABEL={image:'',anim:'GIF',video:'VIDEO'};
+const hasArt=ch=>!!(ch&&ch.exprs&&ch.exprs.length);
+function exprList(ch){if(!ch)return[];return hasArt(ch)?ch.exprs:EXPRS.map(([id,name])=>({id,name,builtin:true}));}
+function firstExpr(ch){return exprList(ch)[0]||null;}
+/* how often a character is used, scene by scene */
+function appearances(id){const out={lines:0,shows:0,scenes:[]};P.scenes.forEach(sc=>{let n=0,first=-1;sc.steps.forEach((st,i)=>{if(st.who===id&&(st.k==='say'||st.k==='show'||st.k==='hide')){n++;if(first<0)first=i;if(st.k==='say')out.lines++;else if(st.k==='show')out.shows++;}});if(n)out.scenes.push({sc,n,first});});return out;}
+const exprUses=(chId,exId)=>P.scenes.reduce((a,sc)=>a+sc.steps.filter(st=>st.who===chId&&st.expr===exId).length,0);
+/* a small face for lists and pickers: your art cropped to the top, or the drawn character's face */
+const DTH={};
+function drawnThumb(ch,ex){const L=ch.look||{},key=[ch.id,ex,L.hair,L.skin,L.style,L.outfit,L.eyes].join('|');let c0=DTH[key];
+  if(!c0){c0=document.createElement('canvas');c0.width=c0.height=160;const o=ctx;ctx=c0.getContext('2d');try{drawFigure(ch,ex,80,272,300,1.5);}finally{ctx=o;}DTH[key]=c0;}
+  const c=document.createElement('canvas');c.width=c.height=160;c.getContext('2d').drawImage(c0,0,0);return c;}
+function faceEl(ch,e,still){const box=h('span',{class:'face'});
+  if(e&&!e.builtin){const id=e.img,k=e.kind||'image',url=URLS[id]||(IMGS[id]&&IMGS[id].src);
+    if(!id||!IMGS[id]){box.classList.add('empty');return box;}
+    if(!still&&url){if(k==='video'){const v=h('video',{src:url,loop:true,playsinline:true,autoplay:true,'aria-hidden':'true'});v.muted=true;v.play&&v.play().catch(()=>{});box.append(v);}else box.append(h('img',{src:url,alt:''}));return box;}
+    const pc=POSTER[id]||(IMGS[id]&&!IMGS[id].anim&&!IMGS[id].videoWidth?IMGS[id]:null);
+    if(pc){const c=document.createElement('canvas'),[pw,ph]=dimsOf(pc),s=Math.min(1,240/Math.max(pw,ph));c.width=Math.max(1,Math.round(pw*s));c.height=Math.max(1,Math.round(ph*s));c.getContext('2d').drawImage(pc,0,0,c.width,c.height);box.append(c);}
+    else box.classList.add('empty');return box;}
+  box.append(drawnThumb(ch,e?e.id:'neutral'));return box;}
+/* show one character on the stage, on their own, with one expression */
+function previewChar(ch,exId){if(MODE!=='play')setMode('play');const sc=sceneById(SEL)||P.scenes[0];const g=newG(),now=nowS();g.started=true;g.sceneId=sc?sc.id:null;g.bg=sc?(sc.bg||'dark'):'dark';
+  g.chars[ch.id]={expr:exId,pos:ch.side||'center',enterT:now-1,leaveT:null};g.i=9999;G=g;drawNow();}
+function addChar(){const n=P.chars.length,c={id:'c_'+rkey(),name:['Alex','Sam','Jo','Kai','Noor','Theo'][n%6],color:PCOL[n%PCOL.length],side:n%2?'right':'left',look:{hair:(n*3)%HAIRC.length,skin:n%SKINC.length,style:n%4,outfit:PCOL[(n+2)%PCOL.length],eyes:'#3A3A3A'},exprs:[]};
+  P.chars.push(c);CHSEL=c.id;ADDTO=null;changed();previewChar(c,'neutral');}
+/* put a character into a scene: a Show step, or a Line ready to type */
+function addToScene(ch,exId,sceneId,how,pos){const sc=sceneById(sceneId);if(!sc)return;
+  const st=how==='say'?{k:'say',who:ch.id,expr:exId,pos:pos||'',text:''}:{k:'show',who:ch.id,expr:exId,pos:pos||ch.side||'center'};
+  const at=sceneId===SEL&&SELSTEP>=0?SELSTEP+1:sc.steps.length;sc.steps.splice(at,0,st);SEL=sceneId;SELSTEP=at;TAB='scenes';ADDTO=null;changed();previewFrom(sceneId,at);
+  toast(how==='say'?`${ch.name} has a new line in “${sc.name}”. Type what they say.`:`${ch.name} now shows up in “${sc.name}”.`);
+  setTimeout(()=>{const ta=$('st-t-'+at),card=ta&&ta.closest('.step')||document.querySelectorAll('.step')[at];if(card)card.scrollIntoView({block:'center',behavior:'smooth'});if(ta)ta.focus({preventScroll:true});},60);}
+/* the expression's name from its file name: "mina_happy.png" becomes Happy */
+function guessExpr(name){const b=String(name||'').toLowerCase();for(const[k,l]of EXPRS)if(b.includes(k))return l;
+  const base=String(name||'').replace(/\.[a-z0-9]+$/i,'').replace(/[_\-.]+/g,' ').trim();return base?base.slice(0,24).replace(/^./,c=>c.toUpperCase()):'Expression';}
+async function addExprFiles(ch,files){const fs=[...files].filter(f=>/^(image|video)\//.test(f.type)||/\.(png|jpe?g|webp|gif|avif|mp4|webm|mov|m4v)$/i.test(f.name));
+  if(!fs.length){toast('Those aren’t pictures, GIFs or videos.');return;}
+  let n=0;for(const f of fs){const e={id:'e_'+rkey(),name:guessExpr(f.name),img:''};ch.exprs=ch.exprs||[];ch.exprs.push(e);if(await setImg(e,f,true))n++;else ch.exprs.splice(ch.exprs.indexOf(e),1);}
+  changed();if(n)toast(n>1?`${n} expressions added to ${ch.name}.`:`Expression added to ${ch.name}.`);
+  const big=fs.filter(f=>/^video\//.test(f.type)&&f.size>25e6);if(big.length)toast('Big videos make the project and the playable file big. A short loop works best.');}
+function peoplePane(p){
+  if(!CHSEL||!charById(CHSEL))CHSEL=P.chars[0]?P.chars[0].id:null;
+  /* the cast */
+  const cast=h('div',{class:'cast'});
+  P.chars.forEach(ch=>{const ap=appearances(ch.id),ne=exprList(ch).length;
+    cast.append(h('button',{type:'button',class:'castc'+(ch.id===CHSEL?' sel':''),'aria-pressed':String(ch.id===CHSEL),onclick:()=>{CHSEL=ch.id;ADDTO=null;renderSide();previewChar(ch,(firstExpr(ch)||{}).id);}},
+      faceEl(ch,firstExpr(ch),true),h('span',{class:'nm'},h('span',{class:'dot',style:'background:'+ch.color}),h('span',{},ch.name||'Character')),
+      h('span',{class:'meta'},`${ne} expression${ne===1?'':'s'} · ${ap.lines} line${ap.lines===1?'':'s'}`)));});
+  cast.append(h('button',{type:'button',class:'castc add',onclick:addChar},h('span',{class:'plus','aria-hidden':'true'},'+'),h('span',{class:'nm'},'New character')));
+  p.append(sec(h('span',{},'Cast',h('span',{class:'rv'},P.chars.length?` ${P.chars.length}`:'')),cast,P.chars.length?null:h('p',{class:'help'},'Make your first character, then give them expressions.')));
+  const ch=charById(CHSEL);if(!ch)return;const i=P.chars.indexOf(ch);
+  /* profile */
+  const fe=firstExpr(ch);
+  p.append(sec(h('span',{},ch.name||'Character',h('span',{class:'rv'},hasArt(ch)?' · your art':' · drawn')),
+    h('div',{class:'prof'},h('button',{type:'button',class:'big','aria-label':'Show on the stage',title:'Show on the stage',onclick:()=>previewChar(ch,fe&&fe.id)},faceEl(ch,fe,false)),
+      h('div',{class:'field'},h('div',{class:'grid2'},textF('ch-n','Name',ch.name,v=>{ch.name=v;save();drawNow();}),colorF('ch-c','Name color',ch.color,v=>{ch.color=v;save();drawNow();})),
+        segB('ch-side','Usually stands',[['left','Left'],['center','Middle'],['right','Right']],ch.side||'left',v=>{ch.side=v;save();}))),
+    h('div',{class:'grid2'},rangeF('ch-sc','Size',.5,1.6,.05,ch.scale||1,v=>Math.round(v*100)+'%',v=>{ch.scale=v;save();drawNow();}),rangeF('ch-lift','Higher or lower',-.3,.4,.01,ch.lift||0,v=>Math.abs(v)<.005?'As is':v>0?'Up '+Math.round(v*100)+'%':'Down '+Math.round(-v*100)+'%',v=>{ch.lift=v;save();drawNow();})),
+    checkF('ch-flip','Face the other way (mirror)',!!ch.flip,v=>{ch.flip=v;save();drawNow();}),
+    h('p',{class:'help'},'Size and height help when pictures are cropped differently. Tap the portrait to see them on the stage.')));
+  /* expressions */
+  const gal=h('div',{class:'xgal'});
+  exprList(ch).forEach((e,j)=>{const card=h('div',{class:'xcard'}),k=e.kind||'image',uses=e.builtin?0:exprUses(ch.id,e.id);
+    card.append(h('button',{type:'button',class:'big','aria-label':`Show ${e.name} on the stage`,title:'Show on the stage',onclick:()=>previewChar(ch,e.id)},faceEl(ch,e,false)));
+    if(!e.builtin&&KIND_LABEL[k])card.append(h('span',{class:'badge'},KIND_LABEL[k]));
+    if(j===0&&hasArt(ch)&&ch.exprs.length>1)card.append(h('span',{class:'badge def',title:'Used when a step asks for an expression that’s gone'},'★ Default'));
+    if(e.builtin)card.append(h('span',{class:'xname'},e.name));
+    else card.append(h('input',{type:'text',value:e.name,'aria-label':'Expression name',oninput:ev=>{e.name=ev.target.value;save();}}));
+    const acts=h('div',{class:'acts'});
+    acts.append(h('button',{type:'button','aria-expanded':String(ADDTO===e.id),onclick:()=>{ADDTO=ADDTO===e.id?null:e.id;renderSide();}},'+ Add to scene'));
+    if(!e.builtin){acts.append(h('label',{class:'btn',for:'ex-rep-'+j,title:'Replace with another picture, GIF or video'},'Replace',fileInp('ex-rep-'+j,'image/*,video/*',f=>setImg(e,f))));
+      if(j>0)acts.append(h('button',{type:'button',class:'ib','aria-label':'Make this the default',title:'Make this the default',onclick:()=>{ch.exprs.splice(j,1);ch.exprs.unshift(e);changed();}},'★'));
+      acts.append(h('button',{type:'button',class:'ib','aria-label':`Delete ${e.name}`,title:'Delete',onclick:()=>{if(uses&&!confirm(`${e.name} is used ${uses} time${uses>1?'s':''} in your scenes. Those steps will show the default expression instead. Delete it?`))return;dropImg(e.img,e);ch.exprs.splice(j,1);changed();}},'✕'));}
+    card.append(acts);
+    if(!e.builtin&&uses)card.append(h('span',{class:'uses'},`Used ${uses} time${uses>1?'s':''}`));
+    if(!e.builtin){const kk=h('div',{class:'field'},checkF('ex-key-'+j,'Remove green screen',!!e.key,v=>{e.key=v;if(v&&e.keyTol==null)e.keyTol=.35;changed();}));
+      if(e.key)kk.append(rangeF('ex-kt-'+j,'How much',0,1,.01,e.keyTol==null?.35:e.keyTol,v=>v<.25?'A little':v<.6?'Some':'A lot',v=>{e.keyTol=v;save();drawNow();}),
+        h('div',{class:'row'},h('span',{class:'dot',style:'background:'+(isHex(e.keyColor)?e.keyColor:'#00B140')+';width:18px;height:18px'}),h('button',{type:'button',class:'ib',onclick:()=>{e.keyColor=null;changed();}},'Find the color again')));
+      card.append(kk);}
+    if(ADDTO===e.id){let to=sceneById(SEL)?SEL:(P.scenes[0]||{}).id,how='show',pos=ch.side||'center';
+      const f=h('div',{class:'addto'},selF('ex-to-'+j,'Scene',sceneOpts(),to,v=>{to=v;}),
+        segB('ex-how-'+j,'As',[['show','Show them'],['say','A line']],how,v=>{how=v;f.querySelectorAll('[aria-labelledby="ex-how-'+j+'-l"] button').forEach((b,q)=>b.setAttribute('aria-pressed',String(['show','say'][q]===v)));}),
+        segB('ex-pos-'+j,'Stands',[['left','Left'],['center','Middle'],['right','Right']],pos,v=>{pos=v;f.querySelectorAll('[aria-labelledby="ex-pos-'+j+'-l"] button').forEach((b,q)=>b.setAttribute('aria-pressed',String(['left','center','right'][q]===v)));}),
+        h('div',{class:'row'},h('button',{type:'button',class:'primary',onclick:()=>addToScene(ch,e.id,to,how,pos)},'Add'),h('button',{type:'button',onclick:()=>{ADDTO=null;renderSide();}},'Cancel')),
+        h('p',{class:'help'},to===SEL&&SELSTEP>=0?'It goes in after the step you have selected in that scene.':'It goes at the end of the scene.'));
+      card.append(f);}
+    gal.append(card);});
+  const up=h('label',{class:'btn primary',for:'ex-add'},hasArt(ch)?'+ Add pictures, GIFs or videos':'+ Add your own art',fileInp('ex-add','image/*,video/*',null,fs=>addExprFiles(ch,fs)));
+  ['dragenter','dragover'].forEach(ev=>gal.addEventListener(ev,e=>{e.preventDefault();gal.classList.add('drop');}));
+  ['dragleave','drop'].forEach(ev=>gal.addEventListener(ev,e=>{e.preventDefault();gal.classList.remove('drop');}));
+  gal.addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files.length)addExprFiles(ch,e.dataTransfer.files);});
+  p.append(sec(h('span',{},'Expressions',h('span',{class:'rv'},` ${exprList(ch).length}`)),gal,h('div',{class:'addrow'},up),
+    h('p',{class:'help'},hasArt(ch)?'Pick several files at once, or drop them here; each becomes an expression, named from its file name. Pictures, GIFs, animated WebP and videos (MP4, WebM) all work; videos and GIFs play on a loop, without sound. A PNG or WebM with a see-through background looks best. For a video shot on a green screen, tick Remove green screen. Background Remover can make see-through versions of photos and videos.':
+      'These are the drawn character’s expressions. Add your own pictures, GIFs or videos and they take over: one file per expression.')));
+  /* the drawn look */
+  if(!hasArt(ch)){const L=ch.look||(ch.look={hair:0,skin:0,style:0,outfit:'#3E63DD',eyes:'#3A3A3A'});
+    p.append(sec('Drawn look',segB('ch-hs','Hair style',[[0,'Short'],[1,'Long'],[2,'Flat'],[3,'Buns']],L.style|0,v=>{L.style=v;changed();}),
+      h('div',{class:'field'},h('span',{class:'flabel'},'Hair'),h('div',{class:'row'},HAIRC.map((c,k)=>h('button',{type:'button',class:'ib','aria-label':'Hair color '+(k+1),'aria-pressed':String((L.hair|0)===k),style:'padding:4px',onclick:()=>{L.hair=k;changed();}},h('span',{class:'dot',style:`width:20px;height:20px;background:${c};outline:${(L.hair|0)===k?'2px solid var(--accent)':'none'};outline-offset:2px`}))))),
+      h('div',{class:'field'},h('span',{class:'flabel'},'Skin'),h('div',{class:'row'},SKINC.map((c,k)=>h('button',{type:'button',class:'ib','aria-label':'Skin tone '+(k+1),'aria-pressed':String((L.skin|0)===k),style:'padding:4px',onclick:()=>{L.skin=k;changed();}},h('span',{class:'dot',style:`width:20px;height:20px;background:${c};outline:${(L.skin|0)===k?'2px solid var(--accent)':'none'};outline-offset:2px`}))))),
+      h('div',{class:'grid2'},colorF('ch-o','Outfit',L.outfit,v=>{L.outfit=v;save();drawNow();}),colorF('ch-e','Eyes',L.eyes,v=>{L.eyes=v;save();drawNow();}))));}
+  /* where they are in the story */
+  const ap=appearances(ch.id),chips=h('div',{class:'chips'});
+  ap.scenes.forEach(({sc,n,first})=>chips.append(h('button',{type:'button',onclick:()=>{SEL=sc.id;SELSTEP=first;TAB='scenes';changed();previewFrom(sc.id,first);}},`${sc.name||'Scene'} · ${n}`)));
+  p.append(sec('In the story',ap.scenes.length?chips:h('p',{class:'help'},'Not in any scene yet. Use “+ Add to scene” on an expression, or add a Line in the Scenes tab.'),
+    ap.scenes.length?h('p',{class:'help'},`${ap.lines} line${ap.lines===1?'':'s'} in ${ap.scenes.length} scene${ap.scenes.length===1?'':'s'}. Tap a scene to go to it.`):null));
+  /* manage */
+  p.append(sec('Manage',h('div',{class:'addrow'},
+    h('button',{type:'button',onclick:()=>{const c=clone(ch);c.id='c_'+rkey();c.name=(ch.name||'Character')+' 2';(c.exprs||[]).forEach(e=>{e.id='e_'+rkey();});P.chars.splice(i+1,0,c);CHSEL=c.id;changed();toast(`Made a copy of ${ch.name}, with the same expressions.`);}},'Duplicate'),
+    h('button',{type:'button',onclick:()=>{const n=appearances(ch.id);if(!confirm(`Remove ${ch.name}?`+(n.lines+n.shows?` Their ${n.lines+n.shows} step${n.lines+n.shows>1?'s':''} stay but will need someone else.`:'')))return;
+      const exprs=ch.exprs||[];P.chars.splice(i,1);exprs.forEach(e=>dropImg(e.img,e));CHSEL=null;changed();}},'Remove character'))));}
+/* an expression picker made of faces, for Line and Show steps */
+function exprPick(id,ch,val,on){const list=exprList(ch);if(!list.length)return null;const wrap=h('div',{class:'xpick',role:'group','aria-labelledby':id+'-l'});
+  const cur=list.some(e=>e.id===val)?val:list[0].id;
+  list.forEach(e=>{const b=h('button',{type:'button',class:'xp','aria-pressed':String(e.id===cur),title:e.name,onclick:ev=>{ev.stopPropagation();wrap.querySelectorAll('.xp').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');on(e.id);}},faceEl(ch,e,true),h('span',{},e.name));wrap.append(b);});
+  return h('div',{class:'field'},h('span',{class:'flabel',id:id+'-l'},'Expression'),wrap);}
+function fileInp(id,accept,on,onMany){const inp=h('input',{type:'file',id,accept});if(onMany)inp.multiple=true;inp.onchange=()=>{const fs=[...inp.files];inp.value='';if(!fs.length)return;if(onMany)onMany(fs);else on(fs[0]);};return inp;}
+/* pictures, GIFs and videos live in the browser's database; a project file carries them as data URLs */
+async function kindOfFile(file){if(/^video\//.test(file.type)||/\.(mp4|webm|mov|m4v)$/i.test(file.name||''))return'video';if(/gif|webp|png|avif/i.test(file.type)){const a=await decodeAnim(file);if(a)return['anim',a];}return'image';}
+async function loadMedia(blob,kind,pre){
+  if(kind==='video'){const url=URL.createObjectURL(blob),v=await makeVideo(url);if(!v){URL.revokeObjectURL(url);return null;}return{m:v,url};}
+  if(kind==='anim'){const a=pre||await decodeAnim(blob);if(a)return{m:a,url:URL.createObjectURL(blob)};}
+  const im=await loadImg(blob);return im?{m:im,url:im.src}:null;}
+function posterOf(m){if(!m)return null;if(m.anim)return m.frames[0];if(m.videoWidth){const c=document.createElement('canvas'),s=Math.min(1,480/Math.max(m.videoWidth,m.videoHeight));c.width=Math.round(m.videoWidth*s);c.height=Math.round(m.videoHeight*s);try{c.getContext('2d').drawImage(m,0,0,c.width,c.height);}catch(e){}return c;}return m;}
+function keepMedia(id,blob,kind,r){const old=IMGS[id];if(old&&old.videoWidth){old.pause();old.remove();}if(URLS[id]&&URLS[id]!==r.url&&URLS[id].startsWith('blob:'))URL.revokeObjectURL(URLS[id]);
+  IMGS[id]=r.m;URLS[id]=r.url;BLOBS[id]=blob;POSTER[id]=posterOf(r.m);delete KEYC[id];}
+async function setImg(holder,file,quiet){let kind=await kindOfFile(file),pre=null;if(Array.isArray(kind)){pre=kind[1];kind=kind[0];}
+  const r=await loadMedia(file,kind,pre);if(!r){toast(kind==='video'?'That video couldn’t be opened here. Try an MP4 or WebM.':'That picture couldn’t be opened.');return false;}
+  const id=holder.img&&!isShared(holder.img,holder)?holder.img:('i_'+rkey());keepMedia(id,file,kind,r);holder.img=id;if(holder.exprs===undefined&&'name'in holder)holder.kind=kind;
+  if(holder.key){holder.keyColor=null;}delete KEYC[holder.id];await putImg(id,file);if(!quiet)changed();return true;}
+/* a media file can be shared by copies of a character; only delete it when nothing else uses it */
+function isShared(id,except){let n=0;P.chars.forEach(c=>(c.exprs||[]).forEach(e=>{if(e!==except&&e.img===id)n++;}));P.bgs.forEach(b=>{if(b!==except&&b.img===id)n++;});return n>0;}
+function dropImg(id,except){if(!id||isShared(id,except))return;const m=IMGS[id];if(m&&m.videoWidth){m.pause();m.remove();}delete IMGS[id];delete POSTER[id];delete BLOBS[id];if(URLS[id]&&URLS[id].startsWith('blob:'))URL.revokeObjectURL(URLS[id]);delete URLS[id];putImg(id,null);}
 /* ---------- backgrounds ---------- */
 function placesPane(p){const grid=h('div',{class:'bgs'});
   Object.entries(BUILTIN_BG).forEach(([k,l])=>{const c=document.createElement('canvas');c.width=192;c.height=108;const g=c.getContext('2d');const sw=W,sh=H;W=1920;H=1080;g.drawImage(builtinBg(k),0,0,192,108);W=sw;H=sh;grid.append(h('div',{class:'bgc'},Object.assign(c,{className:'thumb'}),h('span',{},l)));});
   p.append(sec('Built-in',grid,h('p',{class:'help'},'Pick a background for each scene in the Scenes tab, or change it mid-scene with a Background step.')));
-  const mine=h('div',{class:'bgs'});P.bgs.forEach((b,i)=>{const im=IMGS[b.img];mine.append(h('div',{class:'bgc'},im?h('img',{class:'thumb',src:im.src,alt:''}):h('span',{class:'thumb'}),h('input',{type:'text',value:b.name,'aria-label':'Background name',oninput:e=>{b.name=e.target.value;save();}}),
-    h('div',{class:'row',style:'justify-content:center'},h('label',{class:'btn','for':'bg-up-'+i},'Change',fileInp('bg-up-'+i,'image/*',f=>setImg(b,f))),h('button',{type:'button',class:'ib','aria-label':'Remove',onclick:()=>{dropImg(b.img);P.bgs.splice(i,1);changed();}},'✕'))));});
-  p.append(sec('Your pictures',mine,h('div',{class:'addrow'},h('label',{class:'btn primary','for':'bg-add'},'+ Add a picture',fileInp('bg-add','image/*',async f=>{const b={id:'b_'+rkey(),name:f.name.replace(/\.[a-z0-9]+$/i,'').slice(0,30)||'Photo',img:''};P.bgs.push(b);await setImg(b,f);}))),
-    h('p',{class:'help'},'Any photo or drawing. It’s cropped to fill the screen.')));}
+  const mine=h('div',{class:'bgs'});P.bgs.forEach((b,i)=>{const im=IMGS[b.img],url=URLS[b.img]||(im&&im.src);mine.append(h('div',{class:'bgc'},url?(b.kind==='video'?Object.assign(h('video',{class:'thumb',src:url,loop:true,autoplay:true,playsinline:true,'aria-hidden':'true'}),{muted:true}):h('img',{class:'thumb',src:url,alt:''})):h('span',{class:'thumb'}),h('input',{type:'text',value:b.name,'aria-label':'Background name',oninput:e=>{b.name=e.target.value;save();}}),
+    h('div',{class:'row',style:'justify-content:center'},h('label',{class:'btn','for':'bg-up-'+i},'Change',fileInp('bg-up-'+i,'image/*,video/*',f=>setImg(b,f))),h('button',{type:'button',class:'ib','aria-label':'Remove',onclick:()=>{dropImg(b.img);P.bgs.splice(i,1);changed();}},'✕'))));});
+  p.append(sec('Your pictures',mine,h('div',{class:'addrow'},h('label',{class:'btn primary','for':'bg-add'},'+ Add a picture',fileInp('bg-add','image/*,video/*',async f=>{const b={id:'b_'+rkey(),name:f.name.replace(/\.[a-z0-9]+$/i,'').slice(0,30)||'Photo',img:''};P.bgs.push(b);await setImg(b,f);}))),
+    h('p',{class:'help'},'Any photo or drawing, or a GIF or video that plays on a loop. It’s cropped to fill the screen.')));}
 /* ---------- look ---------- */
 function lookPane(p){
   p.append(sec('Story',textF('lk-title','Title',P.title,v=>{P.title=v;save();drawNow();}),textF('lk-author','By (optional)',P.author,v=>{P.author=v;save();drawNow();}),checkF('lk-ts','Start on a title screen',P.titleScreen!==false,v=>{P.titleScreen=v;changed();})));
@@ -668,7 +890,11 @@ const IDB={db:null,open(){if(IDB.p)return IDB.p;return IDB.p=new Promise(res=>{t
 const putImg=(k,blob)=>IDB.tx('readwrite',s=>blob?s.put(blob,k):s.delete(k));
 async function loadImg(blob){const im=new Image();im.src=URL.createObjectURL(blob);try{await im.decode();}catch(e){return null;}return im;}
 function imgIds(){const ids=[];P.chars.forEach(c=>(c.exprs||[]).forEach(e=>e.img&&ids.push(e.img)));P.bgs.forEach(b=>b.img&&ids.push(b.img));return ids;}
-async function restoreImgs(){for(const id of imgIds()){if(IMGS[id])continue;const b=await IDB.tx('readonly',s=>s.get(id));if(b){const im=await loadImg(b);if(im)IMGS[id]=im;}}changed();}
+function kindOfId(id){for(const c of P.chars)for(const e of(c.exprs||[]))if(e.img===id)return e.kind||'image';const b=P.bgs.find(x=>x.img===id);return(b&&b.kind)||'image';}
+async function restoreImgs(){for(const id of imgIds()){if(IMGS[id])continue;const b=await IDB.tx('readonly',s=>s.get(id));if(b){const k=kindOfId(id),r=await loadMedia(b,k);if(r)keepMedia(id,b,k,r);}}changed();}
+const blobToData=b=>new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>res(null);r.readAsDataURL(b);});
+/* a picture as a data URL; a GIF or video as its original file */
+async function mediaData(id){if(BLOBS[id]&&kindOfId(id)!=='image')return blobToData(BLOBS[id]);return imgToData(IMGS[id])||(BLOBS[id]?blobToData(BLOBS[id]):null);}
 function imgToData(im){if(!im)return null;if(String(im.src).startsWith('data:'))return im.src;try{const c=document.createElement('canvas');c.width=im.naturalWidth||im.width;c.height=im.naturalHeight||im.height;c.getContext('2d').drawImage(im,0,0);return c.toDataURL('image/png');}catch(e){return null;}}
 function dataToImg(d){return new Promise(res=>{if(!d||typeof d!=='string')return res(null);const im=new Image();im.onload=()=>res(im);im.onerror=()=>res(null);im.src=d;});}
 async function dataToBlob(d){try{return await(await fetch(d)).blob();}catch(e){return null;}}
@@ -681,11 +907,11 @@ async function saveFile(blob,filename){
     if(!topLevel)return 'Saving isn’t available here. Press and hold or right-click the result to keep it.';}}
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.append(a);a.click();a.remove();return 'Saved to your downloads.';}
 const slug=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,30)||'novel';
-$('saveProj').onclick=async()=>{const doc={app:'visual-novel',version:1,savedAt:new Date().toISOString(),project:P,images:{}};imgIds().forEach(id=>{const d=imgToData(IMGS[id]);if(d)doc.images[id]=d;});
+$('saveProj').onclick=async()=>{const doc={app:'visual-novel',version:1,savedAt:new Date().toISOString(),project:P,images:{}};for(const id of imgIds()){const d=await mediaData(id);if(d)doc.images[id]=d;}
   const m=await saveFile(new Blob([JSON.stringify(doc)],{type:'application/json'}),`novel-${slug(P.title)}-${new Date().toISOString().slice(0,10)}.json`);toast(/^Saved/.test(m)?'Project saved. Open it here any time to keep editing.':m);};
 $('openProj').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let doc=null;try{doc=JSON.parse(await f.text());}catch(err){}
   if(!doc||doc.app!=='visual-novel'||!doc.project||!Array.isArray(doc.project.scenes)){toast('That file isn’t a Visual Novel project.');return;}
-  P={...SAMPLE(),...doc.project};for(const[id,d]of Object.entries(doc.images||{})){const im=await dataToImg(d);if(im){IMGS[id]=im;const b=await dataToBlob(d);if(b)putImg(id,b);}}SEL=null;fitCanvas();setMode(MODE);changed();toast(`Opened “${f.name}”.`);};
+  P={...SAMPLE(),...doc.project};CHSEL=null;for(const[id,d]of Object.entries(doc.images||{})){const b=await dataToBlob(d);if(!b)continue;const k=kindOfId(id),r=await loadMedia(b,k);if(r){keepMedia(id,b,k,r);putImg(id,b);}}SEL=null;fitCanvas();setMode(MODE);changed();toast(`Opened “${f.name}”.`);};
 const rndCode=(n=6)=>{const a='abcdefghjkmnpqrstuvwxyz23456789',u=new Uint8Array(n);crypto.getRandomValues(u);return[...u].map(x=>a[x%a.length]).join('');};
 /* JPG: keep the picture, drop everything else the browser adds (its color profile, notes) */
 async function cleanJpeg(blob){try{const b=new Uint8Array(await blob.arrayBuffer());if(b[0]!==0xFF||b[1]!==0xD8)return blob;const parts=[b.subarray(0,2)];let p=2;
@@ -796,8 +1022,8 @@ async function makeGif(onProg){const d=PL.dur,fps=12,gw=Math.round(W/4)*2,gh=Mat
   await enc.add(pend,Math.round((d+1.5)*100)-Math.round(pendT*100));const blob=await enc.finish();onProg(1);return blob;}
 /* ---------- the playable file: this page's engine, the story and its pictures, and a small player ---------- */
 function engineSrc(){const s=[...document.scripts].map(x=>x.textContent).find(x=>x.includes('@@ENGINE_START@@'))||'',a=s.indexOf('/*@@ENGINE_START@@*/'),b=s.indexOf('/*@@ENGINE_END@@*/');return s.slice(a,b);}
-function playableHtml(){const proj=clone(P),images={};imgIds().forEach(id=>{const d=imgToData(IMGS[id]);if(d)images[id]=d;});
-  const data=JSON.stringify({project:proj,images}).replace(/<\/script/gi,'<\\/script');
+async function playableHtml(){const proj=clone(P),images={},media={};for(const id of imgIds()){const k=kindOfId(id),d=await mediaData(id);if(!d)continue;if(k==='image')images[id]=d;else media[id]={kind:k,data:d};}
+  const data=JSON.stringify({project:proj,images,media}).replace(/<\/script/gi,'<\\/script');
   const fontLink=document.querySelector('link[rel="stylesheet"]');
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>${String(P.title||'Visual Novel').replace(/[<&]/g,c=>({'<':'&lt;','&':'&amp;'}[c]))}</title>
@@ -834,6 +1060,8 @@ document.addEventListener('keydown',e=>{const now=nowS();if(e.key===' '||e.key==
 document.getElementById('rs').onclick=()=>{Object.assign(g,newG());if(P.titleScreen===false)startG(g,nowS());};
 document.getElementById('fs').onclick=()=>{const el=document.documentElement;if(document.fullscreenElement)document.exitFullscreen();else if(el.requestFullscreen)el.requestFullscreen();};
 const pend=Object.entries(DATA.images).map(([id,d])=>new Promise(res=>{const im=new Image();im.onload=()=>{IMGS[id]=im;res();};im.onerror=()=>res();im.src=d;}));
+Object.entries(DATA.media||{}).forEach(([id,m])=>pend.push((async()=>{try{if(m.kind==='video'){const v=await makeVideo(m.data);if(v)IMGS[id]=v;return;}
+  const b=await(await fetch(m.data)).blob(),a=await decodeAnim(b);if(a){IMGS[id]=a;return;}const im=new Image();im.src=m.data;await im.decode();IMGS[id]=im;}catch(e){}})()));
 Promise.all(pend).then(()=>{if(document.fonts&&document.fonts.ready)document.fonts.ready.then(loop);else loop();});
 })();
 <\/script></body></html>`;}
@@ -847,7 +1075,7 @@ function openExport(kind){xKind=kind||'video';if(MODE==='watch')pause();xResult=
   $('xfmtF').hidden=game;const gif=xFormat==='gif';$('xsizeF').hidden=game||gif;$('xsoundL').hidden=game||gif;
   const xs=$('xsize');xs.innerHTML='';[['best','Full size'],['half','Half size']].forEach(([k,l])=>xs.append(h('button',{type:'button','aria-pressed':String(k===xQual),onclick:()=>{if(!busy){xQual=k;openExport('video');}}},l)));
   const forks=PL.segs.filter(s=>s.kind==='choice'&&s.g.choice<0).length;
-  $('xHelp').textContent=game?'One HTML file with the whole story and its pictures inside. Open it in any browser, on any device, and tap through it; choices work. Share it however you like.':
+  $('xHelp').textContent=game?'One HTML file with the whole story, its pictures, GIFs and videos inside. Open it in any browser, on any device, and tap through it; choices work. Share it however you like.':
     gif?'Loops on its own and works anywhere pictures do. No sound, and made at half size.':`${xFormat==='mp4'?'Plays almost everywhere, including iPhone and social apps.':'Small and sharp. Plays in Chrome, Firefox and on Android.'} It records the video path in real time, about ${PL.dur.toFixed(0)} seconds${forks?`, taking the marked option at ${forks} choice${forks>1?'s':''}`:''}. Keep this tab in front while it records.`;
   ['xProg','xVid','xImg','xSave','xDl'].forEach(id=>$(id).hidden=true);$('xStart').disabled=false;$('xStart').textContent=game?'Make the file':'Start';$('xStatus').textContent='';$('xmodal').hidden=false;$('xStart').focus();}
 $('exportBtn').onclick=()=>openExport('video');$('gameBtn').onclick=()=>openExport('game');
@@ -855,7 +1083,7 @@ $('xClose').onclick=()=>{if(!busy){$('xmodal').hidden=true;drawNow();}};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!busy)$('xmodal').hidden=true;});
 const xprog=f=>{$('xBar').style.width=Math.round(f*100)+'%';};
 $('xStart').onclick=async()=>{busy=true;if(MODE==='watch')pause();$('xStart').disabled=true;$('xClose').disabled=true;['xVid','xImg','xDl','xSave'].forEach(id=>$(id).hidden=true);const wasMode=MODE;
-  try{if(xKind==='game'){xResult=new Blob([playableHtml()],{type:'text/html'});$('xStatus').textContent=`Done. ${mbs(xResult.size)}.`;}
+  try{if(xKind==='game'){$('xStatus').textContent='Putting the file together…';xResult=new Blob([await playableHtml()],{type:'text/html'});$('xStatus').textContent=`Done. ${mbs(xResult.size)}.`;}
     else{MODE='watch';$('xProg').hidden=false;xprog(0);$('xStatus').textContent=xFormat==='gif'?'Building the GIF…':'Recording… keep this tab in front.';
       if(xFormat==='gif'){xResult=await makeGif(xprog);$('xImg').src=URL.createObjectURL(xResult);$('xImg').hidden=false;}
       else{const snd=$('xsound').checked,mime=pickMime(xFormat,snd)||pickMime(xFormat);if(!mime)throw new Error('This browser can’t record video');
