@@ -128,7 +128,7 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
 .fontbtn{justify-content:space-between;width:100%;font-size:20px;padding:10px 12px;min-height:48px}
 .fontbtn small{font:400 12px/1 var(--f-body);color:var(--muted)}
 .modal{position:fixed;inset:0;background:rgba(10,8,18,.72);display:grid;place-items:center;padding:16px;z-index:40}
-.sheet{background:var(--panel);border-radius:14px;padding:16px;width:min(760px,100%);max-height:100%;display:flex;flex-direction:column;gap:10px}
+.sheet{background:var(--panel);border-radius:14px;padding:16px;width:min(760px,100%);max-height:100%;display:flex;flex-direction:column;gap:10px;overflow:auto}
 .sheet h3{margin:0;font:600 17px/1.2 var(--f-display);display:flex;align-items:center;gap:10px}
 .fcats{display:flex;gap:6px;flex-wrap:wrap}
 .fcats button{padding:6px 10px;font-size:12px}
@@ -143,7 +143,13 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
 .myfonts{display:flex;flex-direction:column;gap:6px}
 .myfonts li{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:13px}
 .myfonts li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.myfonts ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.myfonts ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto}
+.mylist summary{cursor:pointer;font-size:13px;color:var(--muted)}
+.devrow{border-top:1px solid var(--line);padding-top:10px}
+.myfonts .row input{flex:1;min-width:160px}
+.sheet.drop{outline:3px dashed var(--accent);outline-offset:-6px}
+.fopt.dev .fn::after{content:" · on this computer";color:var(--accent)}
+.myfonts{overflow:auto;max-height:42vh}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:60;max-width:calc(100% - 32px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
 @media (max-width:900px){
   body{padding-inline:12px}
@@ -299,7 +305,7 @@ const WEB_FONTS=[
   ['righteous','Righteous','Righteous','"Righteous",cursive','retro',0],['elite','Special Elite','Special Elite','"Special Elite","Courier New",monospace','retro',0],
   ['creepster','Creepster','Creepster','"Creepster",cursive','fun',0],['nosifer','Nosifer','Nosifer','"Nosifer",cursive','fun',0],['fredericka','Fredericka the Great','Fredericka the Great','"Fredericka the Great",cursive','fun',0],
   ['sedgwick','Sedgwick Ave Display','Sedgwick Ave Display','"Sedgwick Ave Display",cursive','fun',0],['comicsans','Comic Sans MS','','"Comic Sans MS","Comic Neue",cursive','fun',1]];
-const FONT_KINDS=[['all','All'],['comic','Comic and manga'],['bold','Bold and loud'],['hand','Handwriting'],['script','Script'],['serif','Serif'],['clean','Clean'],['retro','Retro and pixel'],['fun','Spooky and fun'],['mine','Your fonts']];
+const FONT_KINDS=[['all','All'],['comic','Comic and manga'],['bold','Bold and loud'],['hand','Handwriting'],['script','Script'],['serif','Serif'],['clean','Clean'],['retro','Retro and pixel'],['fun','Spooky and fun'],['mine','Your fonts'],['device','On this computer']];
 const FONTS={};WEB_FONTS.forEach(([id,name,gf,css,kind,bold])=>FONTS[id]={id,name,gf,css,kind,bold:!!bold});
 const GF_LOADED=new Set();
 /* a web font's stylesheet is fetched the first time it's used, one family at a time */
@@ -326,6 +332,20 @@ async function addFontFiles(files){let n=0,bad=0,last=null;
     const rec={id:rkey(),name,blob:new Blob([buf],{type:f.type||'font/ttf'}),added:Date.now()};if(!await useOwnFont(rec)){bad++;continue;}
     await FDB.tx('readwrite',s=>s.put(rec,rec.id));n++;last='own-'+rec.id;}
   toast(n?`${n} font${n>1?'s':''} added. ${n>1?'They’re':'It’s'} kept in this browser, ready every time.`:bad?'That file isn’t a font this browser can use. Try a TTF, OTF or WOFF file.':'You already have that font.');return last;}
+/* fonts installed on this computer: used by name, nothing copied. The list is remembered for next time. */
+const DEV_KEY='pt-device-fonts';
+function devList(){try{return JSON.parse(localStorage.getItem(DEV_KEY)||'[]');}catch(e){return[];}}
+function addDevice(names){const cur=new Set(devList());names.forEach(n=>{n=String(n).trim();if(!n)return;cur.add(n);const id='dev-'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-');FONTS[id]={id,name:n,gf:null,css:`"${n.replace(/"/g,'')}",sans-serif`,kind:'device',bold:true,device:true};});
+  try{localStorage.setItem(DEV_KEY,JSON.stringify([...cur].sort()));}catch(e){}}
+addDevice(devList());
+/* is a font with this name installed? Draw a test word with it and with two fallbacks, and see if it changes */
+function installed(name){const c=document.createElement('canvas').getContext('2d'),w=f=>{c.font=`40px ${f}`;return c.measureText('mmmWWWiil 0123 Ág').width;};
+  return['monospace','serif','sans-serif'].some(fb=>Math.abs(w(`"${name.replace(/"/g,'')}",${fb}`)-w(fb))>.5);}
+async function useDeviceFonts(){if(!('queryLocalFonts' in window)){toast('This browser can’t list your installed fonts. Type a font’s name below, or add its file.');return;}
+  try{const list=await window.queryLocalFonts();const fams=[...new Set(list.map(f=>f.family))].filter(Boolean);if(!fams.length){toast('No fonts were shared.');return;}addDevice(fams);FCAT='device';renderFonts();toast(`${fams.length} fonts from this computer are ready to use.`);}
+  catch(err){toast(err&&err.name==='SecurityError'?'Fonts on this computer can’t be listed in this window. Open the Photo Tools website in Chrome or Edge, or type a font’s name below.':'Fonts weren’t shared. Type a font’s name below instead, or add its file.');}}
+function addDeviceByName(name){name=String(name||'').trim();if(!name)return;if(!installed(name)){toast(`“${name}” isn’t installed on this device (check the spelling), so add its file instead.`);return;}
+  addDevice([name]);const id='dev-'+name.toLowerCase().replace(/[^a-z0-9]+/g,'-');if(selT()){selT().font=id;commit();render();}FCAT='device';renderFonts();toast(`“${name}” is ready. It works on this device, where it’s installed.`);}
 async function removeOwnFont(id){const k=id.replace(/^own-/,'');await FDB.tx('readwrite',s=>s.delete(k));delete FONTS[id];S.texts.forEach(t=>{if(t.font===id)t.font='bangers';});commit();}
 
 /* ================= the picture and its text ================= */
@@ -493,10 +513,23 @@ async function openFiles(fs){const f=[...fs].find(isImg);if(f){await setImage(f,
   const fontsIn=[...fs].filter(f=>/\.(ttf|otf|woff2?)$/i.test(f.name));if(fontsIn.length){const id=await addFontFiles(fontsIn);if(id&&selT()){selT().font=id;commit();renderPanel();render();}}}
 const SIZES=[['1080x1080','Square'],['1080x1350','Portrait 4:5'],['1080x1920','Tall 9:16'],['1920x1080','Wide 16:9'],['1600x900','Banner']];
 function blank(kind,size){const[w,hh]=String(size||S.bg.w+'x'+S.bg.h).split('x').map(Number);IMG=null;IMGBLOB=null;S.bg={...S.bg,kind,w,h:hh};setCanvasSize(w,hh);renderPanel();render();save();}
-const dropEl=$('drop');
-['dragenter','dragover'].forEach(ev=>dropEl.addEventListener(ev,e=>{e.preventDefault();dropEl.classList.add('drop');}));
-['dragleave','drop'].forEach(ev=>dropEl.addEventListener(ev,e=>{e.preventDefault();dropEl.classList.remove('drop');}));
-dropEl.addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files.length)openFiles(e.dataTransfer.files);});
+/* drop a picture, font files or a whole fonts folder anywhere on the page */
+const dropEl=$('drop');let dragN=0;
+const isFontFile=f=>/\.(ttf|otf|woff2?)$/i.test(f.name||'');
+async function filesFromDrop(dt){const items=[...(dt.items||[])].map(i=>i.webkitGetAsEntry&&i.webkitGetAsEntry()).filter(Boolean);if(!items.length)return[...(dt.files||[])];
+  const out=[];const walk=async(en,depth)=>{if(out.length>800||depth>6)return;if(en.isFile){const f=await new Promise(r=>en.file(r,()=>r(null)));if(f)out.push(f);return;}
+    if(en.isDirectory){const rd=en.createReader();for(;;){const batch=await new Promise(r=>rd.readEntries(r,()=>r([])));if(!batch.length)break;for(const c of batch)await walk(c,depth+1);}}};
+  for(const en of items)await walk(en,0);return out;}
+document.addEventListener('dragenter',e=>{if(!e.dataTransfer||![...e.dataTransfer.types].includes('Files'))return;e.preventDefault();dragN++;dropEl.classList.add('drop');$('fmodal').querySelector('.sheet').classList.add('drop');});
+document.addEventListener('dragover',e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files'))e.preventDefault();});
+document.addEventListener('dragleave',()=>{if(--dragN<=0){dragN=0;dropEl.classList.remove('drop');$('fmodal').querySelector('.sheet').classList.remove('drop');}});
+document.addEventListener('drop',async e=>{if(!e.dataTransfer)return;e.preventDefault();dragN=0;dropEl.classList.remove('drop');$('fmodal').querySelector('.sheet').classList.remove('drop');
+  const fs=await filesFromDrop(e.dataTransfer);if(!fs.length)return;const fonts=fs.filter(isFontFile);
+  if(fonts.length){const id=await addFontsChecked(fonts);if(id&&selT()){selT().font=id;commit();renderPanel();render();}if(!$('fmodal').hidden){FCAT='mine';renderFonts();}if(!fs.some(isImg))return;}
+  openFiles(fs.filter(f=>!isFontFile(f)));});
+/* a big fonts folder: ask first, since each font is kept in the browser */
+async function addFontsChecked(fonts){if(fonts.length>40&&!confirm(`That’s ${fonts.length} font files. Keep them all in this browser? (Fonts already installed on this computer can be used without copying: “Use fonts on this computer” in the font picker.)`))return null;
+  say(fonts.length>3?`Adding ${fonts.length} fonts…`:'');const id=await addFontFiles(fonts);say('');return id;}
 document.addEventListener('paste',e=>{const tag=(e.target&&e.target.tagName)||'';if(/INPUT|TEXTAREA/.test(tag))return;const fs=[...(e.clipboardData&&e.clipboardData.files)||[]];if(fs.length){e.preventDefault();openFiles(fs);}});
 
 /* ================= text: add, copy, order ================= */
@@ -614,14 +647,23 @@ function renderFonts(){const T=selT(),q=$('fSearch').value.trim().toLowerCase(),
   $('fCats').innerHTML='';FONT_KINDS.forEach(([k,l])=>$('fCats').append(h('button',{type:'button','aria-pressed':String(k===FCAT),onclick:()=>{FCAT=k;renderFonts();}},l)));
   const list=$('fList');list.innerHTML='';const all=Object.values(FONTS).filter(f=>(FCAT==='all'||f.kind===FCAT)&&(!q||f.name.toLowerCase().includes(q)));
   all.sort((a,b)=>(b.own?1:0)-(a.own?1:0));
-  all.forEach(f=>{needFont(f.id);list.append(h('button',{type:'button',class:'fopt'+(f.own?' own':''),role:'option','aria-pressed':String(T&&T.font===f.id),'aria-selected':String(T&&T.font===f.id),onclick:()=>{const T=selT();if(!T)return;T.font=f.id;commit();render();renderFonts();renderLayers();}},
+  all.forEach(f=>{needFont(f.id);list.append(h('button',{type:'button',class:'fopt'+(f.own?' own':'')+(f.device?' dev':''),role:'option','aria-pressed':String(T&&T.font===f.id),'aria-selected':String(T&&T.font===f.id),onclick:()=>{const T=selT();if(!T)return;T.font=f.id;commit();render();renderFonts();renderLayers();}},
     h('span',{class:'fs',style:`font-family:${f.css}`},sample),h('span',{class:'fn'},f.name)));});
-  if(!all.length)list.append(h('p',{class:'help'},FCAT==='mine'?'No fonts of your own yet. Add font files below.':'No fonts match that.'));
+  if(!all.length)list.append(h('p',{class:'help'},FCAT==='mine'?'No fonts of your own yet. Add font files below, or drop them here.':FCAT==='device'?'None yet. Use the button below, or type a font’s name.':'No fonts match that.'));
   const mine=Object.values(FONTS).filter(f=>f.own),mf=$('myFonts');mf.innerHTML='';
   const inp=h('input',{type:'file',id:'fontFiles',accept:'.ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2',multiple:true});inp.onchange=async()=>{const fs=[...inp.files];inp.value='';if(!fs.length)return;const id=await addFontFiles(fs);FCAT='mine';if(id&&selT()){selT().font=id;commit();render();}renderFonts();};
-  mf.append(h('div',{class:'ffoot'},h('strong',{},'Your fonts'),h('span',{class:'rv'},mine.length?`${mine.length} kept in this browser`:'TTF, OTF or WOFF files'),h('span',{class:'spacer'}),h('label',{class:'btn primary',for:'fontFiles'},'+ Add font files',inp)));
-  if(mine.length)mf.append(h('ul',{},...mine.map(f=>h('li',{},h('span',{style:`font-family:${f.css};font-size:17px`},f.name),h('button',{type:'button','aria-label':'Remove '+f.name,onclick:async()=>{if(!confirm(`Remove “${f.name}” from this browser?`))return;await removeOwnFont(f.id);renderFonts();}},'Remove')))));
-  mf.append(h('p',{class:'help'},'Fonts you add stay on this device only. Nothing is uploaded.'));}
+  inp.onchange=async()=>{const fs=[...inp.files].filter(isFontFile);inp.value='';if(!fs.length){toast('No font files there.');return;}const id=await addFontsChecked(fs);FCAT='mine';if(id&&selT()){selT().font=id;commit();render();}renderFonts();};
+  const dir=h('input',{type:'file',id:'fontDir',webkitdirectory:true,multiple:true});dir.onchange=async()=>{const fs=[...dir.files].filter(isFontFile);dir.value='';if(!fs.length){toast('No font files in that folder.');return;}const id=await addFontsChecked(fs);FCAT='mine';if(id&&selT()){selT().font=id;commit();render();}renderFonts();};
+  mf.append(h('div',{class:'ffoot'},h('strong',{},'Your fonts'),h('span',{class:'rv'},mine.length?`${mine.length} kept in this browser`:'TTF, OTF or WOFF files'),h('span',{class:'spacer'}),
+    h('label',{class:'btn primary',for:'fontFiles'},'+ Add font files',inp),h('label',{class:'btn',for:'fontDir'},'+ Add a folder',dir)));
+  mf.append(h('p',{class:'help'},'Or drop font files, or a whole fonts folder, anywhere on this page. They stay in this browser only. Nothing is uploaded.'));
+  if(mine.length){const d=h('details',{class:'mylist',open:mine.length<=8},h('summary',{},`Manage your ${mine.length} font${mine.length>1?'s':''}`),h('ul',{},...mine.map(f=>h('li',{},h('span',{style:`font-family:${f.css};font-size:17px`},f.name),h('button',{type:'button','aria-label':'Remove '+f.name,onclick:async()=>{if(!confirm(`Remove “${f.name}” from this browser?`))return;await removeOwnFont(f.id);renderFonts();}},'Remove')))));mf.append(d);}
+  /* fonts already installed on this computer */
+  const nm=h('input',{type:'text',id:'devName',placeholder:'Type a font’s name, like Segoe Print','aria-label':'Font name',onkeydown:e=>{if(e.key==='Enter')addDeviceByName(nm.value);}});
+  mf.append(h('div',{class:'ffoot devrow'},h('strong',{},'On this computer'),h('span',{class:'rv'},devList().length?`${devList().length} ready`:'installed fonts, used by name'),h('span',{class:'spacer'}),
+      'queryLocalFonts' in window?h('button',{type:'button',id:'devAll',onclick:useDeviceFonts},'Use fonts on this computer'):null),
+    h('div',{class:'row'},nm,h('button',{type:'button',onclick:()=>addDeviceByName(nm.value)},'Add')),
+    h('p',{class:'help'},'Installed fonts show up only on a device that has them. To use a font everywhere, add its file above.'));}
 
 /* ================= the picture section ================= */
 function renderPic(){const p=$('picF');p.innerHTML='';const inp=h('input',{type:'file',id:'pickImg',accept:'image/*'});inp.onchange=()=>{const f=inp.files[0];inp.value='';if(f)openFiles([f]);};
