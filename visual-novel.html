@@ -105,10 +105,15 @@ canvas#cv{display:block;max-width:100%;max-height:min(66vh,820px);width:auto;hei
 .zoom{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
 .zoom input{accent-color:var(--accent);width:120px}
 .tl-wrap{display:flex;border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
-.tl-names{flex:none;width:92px;border-right:1px solid var(--line);background:var(--panel);z-index:2}
+.tl-names{flex:none;width:122px;border-right:1px solid var(--line);background:var(--panel);z-index:2}
 .tl-names div{height:30px;display:flex;align-items:center;gap:6px;padding:0 8px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tl-names .rn{height:28px;border-bottom:1px solid var(--line)}
 .tl-names .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.tl-names .nl{overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+.tl-names button{flex:none;padding:0;width:20px;height:20px;border-radius:5px;font-size:11px;line-height:1;justify-content:center;border-color:transparent;background:transparent}
+.tl-names button:hover{border-color:var(--line)}.tl-names .tadd{font-size:15px;color:var(--accent)}
+.tl-names div.muted .nl{text-decoration:line-through}.tlr.muted .tb{opacity:.4}
+.tempty{position:absolute;left:14px;top:7px;font-size:11px;color:var(--muted);white-space:nowrap;pointer-events:none}
 .tl-scroll{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;background:var(--bg)}
 .tl-inner{position:relative;min-width:100%}
 .tl-ruler{position:relative;height:28px;cursor:col-resize;border-bottom:1px solid var(--line);touch-action:none;outline-offset:-2px}
@@ -177,6 +182,7 @@ canvas#cv{display:block;max-width:100%;max-height:min(66vh,820px);width:auto;hei
 .hint{font-size:13px;color:var(--muted)}
 /* writing column */
 .side{padding:0 0 16px;display:flex;flex-direction:column}
+.side>*{flex-shrink:0}
 .tabs{display:flex;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--panel);z-index:3;border-radius:12px 12px 0 0;overflow-x:auto}
 .tabs button{flex:1;border:0;border-radius:0;padding:12px 6px;font-size:13px;background:transparent;color:var(--muted);justify-content:center;white-space:nowrap}
 .tabs button[aria-selected="true"]{color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
@@ -204,15 +210,32 @@ input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line
 .ib{padding:7px 9px;border-color:transparent;background:transparent;color:var(--muted)}
 .ib:hover{border-color:var(--line);color:var(--ink)}
 /* scenes and steps */
-.scenes{display:flex;flex-direction:column;gap:4px}
-.scene{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.scenes{display:flex;flex-direction:column;gap:3px;max-height:196px;overflow:auto;overscroll-behavior:contain}
+.scene{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center;padding:4px 8px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
 .scene.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .scene .nm{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.scene .meta{font-size:12px;color:var(--muted)}
+.scene .meta{font-size:11px;color:var(--muted)}
+.scene>div:first-child{display:flex;align-items:baseline;gap:8px;min-width:0}.scene .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scene .acts button{padding:4px 6px}
 .scene .acts{display:flex;gap:2px}
 .steps{display:flex;flex-direction:column;gap:8px}
 .step{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:8px;background:var(--bg)}
 .step.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.step.mini{flex-direction:row;align-items:center;gap:8px;padding:5px 6px 5px 8px;cursor:pointer;min-height:38px}
+.step.mini:hover{border-color:color-mix(in srgb,var(--accent) 50%,var(--line))}
+.step.mini:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.step.mini .kind{font:600 10px/1 var(--f-body);text-transform:uppercase;letter-spacing:.06em;color:var(--accent);background:var(--chip);padding:4px 6px;border-radius:99px;white-space:nowrap;flex:none;max-width:92px;overflow:hidden;text-overflow:ellipsis}
+.step.mini .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.step.mini .ms{flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.step.mini .mm{flex:none;font-size:12px;color:var(--muted)}
+.step.mini .acts{display:flex;flex:none}.step.mini .acts button{padding:4px 6px;font-size:12px}
+.step.mini.k-choice .kind,.step.mini.k-if .kind,.step.mini.k-jump .kind{color:#D9821A}
+.step.mini.k-sound .kind,.step.mini.k-music .kind{color:#0B84C6}
+.step.mini.k-pic .kind,.step.mini.k-picoff .kind{color:#C2368C}
+.steps{gap:5px}
+.stbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;bottom:0;background:var(--panel);padding:8px 0 4px;z-index:2;border-top:1px solid var(--line);box-shadow:0 -8px 12px -10px rgba(0,0,0,.35)}
+.stbar select{width:auto;flex:1 1 200px;font-weight:500;border-color:var(--accent)}
+.scset>summary{display:flex;gap:8px;align-items:baseline;cursor:pointer;font-size:13px;font-weight:500;list-style:none}.scset>summary::-webkit-details-marker{display:none}.scset[open]>*+*{margin-top:8px}
 .step .hd{display:flex;align-items:center;gap:6px}
 .step .hd .kind{font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.08em;color:var(--accent);background:var(--chip);padding:5px 7px;border-radius:99px;white-space:nowrap}
 .step .hd select{width:auto;flex:1;padding:6px 8px;font-size:13px}
@@ -322,7 +345,7 @@ input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line
   .map-scroll{height:62vh}
   .mlegend{display:none}
   .stage.watch canvas#cv{max-height:34vh}
-  .tl-names{width:88px}
+  .tl-names{width:104px}
   .tl-names div{font-size:11px;padding:0 6px}
   .tl-bar .help{font-size:12px}
   .tl-ruler{height:34px}
@@ -330,7 +353,7 @@ input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line
   .app:has(.side :is(input,textarea):focus) canvas#cv{max-height:16vh}
 }
 /* on a computer, the preview stays in view while you edit a long scene */
-@media (min-width:901px) and (min-height:620px){.stage{position:sticky;top:12px}}
+@media (min-width:901px) and (min-height:620px){.stage{position:sticky;top:12px}.side{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;overscroll-behavior:contain}}
 @media (max-width:900px) and (max-height:560px){.stage{position:static;box-shadow:none}canvas#cv{max-height:70vh}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -686,7 +709,9 @@ const fxD=fx=>fx.d!=null?fx.d:(FX_DUR[fx.kind]||.6);
 function autoDur(st){const n=[...String(st.text||'')].length;switch(st.k){case'say':case'narr':return revealDur(st)+clamp(.9+n*.028,1.2,4.2);case'choice':return 2.4;case'card':return 2.4;case'bg':return(TRANS_DUR[transOf(st.trans)]||0)+.4;case'show':case'hide':return .55;case'fx':return(optNum(st.dur)!=null?optNum(st.dur):FX_DUR[st.kind]||.7)+.1;case'pic':return st.mode==='flash'?picHold(st):2.6;case'picoff':return 0;case'end':return 3;case'jump':case'sound':case'music':return 0;default:return .5;}}
 function newG(){return{started:false,sceneId:null,i:-1,st:null,t0:0,bg:null,prevBg:null,bgT:-9,trans:'fade',chars:{},vars:{},pic:null,picOld:null,q:[],trD:null,fx:null,choice:-1,choiceT:0,ended:false,endT:0,visited:0,rects:[],page:[],music:null,silent:false,kc:0};}
 /* a sound or music cue while playing live; nothing while the video path is being worked out */
-function live(g,k,arg){if(g.silent)return;try{if(k==='music')playMusic(arg);else if(k==='play')playSnd(arg.snd,arg.vol);else sfx(k);}catch(e){}}
+/* the preview can mute the music or the sound effects (the video and the playable file keep them) */
+const MUTE_T={sfx:false,music:false};
+function live(g,k,arg){if(g.silent)return;try{if(k==='music'){if(MUTE_T.music){stopMusic();return;}playMusic(arg);}else if(k==='play'){if(!MUTE_T.sfx)playSnd(arg.snd,arg.vol);}else sfx(k);}catch(e){}}
 function setBg(g,bg,trans,now,dur){trans=transOf(trans);if(bg===g.bg&&trans!=='black'&&trans!=='white')return;g.prevBg=g.bg;g.bg=bg||'dark';g.trans=trans;g.bgT=now;g.trD=optNum(dur);g.page=[];if(trans!=='cut')live(g,'scene');}
 let G=newG(),MODE='play';
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -975,18 +1000,43 @@ function scenesPane(p){if(!SEL||!sceneById(SEL))SEL=P.scenes[0]?P.scenes[0].id:n
     h('button',{type:'button',onclick:()=>{if(!sc)return;const c=clone(sc);c.id='s_'+rkey();c.name=sc.name+' copy';P.scenes.splice(P.scenes.indexOf(sc)+1,0,c);SEL=c.id;changed();}},'Duplicate'))));
   p.append(varsSection());
   if(!sc)return;
-  const steps=h('div',{class:'steps'});sc.steps.forEach((st,i)=>steps.append(stepCard(sc,st,i)));
-  const addKind=h('div',{class:'addrow'});KINDS.forEach(([k,l])=>addKind.append(h('button',{type:'button',onclick:()=>{const st=newStep(k);const at=SELSTEP>=0?SELSTEP+1:sc.steps.length;sc.steps.splice(at,0,st);SELSTEP=at;changed();previewFrom(sc.id,at);}},'+ '+l)));
-  p.append(sec(h('span',{},'This scene'),h('div',{class:'grid2'},textF('sc-name','Name',sc.name,v=>{sc.name=v;save();}),selF('sc-bg','Background',bgOpts(),sc.bg||'dark',v=>{sc.bg=v;changed();})),
-    selF('sc-tr','Comes in with',[['','The usual ('+transName(P.trans||'fade')+')'],...TRANS],sc.trans||'',v=>{sc.trans=v;save();}),
-    h('p',{class:'help'},'Steps play in order. Tap a step to preview from there; new steps go in after the selected one.'),steps,h('div',{class:'field'},h('span',{class:'flabel'},'Add a step'),addKind)));}
+  /* steps: one line each; the one you're working on opens */
+  const steps=h('div',{class:'steps'});sc.steps.forEach((st,i)=>steps.append(i===SELSTEP||EXPALL?stepCard(sc,st,i):miniStep(sc,st,i)));
+  if(!sc.steps.length)steps.append(h('p',{class:'help'},'No steps yet. Add the first one below.'));
+  const scset=h('details',{class:'scset',open:SCOPEN},h('summary',{},h('span',{},'⚙ Scene settings'),h('span',{class:'rv'},`${bgName(sc.bg)} · ${sc.trans?transName(sc.trans):'usual transition'}`)),
+    h('div',{class:'grid2'},textF('sc-name','Name',sc.name,v=>{sc.name=v;save();}),selF('sc-bg','Background',bgOpts(),sc.bg||'dark',v=>{sc.bg=v;changed();})),
+    selF('sc-tr','Comes in with',[['','The usual ('+transName(P.trans||'fade')+')'],...TRANS],sc.trans||'',v=>{sc.trans=v;save();}));scset.ontoggle=()=>{SCOPEN=scset.open;};
+  const bar=h('div',{class:'stbar'},addStepSel(sc),h('label',{class:'chk',title:'Show every step in full'},h('input',{type:'checkbox',checked:EXPALL,onchange:e=>{EXPALL=e.target.checked;try{localStorage.setItem('vn-expall',EXPALL?'1':'');}catch(err){}renderSide();}}),'Open all'));
+  p.append(sec(h('span',{},sc.name||'This scene',h('span',{class:'rv'},` ${sc.steps.length} step${sc.steps.length===1?'':'s'}`)),scset,
+    h('p',{class:'help'},'Tap a step to open it and preview from there. New steps go in after the open one.'),steps,bar));}
+/* bring a step into view inside the writing panel only (on a computer it scrolls by itself; the page and preview stay put) */
+function reveal(el){if(!el)return;const side=$('side');
+  if(getComputedStyle(side).overflowY==='auto'&&side.scrollHeight>side.clientHeight+2){const r=el.getBoundingClientRect(),sr=side.getBoundingClientRect(),th=(side.querySelector('.tabs')||{}).offsetHeight||0,bar=(side.querySelector('.stbar')||{}).offsetHeight||0,top=r.top-sr.top-th-10,bot=r.bottom-sr.bottom+bar+10;
+    if(top<0)side.scrollBy({top,behavior:'smooth'});else if(bot>0)side.scrollBy({top:Math.min(bot,top),behavior:'smooth'});return;}
+  el.scrollIntoView({block:'nearest',behavior:'smooth'});}
+let SCOPEN=false,EXPALL=false;try{EXPALL=!!localStorage.getItem('vn-expall');}catch(e){}
+const STEP_GROUPS=[['Story',['say','narr','choice','card','end']],['People',['show','hide']],['Pictures and places',['bg','pic','picoff','fx']],['Sound',['sound','music']],['Where it goes',['jump','set','if']]];
+function addStepSel(sc){const s2=h('select',{id:'addStep','aria-label':'Add a step'},h('option',{value:''},'+ Add a step…'));
+  STEP_GROUPS.forEach(([g,ks])=>s2.append(h('optgroup',{label:g},...ks.map(k=>h('option',{value:k},kindName(k))))));
+  s2.onchange=()=>{const k=s2.value;if(!k)return;const st=newStep(k),at=SELSTEP>=0&&SELSTEP<sc.steps.length?SELSTEP+1:sc.steps.length;sc.steps.splice(at,0,st);SELSTEP=at;changed();previewFrom(sc.id,at);
+    setTimeout(()=>{const c=document.querySelectorAll('#pane .step')[at];if(c){reveal(c);const f=c.querySelector('textarea,input[type=text]');if(f)f.focus({preventScroll:true});}},60);};return s2;}
+function selStep(sc,i){SELSTEP=i;renderSide();previewFrom(sc.id,i);setTimeout(()=>{const c=document.querySelectorAll('#pane .step')[i];if(c)reveal(c);},30);}
+/* a step folded to one line: what it is, what it says, and its timing if you changed it */
+function miniStep(sc,st,i){const ch=st.who&&(st.k==='say'||st.k==='show'||st.k==='hide')?charById(st.who):null,tm=/^(jump|set|if)$/.test(st.k)?'':timingSummary(st),sum=stepSummary(st);
+  const ib=(lab,dis,fn,t)=>h('button',{type:'button',class:'ib','aria-label':lab,disabled:dis,onclick:e=>{e.stopPropagation();fn();}},t);
+  return h('div',{class:'step mini k-'+st.k,role:'button',tabindex:'0','aria-label':`${kindName(st.k)}: ${sum}. Open`,onclick:()=>selStep(sc,i),onkeydown:e=>{if(e.target===e.currentTarget&&(e.key==='Enter'||e.key===' ')){e.preventDefault();selStep(sc,i);}}},
+    h('span',{class:'kind'},kindName(st.k)),ch?h('span',{class:'dot',style:'background:'+(isHex(ch.color)?ch.color:'#888')}):null,h('span',{class:'ms'},sum||(st.k==='picoff'?'the picture goes away':'…')),
+    tm&&tm!=='automatic'?h('span',{class:'mm',title:tm},'⏱'):null,
+    h('div',{class:'acts'},ib('Move up',i===0,()=>{[sc.steps[i-1],sc.steps[i]]=[sc.steps[i],sc.steps[i-1]];if(SELSTEP===i-1)SELSTEP=i;else if(SELSTEP===i)SELSTEP=i-1;changed();},'↑'),ib('Move down',i===sc.steps.length-1,()=>{[sc.steps[i+1],sc.steps[i]]=[sc.steps[i],sc.steps[i+1]];if(SELSTEP===i+1)SELSTEP=i;else if(SELSTEP===i)SELSTEP=i+1;changed();},'↓'),
+      ib('Delete step',false,()=>{sc.steps.splice(i,1);if(SELSTEP>i)SELSTEP--;else if(SELSTEP===i)SELSTEP=-1;changed();},'✕')));}
 function newStep(k){const c0=P.chars[0],c1=P.chars[1]||P.chars[0];switch(k){case'say':return{k,who:c0?c0.id:'',expr:'neutral',pos:'',text:''};case'narr':return{k,text:''};case'choice':return{k,prompt:'',opts:[{text:'Option one',go:'',auto:true},{text:'Option two',go:'',auto:false}]};
   case'show':return{k,who:c1?c1.id:'',expr:'neutral',pos:'right'};case'hide':return{k,who:c0?c0.id:''};case'bg':return{k,bg:'day'};case'card':return{k,text:'Later'};case'fx':return{k,kind:'shake'};case'sound':return{k,snd:(P.sounds[0]||{}).id||'',vol:1};case'music':return{k,snd:(P.sounds[0]||{}).id||'',vol:.6};case'jump':return{k,go:P.scenes[0]?P.scenes[0].id:''};case'pic':return{k,bg:(P.bgs[0]||{}).id||'room',mode:'stay',wait:false,hold:2,size:.56,x:0,y:-.1,dim:.5,frame:'border',in:'pop',move:'none',moveDur:8,burst:false};case'picoff':return{k};case'end':return{k,text:'The End'};case'set':return{k,v:(P.vars[0]||{}).id||'',op:'add',val:1};case'if':return{k,v:(P.vars[0]||{}).id||'',cmp:'>=',val:1,go:'',els:''};}return{k};}
 function stepCard(sc,st,i){const card=h('div',{class:'step'+(i===SELSTEP?' sel':''),onclick:()=>{if(SELSTEP!==i){SELSTEP=i;document.querySelectorAll('.step').forEach(e=>e.classList.remove('sel'));card.classList.add('sel');previewFrom(sc.id,i);}}});
   const kindSel=selF('st-k-'+i,'',KINDS,st.k,v=>{const n=newStep(v);if(n.text!==undefined&&st.text)n.text=st.text;if(n.who!==undefined&&st.who)n.who=st.who;sc.steps[i]=n;changed();});
   card.append(h('div',{class:'hd'},h('span',{class:'kind'},kindName(st.k)),kindSel,h('div',{class:'acts'},h('button',{type:'button',class:'ib','aria-label':'Move up',disabled:i===0,onclick:e=>{e.stopPropagation();[sc.steps[i-1],sc.steps[i]]=[sc.steps[i],sc.steps[i-1]];SELSTEP=i-1;changed();}},'↑'),
     h('button',{type:'button',class:'ib','aria-label':'Move down',disabled:i===sc.steps.length-1,onclick:e=>{e.stopPropagation();[sc.steps[i+1],sc.steps[i]]=[sc.steps[i],sc.steps[i+1]];SELSTEP=i+1;changed();}},'↓'),
-    h('button',{type:'button',class:'ib','aria-label':'Duplicate',onclick:e=>{e.stopPropagation();sc.steps.splice(i+1,0,clone(st));changed();}},'⧉'),h('button',{type:'button',class:'ib','aria-label':'Delete step',onclick:e=>{e.stopPropagation();sc.steps.splice(i,1);SELSTEP=-1;changed();}},'✕'))));
+    h('button',{type:'button',class:'ib','aria-label':'Duplicate',onclick:e=>{e.stopPropagation();sc.steps.splice(i+1,0,clone(st));changed();}},'⧉'),h('button',{type:'button',class:'ib','aria-label':'Delete step',onclick:e=>{e.stopPropagation();sc.steps.splice(i,1);SELSTEP=-1;changed();}},'✕'),
+    h('button',{type:'button',class:'ib fold','aria-label':'Fold this step',title:'Fold',onclick:e=>{e.stopPropagation();if(SELSTEP===i)SELSTEP=-1;if(EXPALL){EXPALL=false;try{localStorage.setItem('vn-expall','');}catch(err){}}renderSide();}},'▴'))));
   const soft=()=>{save();previewFrom(sc.id,i,true);};
   const pickWho=v=>{st.who=v;st.expr=(firstExpr(charById(v))||{id:'neutral'}).id;changed();};
   if(st.k==='say'){const ch=charById(st.who);card.append(...[selF('st-who-'+i,'Who',charOpts(),st.who,pickWho),exprPick('st-ex-'+i,ch,st.expr,v=>{st.expr=v;soft();})].filter(Boolean),
@@ -1128,7 +1178,7 @@ function addToScene(ch,exId,sceneId,how,pos){const sc=sceneById(sceneId);if(!sc)
   const st=how==='say'?{k:'say',who:ch.id,expr:exId,pos:pos||'',text:''}:{k:'show',who:ch.id,expr:exId,pos:pos||ch.side||'center'};
   const at=sceneId===SEL&&SELSTEP>=0?SELSTEP+1:sc.steps.length;sc.steps.splice(at,0,st);SEL=sceneId;SELSTEP=at;TAB='scenes';ADDTO=null;changed();previewFrom(sceneId,at);
   toast(how==='say'?`${ch.name} has a new line in “${sc.name}”. Type what they say.`:`${ch.name} now shows up in “${sc.name}”.`);
-  setTimeout(()=>{const ta=$('st-t-'+at),card=ta&&ta.closest('.step')||document.querySelectorAll('.step')[at];if(card)card.scrollIntoView({block:'center',behavior:'smooth'});if(ta)ta.focus({preventScroll:true});},60);}
+  setTimeout(()=>{const ta=$('st-t-'+at),card=ta&&ta.closest('.step')||document.querySelectorAll('.step')[at];if(card)reveal(card);if(ta)ta.focus({preventScroll:true});},60);}
 /* the expression's name from its file name: "mina_happy.png" becomes Happy */
 function guessExpr(name){const b=String(name||'').toLowerCase();for(const[k,l]of EXPRS)if(b.includes(k))return l;
   const base=String(name||'').replace(/\.[a-z0-9]+$/i,'').replace(/[_\-.]+/g,' ').trim();return base?base.slice(0,24).replace(/^./,c=>c.toUpperCase()):'Expression';}
@@ -1488,7 +1538,7 @@ function renderTimeline(){if(!PL||$('tl').hidden)return;ACTS=[];const D=Math.max
   $('tlRuler').innerHTML=r;
   const M=tlModel(),rows=$('tlRows'),names=$('tlNames');rows.innerHTML='';names.innerHTML='';names.append(h('div',{class:'rn'},''));
   const X=t=>TPAD+t*pps;
-  const row=(label,dot)=>{names.append(h('div',{title:label},dot?h('span',{class:'dot',style:'background:'+dot}):null,label));const el=h('div',{class:'tlr'});rows.append(el);return el;};
+  const row=(label,dot,extra,cls)=>{names.append(h('div',{title:label,class:cls||''},dot?h('span',{class:'dot',style:'background:'+dot}):null,h('span',{class:'nl'},label),...(extra||[])));const el=h('div',{class:'tlr'+(cls?' '+cls:'')});rows.append(el);return el;};
   const bar=(el,o)=>{const w=Math.max(6,(o.t1-o.t0)*pps),b=h('div',{class:'tb'+(o.cls?' '+o.cls:'')+(isSelRef(o.ref)?' sel':''),style:`left:${X(o.t0)}px;width:${w}px;--c:${o.c}`,title:o.title||o.label||''});
     if(o.ref)b.dataset.ref=o.ref.title?'title':o.ref.sid+'#'+o.ref.i;b.dataset.t=o.seek!=null?o.seek:o.t0;if(o.body)b.dataset.a=o.body;else b.classList.add('fixed');
     if(o.pre>0)b.append(h('i',{class:'pre',style:`width:${o.pre*pps}px`}));
@@ -1539,14 +1589,33 @@ function renderTimeline(){if(!PL||$('tl').hidden)return;ACTS=[];const D=Math.max
       title:'Picture'+(flash?' (flashes)':'')});});}
   /* effects */
   if(M.fx.length){const R=row('Effects',TCOL.fx);M.fx.forEach(o=>{const st=stepAt(o.ref);bar(R,{...o,c:TCOL.fx,body:st?act({st,f:'at',v0:num(st.at)}):null,right:st?act({st,f:'dur',v0:o.t1-o.t0,min:.1,max:10}):null,title:o.label});});}
-  /* sounds and music */
-  if(M.snd.length){const R=row('Sound',TCOL.sound);M.snd.forEach(o=>{const st=o.ref&&stepAt(o.ref),nm=(sndById(o.id)||{name:'Sound'}).name;
+  /* sound effects and music: always shown, each with a mute for the preview and + to add one at the playhead */
+  const trk=(k,label,col)=>row(label,null,[h('button',{type:'button',class:'tmute'+(MUTE_T[k]?' on':''),'aria-pressed':String(MUTE_T[k]),title:MUTE_T[k]?`Unmute ${label.toLowerCase()} in the preview`:`Mute ${label.toLowerCase()} in the preview (the video keeps it)`,'aria-label':(MUTE_T[k]?'Unmute ':'Mute ')+label,onclick:()=>muteTrack(k)},MUTE_T[k]?'🔇':'🔊'),
+    h('button',{type:'button',class:'tadd',title:k==='music'?'Start music here':'Add a sound effect here','aria-label':k==='music'?'Add music at the playhead':'Add a sound effect at the playhead',onclick:()=>addAtPlayhead(k==='music'?'music':'sound')},'+')],MUTE_T[k]?'muted':'');
+  const FXR=trk('sfx','Sound FX',TCOL.sound),MUR=trk('music','Music',TCOL.music);
+  M.snd.forEach(o=>{const st=o.ref&&stepAt(o.ref),nm=(sndById(o.id)||{name:'Sound'}).name,R=o.music?MUR:FXR;
     if(o.mark){mark(R,{t0:o.t0,ref:o.ref,c:TCOL.sound,a:st?act({st,f:'at',v0:num(st.at)}):null,title:nm});return;}
-    bar(R,{t0:o.t0,t1:o.t1,ref:o.ref,c:o.music?TCOL.music:TCOL.sound,label:(o.music?'♪ ':'')+nm,body:st?act({st,f:'at',v0:num(st.at)}):null,left:st&&o.music?act({st,f:'at',v0:num(st.at)}):null,title:(o.music?'Music: ':'Sound: ')+nm});});}
+    bar(R,{t0:o.t0,t1:o.t1,ref:o.ref,c:o.music?TCOL.music:TCOL.sound,label:(o.music?'♪ ':'')+nm,body:st?act({st,f:'at',v0:num(st.at)}):null,left:st&&o.music?act({st,f:'at',v0:num(st.at)}):null,title:(o.music?'Music: ':'Sound effect: ')+nm+(st&&optNum(st.at)?` · starts ${secs(st.at)} late`:'')});});
+  if(!M.snd.some(o=>o.music))MUR.append(h('span',{class:'tempty'},P.sounds.length?'No music on this path. Press + to start some at the playhead.':'Add music in the Sounds tab, then press + here.'));
+  if(!M.snd.some(o=>!o.music))FXR.append(h('span',{class:'tempty'},P.sounds.length?'Press + to add a sound effect at the playhead.':'Add sound effects in the Sounds tab, then press + here.'));
   renderPathBar();moveHead();}
 function renderStrip(){renderTimeline();}
 function moveHead(follow){if(!PL)return;const x=TPAD+state.t*pps,hd=$('tlHead');if(!hd)return;hd.style.left=x+'px';const ru=$('tlRuler');ru.setAttribute('aria-valuemax',PL.dur.toFixed(1));ru.setAttribute('aria-valuenow',state.t.toFixed(1));
   if(follow){const sc=$('tlScroll'),l=sc.scrollLeft,w=sc.clientWidth;if(x<l+20||x>l+w-50)sc.scrollLeft=Math.max(0,x-w*.25);}}
+/* mute a track in the preview */
+function muteTrack(k){MUTE_T[k]=!MUTE_T[k];try{localStorage.setItem('vn-mute',JSON.stringify(MUTE_T));}catch(e){}
+  if(MODE==='watch'&&state.playing){cancelSounds();scheduleSounds(state.t);}else if(MODE==='play'&&k==='music'){if(MUTE_T.music)stopMusic();else if(G.music&&AC&&AC.state==='running')playMusic(G.music);}
+  renderTimeline();toast(MUTE_T[k]?`${k==='music'?'Music':'Sound effects'} muted in the preview. The video and the playable file keep ${k==='music'?'it':'them'}.`:`${k==='music'?'Music':'Sound effects'} back on.`);}
+try{Object.assign(MUTE_T,JSON.parse(localStorage.getItem('vn-mute')||'{}'));}catch(e){}
+/* a Sound or Music step that happens right where the playhead is: it goes in before the step on screen, starting that much later */
+function addAtPlayhead(k){if(!P.sounds.length){TAB='sounds';renderSide();toast('Add a sound file here first, then press + on the timeline again.');return;}
+  const seg=PL.segs.find(s=>state.t<s.t1&&s.ref&&!s.ref.title)||PL.segs.filter(s=>s.ref&&!s.ref.title).pop();if(!seg){toast('Add a step to the story first.');return;}
+  const ref=seg.ref,sc=sceneById(ref.sid);if(!sc)return;const start=PL.segs.find(s=>s.ref&&s.ref.sid===ref.sid&&s.ref.i===ref.i).t0,at=Math.max(0,Math.round((state.t-start)*20)/20);
+  const lastMusic=[...(PL.log||[])].reverse().find(e=>e.k==='music'&&e.st.snd);const snd=k==='music'?((lastMusic&&lastMusic.st.snd)||(P.sounds.find(x=>/music|theme|bgm|loop|song/i.test(x.name))||P.sounds[0]).id):(P.sounds[0]||{}).id;
+  const st=k==='music'?{k,snd,vol:.6}:{k,snd,vol:1};if(at>0)st.at=at;sc.steps.splice(ref.i,0,st);
+  SEL=sc.id;SELSTEP=ref.i;TAB='scenes';TOPEN.add(st);save();PL=plan();renderSide();renderTimeline();drawNow();
+  setTimeout(()=>{const c=document.querySelectorAll('#pane .step')[ref.i];if(c)reveal(c);},40);
+  toast(k==='music'?'Music starts here. Pick the track in the step that opened.':'Sound effect added here. Pick the sound in the step that opened.');}
 /* scrubbing: the ruler, and the playhead itself */
 let scrubD=null;const tlTime=e=>{const r=$('tlInner').getBoundingClientRect();return clamp((e.clientX-r.left-TPAD)/pps,0,PL?PL.dur:0);};
 function scrubTo(e){state.t=tlTime(e);drawNow();}
@@ -1582,7 +1651,7 @@ $('tlRows').addEventListener('pointermove',e=>{const d=tdrag;if(!d)return;if(Mat
   if(d.ref&&d.ref!=='title'){const[sid,i]=d.ref.split('#');if(+i<0){SEL=sid;SELSTEP=-1;TAB='scenes';renderSide();renderTimeline();}else openStep(sid,+i);}else if(d.ref==='title'){TAB='look';renderSide();}}));
 /* show a step in the Scenes tab with its timing open */
 function openStep(sid,i){SEL=sid;SELSTEP=i;TAB='scenes';const st=stepAt({sid,i});if(st)TOPEN.add(st);renderSide();renderTimeline();
-  setTimeout(()=>{const card=document.querySelectorAll('#pane .step')[i];if(card)card.scrollIntoView({block:'nearest',behavior:'smooth'});},40);}
+  setTimeout(()=>{const card=document.querySelectorAll('#pane .step')[i];if(card)reveal(card);},40);}
 function play(){const ac=audio();if(ac&&ac.state==='suspended')ac.resume();if(state.t>=PL.dur-.02)state.t=0;state.start=performance.now()-state.t*1000;state.playing=true;cancelSounds();scheduleSounds(state.t);syncTransport();cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);}
 function pause(){state.playing=false;cancelSounds();syncTransport();}
 function syncTransport(){$('playLbl').textContent=state.playing?'Pause':'Play';$('playIco').textContent=state.playing?'❚❚':'▶';}
@@ -1597,7 +1666,7 @@ function planSounds(){const out=[];if(!PL)return out;PL.segs.forEach(s=>{const g
   /* music: spans between changes */
   let cur=null,start=0;PL.segs.forEach(s=>{const m=s.g.started?s.g.music:null,id=m?m.id:null;if(id!==(cur?cur.id:null)){if(cur)out.push([start,'music',{...cur,t1:s.t0}]);cur=m?{id:m.id,vol:m.vol}:null;start=s.t0;}});if(cur)out.push([start,'music',{...cur,t1:PL.dur}]);
   return out.sort((a,b)=>a[0]-b[0]);}
-function scheduleSounds(from,base){if(!audio())return;if(base==null)base=AC.currentTime+.03;planSounds().forEach(([t,k,arg])=>{
+function scheduleSounds(from,base){if(!audio())return;const pv=base==null;if(base==null)base=AC.currentTime+.03;planSounds().forEach(([t,k,arg])=>{if(pv&&((k==='music'&&MUTE_T.music)||(k==='play'&&MUTE_T.sfx)))return;
   if(k==='music'){if(arg.t1<=from||!SND[arg.id]||!SND[arg.id].buf)return;const buf=SND[arg.id].buf,st=Math.max(t,from),node=playBuf(buf,base+(st-from),arg.vol,true);const off=(st-t)%buf.duration;if(off>0){try{node.s.stop();}catch(e){}LIVEN.splice(LIVEN.indexOf(node.s),1);const s2=AC.createBufferSource();s2.buffer=buf;s2.loop=true;s2.connect(node.g);s2.start(base+(st-from),off);track(s2);node.s=s2;}node.s.stop(base+(arg.t1-from)+.05);return;}
   if(t<from-1e-3)return;if(k==='play')playSnd(arg.snd,arg.vol,base+(t-from));else sfx(k,base+(t-from));});}
 function cancelSounds(){stopMusic();LIVEN.splice(0).forEach(n=>{try{n.stop(0);}catch(e){}});}
