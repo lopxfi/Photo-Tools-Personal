@@ -112,7 +112,7 @@ def check_page(browser, base, hbase, host_dir, name, w, h, framed, is_tool, args
         errs += check_theme(target)
         if is_tool and framed and not args.no_switch:
             errs += check_switch(page, target, base, name)
-        if name == 'video-layers.html' and vp_name_is_desktop(w) and not framed:
+        if name in ('video-layers.html', 'background-remover.html') and vp_name_is_desktop(w) and not framed:
             errs += check_models(target)
         if args.shots:
             page.screenshot(path=str(shots / (re.sub(r'[^\w]+', '_', label).strip('_') + '.png')))

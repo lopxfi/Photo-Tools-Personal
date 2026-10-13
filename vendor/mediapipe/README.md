@@ -1,6 +1,6 @@
 # Background remover files
 
-Used by Video Layers' **Remove background**. Loaded only when it's turned on, then kept on the device.
+Used by Video Layers' **Remove background** and by Background Remover. Loaded only when it's turned on, then kept on the device.
 
 | File | What it is |
 |---|---|

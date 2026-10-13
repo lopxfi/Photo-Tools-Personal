@@ -18,6 +18,7 @@ A small set of personal browser tools for dressing up photos, making short video
 | [Chat Reel](#chat-reel) | Turns a text conversation into a video, timing every message on a timeline. Group chats, reactions, replies, voice notes and unsent messages, in iPhone, Android, DM, WhatsApp-style, Discord-style or lock-screen looks, or as a sci-fi transmission screen, a retro game cutscene, a video call, a social post with comments, or bubbles over your own video. |
 | [Metadata Scrubber](#metadata-scrubber) | Strips prompts, location and hidden data out of photos and videos and saves clean copies under random names, optionally under a size limit. |
 | [Watermark](#watermark) | Puts your name or logo on one photo or a whole batch, with ready-made looks (corner signature, label, stamp, proof band, tiled) or your own saved watermarks. |
+| [Background Remover](#background-remover) | Takes the background out of photos (people, animals, everyday things, or anything on a plain background), with a touch-up brush, and saves them see-through, on a color or on a blur, optionally with a sticker outline. |
 | [Video Layers](#video-layers) | Puts pictures, videos, text, music and your voice together and exports a new video or GIF. Automatic background removal, green screen, motion paths with keyframes and one-tap layouts. |
 | [Delivery Reel](#delivery-reel) | Plays out an order from a made-up delivery app, from placed to delivered, and ends on the delivered screen. A courier chat on the way and a doorstep photo or video that opens full screen. |
 | [Visual Novel](#visual-novel) | Scenes with characters, expressions and choices that branch. Play it in the page, export a video of a path, or save a playable file anyone can open. |
@@ -363,6 +364,33 @@ For videos, add your logo or text as a layer in [Video Layers](#video-layers).
 
 ---
 
+## Background Remover
+
+Takes the background out of your photos. Add one photo or a whole batch; each one is done on your device, one after another.
+
+### What to keep
+- **People:** faces, bodies and hair.
+- **People and animals:** also cats, dogs, horses, birds and farm animals.
+- **Anything it knows:** also cars, bikes, furniture, plants, bottles and screens.
+- **Plain background:** no AI, just color. Anything on one even color (a logo, a drawing, a product on white) comes out clean, including small text. Tick **Also remove it inside shapes** to clear the holes in letters and gaps too. This choice works inside Claude as well.
+
+On a plain wall or studio paper, the AI choices also check the background's color, so the edge follows the real outline and the light or dark rim around it is taken out.
+
+### Edges and touch-ups
+- **Tighter or looser** and **Soft edge** sliders.
+- **Remove small leftover bits and fill pinholes** (on by default).
+- **Touch-up brush:** Erase takes more away, Keep brings parts back. Removed parts show faintly while you paint. Undo or clear the strokes; each photo keeps its own.
+- **Hold to see the original** to compare.
+
+### Background and saving
+- **Behind it:** see-through, a color, or a blurred copy of the photo.
+- **Sticker outline** in any color and width, and **Crop to what's kept** with your own space around it.
+- **Save as** PNG or WebP (see-through) or JPG, with an optional size limit, random names or your names with `-nobg`. Save one, all, or a ZIP, or share from your phone. Saved copies have none of the original's hidden data.
+
+The AI is the same on-device background remover Video Layers uses (Google's MediaPipe, in `vendor/mediapipe/`). It downloads about 14 MB the first time and is kept for next time, including offline. For videos, use **Remove background** in [Video Layers](#video-layers).
+
+---
+
 ## Video Layers
 
 Puts pictures, videos, text, music and your voice together and makes a new video or GIF. The first picture or video you add fills the frame. Anything after it goes on top as an overlay, and each layer gets its own bar on the timeline.
@@ -547,11 +575,12 @@ Open each tool once while you're online so everything, fonts included, is saved 
 | `chat-reel.html` | Chat Reel |
 | `metadata-scrubber.html` | Metadata Scrubber |
 | `watermark.html` | Watermark |
+| `background-remover.html` | Background Remover |
 | `video-layers.html` | Video Layers |
 | `manifest.webmanifest` | App name, icons, shortcuts and the Share menu entry for installing |
 | `sw.js` | Offline support: keeps the tools and fonts on your device, and receives files shared from other apps |
 | `icons/` | App icons |
-| `vendor/mediapipe/` | The background remover and face finder: Google's MediaPipe vision library (Apache 2.0) with its people, animal and face models. Its usage reporting to Google is switched off in this copy. See the README in that folder. |
+| `vendor/mediapipe/` | The background remover and face finder (used by Video Layers and Background Remover): Google's MediaPipe vision library (Apache 2.0) with its people, animal and face models. Its usage reporting to Google is switched off in this copy. See the README in that folder. |
 
 Each tool is a single self-contained HTML file with no build step and no server code. Chat Reel's emoji list comes from [unicode-emoji-json](https://github.com/muan/unicode-emoji-json) and [emoji-data](https://github.com/iamcal/emoji-data), both MIT licensed. The background remover's files are the only ones loaded from elsewhere in the site, and only when you turn it on.
 
