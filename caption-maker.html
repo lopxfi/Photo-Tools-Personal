@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Caption Maker</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#F2F1F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121118" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Photo Tools">
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&window.top===window.self)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}catch(e){}</script>
+<style id="pt-theme-css">
+/* light/dark switch, added next to each page's name; same on every page */
+:root header button.pt-theme{flex:none;display:inline-grid;place-items:center;width:34px;height:34px;min-width:0;padding:0;margin:0;border:1px solid var(--line);border-radius:50%;background:var(--panel);color:var(--ink);cursor:pointer;align-self:center;box-shadow:none;font:inherit;line-height:0}
+:root header button.pt-theme:hover{border-color:var(--accent);color:var(--accent);background:var(--panel)}
+:root header button.pt-theme:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+:root header button.pt-theme svg{width:18px;height:18px;display:block}
+header:not(.top){position:relative;padding-right:46px}
+header:not(.top)>button.pt-theme{position:absolute;top:0;right:0}
+</style>
+<script id="pt-theme-js">/* light or dark: dark unless you pick light with the switch; the choice is kept for every tool */
+(function(){var K='pt-theme',d=document.documentElement,C={light:'#F2F1F6',dark:'#121118'},
+SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>',
+MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>';
+var mem=null;function saved(){try{var v=localStorage.getItem(K);if(v==='light'||v==='dark')return v;}catch(e){}return mem;}
+function now(){return saved()||'dark';}
+function apply(){var cur=now();d.setAttribute('data-theme',cur);
+  document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=C[cur];});
+  var b=document.getElementById('ptTheme');if(b){var n=cur==='dark'?'light':'dark';b.setAttribute('aria-label','Switch to '+n+' mode');b.title='Switch to '+n+' mode';b.innerHTML=cur==='dark'?SUN:MOON;}}
+window.ptTheme={get:now,set:function(t){mem=t;try{localStorage.setItem(K,t);}catch(e){}apply();}};
+apply();
+addEventListener('storage',function(e){if(e.key===K)apply();});
+document.addEventListener('DOMContentLoaded',function(){var h=document.querySelector('header');if(!h||document.getElementById('ptTheme'))return;
+  var b=document.createElement('button');b.type='button';b.id='ptTheme';b.className='pt-theme';
+  b.addEventListener('click',function(){ptTheme.set(now()==='dark'?'light':'dark');});
+  var t=h.querySelector('h1');if(t&&h.classList.contains('top'))t.after(b);else h.prepend(b);apply();});
+})();</script>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Unbounded:wght@600&display=swap">
+<style>
+/* Layout: the picture with its text on the left, settings for the selected text on the right; on phones the picture comes first */
+:root{
+  --bg:#F2F1F6; --panel:#FFFFFF; --ink:#18161F; --muted:#686577; --line:#DDDAE6;
+  --accent:#5B3DF5; --accent-ink:#FFFFFF; --soft:#ECE8FF; --stage:#E7E5EE; --check:#DCD9E4; --warn:#B4281E;
+  --f-display:"Unbounded","Familjen Grotesk",system-ui,sans-serif;
+  --f-body:"Familjen Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121118; --panel:#1B1A23; --ink:#EEEDF4; --muted:#9D9AAE; --line:#2F2D3B;
+  --accent:#9C88FF; --accent-ink:#141020; --soft:#26213F; --stage:#0C0B11; --check:#17161E; --warn:#FF8A80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121118; --panel:#1B1A23; --ink:#EEEDF4; --muted:#9D9AAE; --line:#2F2D3B;
+  --accent:#9C88FF; --accent-ink:#141020; --soft:#26213F; --stage:#0C0B11; --check:#17161E; --warn:#FF8A80; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);padding-inline:16px;padding-block:18px 40px}
+[hidden]{display:none!important}
+.top{max-width:1400px;margin:0 auto 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
+.brand{font:600 22px/1.1 var(--f-display);letter-spacing:-.01em;margin:0}
+.brand span{color:var(--accent)}
+.top p{margin:0;color:var(--muted)}
+.spacer{flex:1}
+.switch{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--panel);align-self:center;max-width:100%;overflow-x:auto}
+.switch a{font:500 14px/1 var(--f-body);color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:7px;white-space:nowrap}
+.switch a:hover{color:var(--ink)}
+.switch a[aria-current="page"]{background:var(--ink);color:var(--bg)}
+.switch a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+.label{font:600 11px/1 var(--f-body);text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0}
+button,.btn{font:500 14px/1 var(--f-body);border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 13px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;position:relative}
+button:hover,.btn:hover{border-color:var(--muted)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.primary:hover{border-color:var(--accent);filter:brightness(1.08)}
+.btn input{position:absolute;opacity:0;width:1px;height:1px}
+button:focus-visible,.btn:focus-within,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.row button,.row .btn{font-size:13px;padding:8px 11px}
+.opts{display:flex;flex-direction:column;gap:14px;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;overscroll-behavior:contain}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label,.flabel{font-size:13px;font-weight:500;display:flex;justify-content:space-between;gap:8px}
+.rv{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:400}
+.field input[type=range]{accent-color:var(--accent);width:100%}
+textarea,input[type=text],input[type=number],select{font:15px/1.35 var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+textarea{resize:vertical}
+input[type=color]{width:40px;height:32px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:3px;flex:none}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{padding:7px 10px;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chk{display:inline-flex;align-items:center;gap:7px;font-size:13px;cursor:pointer}
+.chk input{accent-color:var(--accent);width:16px;height:16px;flex:none}
+.help{font-size:12px;color:var(--muted);margin:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.fhead{font:600 13px/1.2 var(--f-display);margin:4px 0 -4px;padding-top:12px;border-top:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.fhead .chk{font:400 13px/1 var(--f-body);margin-left:auto}
+.swatch{width:26px;height:26px;padding:0;border-radius:50%;flex:none}
+.colrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dim{opacity:.45;pointer-events:none}
+/* the picture */
+.stage{display:flex;flex-direction:column;gap:10px;min-width:0;position:sticky;top:16px}
+.canvas-wrap{position:relative;display:grid;place-items:center;padding:16px;border-radius:12px;min-height:320px;
+  background:var(--stage) conic-gradient(var(--check) 25%,transparent 0 50%,var(--check) 0 75%,transparent 0) 0 0/22px 22px}
+.canvas-wrap.drop{outline:3px dashed var(--accent);outline-offset:-8px}
+canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;height:auto;touch-action:none;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tools button,.tools .btn{font-size:13px;padding:8px 11px}
+.layers{display:flex;gap:6px;flex-wrap:wrap}
+.layers button{max-width:180px;font-size:13px;padding:6px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.layers button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--soft)}
+.under{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.under .help{flex:1;min-width:200px}
+.status{min-height:1.2em;font-size:13px;color:var(--accent);margin:0}
+/* looks */
+.looks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.looks button{flex-direction:column;align-items:stretch;gap:4px;padding:4px;font-size:11px;text-align:center;line-height:1.2}
+.looks canvas{width:100%;height:auto;border-radius:5px;display:block;background:var(--stage) conic-gradient(var(--check) 25%,transparent 0 50%,var(--check) 0 75%,transparent 0) 0 0/10px 10px}
+.looks .mine{position:relative}
+.looks .mine i{position:absolute;top:2px;right:2px;font-style:normal;width:20px;height:20px;border-radius:50%;background:var(--panel);display:grid;place-items:center;font-size:11px;border:1px solid var(--line)}
+/* the font button and picker */
+.fontbtn{justify-content:space-between;width:100%;font-size:20px;padding:10px 12px;min-height:48px}
+.fontbtn small{font:400 12px/1 var(--f-body);color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(10,8,18,.72);display:grid;place-items:center;padding:16px;z-index:40}
+.sheet{background:var(--panel);border-radius:14px;padding:16px;width:min(760px,100%);max-height:100%;display:flex;flex-direction:column;gap:10px}
+.sheet h3{margin:0;font:600 17px/1.2 var(--f-display);display:flex;align-items:center;gap:10px}
+.fcats{display:flex;gap:6px;flex-wrap:wrap}
+.fcats button{padding:6px 10px;font-size:12px}
+.fcats button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.flist{overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;padding:2px;min-height:200px}
+.fopt{flex-direction:column;align-items:flex-start;gap:4px;padding:8px 10px;text-align:left;min-height:70px;overflow:hidden}
+.fopt .fs{font-size:24px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.fopt .fn{font:400 11px/1 var(--f-body);color:var(--muted)}
+.fopt[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--soft)}
+.fopt.own .fn::after{content:" · yours";color:var(--accent)}
+.ffoot{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.myfonts{display:flex;flex-direction:column;gap:6px}
+.myfonts li{display:flex;align-items:center;gap:8px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font-size:13px}
+.myfonts li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.myfonts ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:60;max-width:calc(100% - 32px);box-shadow:0 8px 24px rgba(0,0,0,.25)}
+@media (max-width:900px){
+  body{padding-inline:12px}
+  .top p{display:none}
+  .app{grid-template-columns:minmax(0,1fr)}
+  .stage{position:static}
+  .opts{position:static;max-height:none}
+  .canvas-wrap{padding:8px;min-height:200px}
+  canvas#cv{max-height:56vh}
+  textarea,input[type=text],input[type=number],select{font-size:16px}
+  .seg button,.row button{padding:10px 12px;font-size:14px}
+  .field input[type=range]{height:30px}
+  .looks{grid-template-columns:repeat(3,1fr)}
+  .fsec{border-top:1px solid var(--line);margin:4px -16px 0;padding:0 16px}
+  .fold{width:100%;justify-content:space-between;border:0;background:transparent;padding:14px 0;font:600 14px/1.2 var(--f-display);border-radius:0;color:var(--ink)}
+  .fold .chev{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;margin-right:4px;flex:none}
+  .fold[aria-expanded="true"] .chev{transform:rotate(45deg)}
+  .foldbody{display:flex;flex-direction:column;gap:14px;padding-bottom:14px}
+  .flist{grid-template-columns:1fr 1fr}
+  .fopt .fs{font-size:20px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<header class="top">
+  <h1 class="brand">Caption <span>Maker</span></h1>
+  <nav class="switch" aria-label="Switch tool"><a href="photo-frame-studio.html">Frame Studio</a><a href="photo-splitter.html">Splitter</a><a href="chat-reel.html">Chat Reel</a><a href="metadata-scrubber.html">Scrubber</a><a href="watermark.html">Watermark</a><a href="caption-maker.html" aria-current="page">Captions</a><a href="background-remover.html">BG Remover</a><a href="video-layers.html">Video</a><a href="delivery-reel.html">Delivery</a><a href="visual-novel.html">Novel</a><a href="motion-comic.html">Comic</a></nav>
+  <p>Put words on a picture: captions, dialogue, speech bubbles and titles, in any font.</p>
+</header>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<main class="app">
+  <section class="stage" aria-label="Picture">
+    <div class="canvas-wrap" id="drop">
+      <canvas id="cv" width="1080" height="1080" aria-label="Your picture with its text. Drag text to move it, its corner to resize it, the round handle above it to turn it."></canvas>
+    </div>
+    <div class="tools">
+      <button type="button" id="addText" class="primary">+ Text</button>
+      <button type="button" id="dupText">Duplicate</button>
+      <button type="button" id="delText">Delete</button>
+      <button type="button" id="upText" title="Bring forward" aria-label="Bring forward">▲</button>
+      <button type="button" id="downText" title="Send back" aria-label="Send back">▼</button>
+      <span class="spacer"></span>
+      <button type="button" id="undo" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+      <button type="button" id="redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
+    </div>
+    <div class="layers" id="layers" role="group" aria-label="Your text"></div>
+    <div class="under">
+      <p class="help">Drag text to move it. Pull the corner to resize, the round handle to turn it, and the dot at a bubble’s tail to point it. Double-tap text to type.</p>
+    </div>
+  </section>
+
+  <section class="card opts" id="opts" aria-label="Settings">
+    <div class="field">
+      <label for="txt">Text <span class="rv">a new line for each line</span></label>
+      <textarea id="txt" rows="3" autocomplete="off" spellcheck="true"></textarea>
+    </div>
+    <h4 class="fhead">Looks</h4>
+    <div class="field"><div class="looks" id="looks"></div><div class="row"><button type="button" id="saveLook">Save this look</button></div><p class="help">A look changes the font, colors, effects and box. Your words and where they are stay the same.</p></div>
+    <h4 class="fhead">Font</h4>
+    <div class="field" id="fontF"></div>
+    <h4 class="fhead">Color</h4>
+    <div class="field" id="colorF"></div>
+    <h4 class="fhead">Outline</h4>
+    <div class="field" id="outF"></div>
+    <h4 class="fhead">Shadow and glow</h4>
+    <div class="field" id="shadowF"></div>
+    <h4 class="fhead">3D and curve</h4>
+    <div class="field" id="depthF"></div>
+    <h4 class="fhead">Box and bubble</h4>
+    <div class="field" id="boxF"></div>
+    <h4 class="fhead">Size, place and turn</h4>
+    <div class="field" id="placeF"></div>
+    <h4 class="fhead">Picture</h4>
+    <div class="field" id="picF"></div>
+    <h4 class="fhead">Save</h4>
+    <div class="field" id="saveF"></div>
+    <p class="status" id="status" role="status"></p>
+  </section>
+</main>
+
+<div class="modal" id="fmodal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="fTitle">
+    <h3 id="fTitle">Pick a font <span class="spacer"></span><button type="button" id="fClose">Done</button></h3>
+    <input type="text" id="fSearch" placeholder="Search fonts" autocomplete="off" aria-label="Search fonts">
+    <div class="fcats" id="fCats" role="group" aria-label="Kinds of fonts"></div>
+    <div class="flist" id="fList" role="listbox" aria-label="Fonts"></div>
+    <div class="myfonts" id="myFonts"></div>
+  </div>
+</div>
+
+<script>
+/* ================= phones: fold-out sections ================= */
+const phoneMQ=matchMedia('(max-width:900px)'),isPhone=()=>phoneMQ.matches;
+const openSecs=new Set(['Looks','Font']);
+function foldSections(p,sel){let body=null;
+  for(const el of[...p.children]){
+    if(el.matches(sel)){const name=el.firstChild.textContent.trim(),open=openSecs.has(name);
+      const b=document.createElement('button');b.type='button';b.className='fold';b.setAttribute('aria-expanded',String(open));b.append(name);
+      const ch=document.createElement('span');ch.className='chev';ch.setAttribute('aria-hidden','true');b.append(ch);
+      body=document.createElement('div');body.className='foldbody';body.hidden=!open;const bd=body;
+      b.onclick=()=>{const o=bd.hidden;bd.hidden=!o;b.setAttribute('aria-expanded',String(o));if(o)openSecs.add(name);else openSecs.delete(name);};
+      const sec=document.createElement('div');sec.className='fsec';sec.append(b,body);el.replaceWith(sec);continue;}
+    if(body)body.append(el);}}
+if(isPhone())foldSections($id('opts'),'h4.fhead');
+function $id(id){return document.getElementById(id);}
+
+/* ================= basics ================= */
+const $=$id;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rkey=()=>Math.random().toString(36).slice(2,9);
+function h(tag,props,...kids){const e=document.createElement(tag);for(const[k,v]of Object.entries(props||{})){if(k==='class')e.className=v;else if(k==='text')e.textContent=v;else if(k==='style')e.style.cssText=v;else if(k.startsWith('on'))e[k]=v;else if(v===true)e.setAttribute(k,'');else if(v!==false&&v!=null)e.setAttribute(k,v);}
+  kids.flat().forEach(c=>{if(c!=null&&c!==false)e.append(c.nodeType?c:document.createTextNode(c));});return e;}
+function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>{t.hidden=true;},4500);}
+function segF(id,label,opts,val,on){const g=h('div',{class:'seg',role:'group','aria-labelledby':id+'-l'});opts.forEach(([v,l,st])=>g.append(h('button',{type:'button','aria-pressed':String(v===val),style:st||null,onclick:()=>on(v)},l)));return h('div',{class:'field'},h('span',{class:'flabel',id:id+'-l'},label),g);}
+function rangeF(id,label,min,max,step,val,fmt,on){const out=h('output',{class:'rv',for:id},fmt(val)),inp=h('input',{type:'range',id,min,max,step,value:val});inp.oninput=()=>{out.textContent=fmt(+inp.value);on(+inp.value,false);};inp.onchange=()=>on(+inp.value,true);return h('div',{class:'field'},h('label',{for:id},label,out),inp);}
+const SW=['#FFFFFF','#000000','#FFD43B','#FF4D4D','#3E8BFF','#2FBF71','#FF7AC6','#9C88FF'];
+function colorF(id,label,val,on,sw){const ci=h('input',{type:'color',id,value:String(val||'#ffffff').toLowerCase(),'aria-label':label});ci.oninput=()=>on(ci.value,false);ci.onchange=()=>on(ci.value,true);
+  return h('div',{class:'field'},h('span',{class:'flabel'},label),h('div',{class:'colrow'},ci,...(sw||SW).map(c=>h('button',{type:'button',class:'swatch',style:`background:${c}`,'aria-label':'Use '+c,title:c,onclick:()=>on(c,true)}))));}
+function checkF(id,label,val,on){const c=h('input',{type:'checkbox',id});c.checked=!!val;c.onchange=()=>on(c.checked);return h('label',{class:'chk',for:id},c,label);}
+const hexRGB=hx=>{const n=parseInt(String(hx).slice(1),16);return[n>>16&255,n>>8&255,n&255];};
+const rgba=(hx,a)=>{const[r,g,b]=hexRGB(hx||'#000000');return`rgba(${r},${g},${b},${a})`;};
+const pct=v=>Math.round(v*100)+'%',deg=v=>Math.round(v)+'°';
+
+/* ================= fonts: free web fonts, the device's own, and font files you add ================= */
+/* [id, name shown, family as Google Fonts names it (or null for a device font), CSS stack, kind, has bold] */
+const WEB_FONTS=[
+  ['bangers','Bangers','Bangers','"Bangers",Impact,sans-serif','comic',0],['comicneue','Comic Neue','Comic Neue:wght@400;700','"Comic Neue","Comic Sans MS",cursive','comic',1],
+  ['luckiest','Luckiest Guy','Luckiest Guy','"Luckiest Guy",Impact,sans-serif','comic',0],['bubblegum','Bubblegum Sans','Bubblegum Sans','"Bubblegum Sans",cursive','comic',0],
+  ['chewy','Chewy','Chewy','"Chewy",cursive','comic',0],['knewave','Knewave','Knewave','"Knewave",cursive','comic',0],['patrick','Patrick Hand','Patrick Hand','"Patrick Hand",cursive','comic',0],
+  ['bowlby','Bowlby One','Bowlby One','"Bowlby One",Impact,sans-serif','comic',0],['fredoka','Fredoka','Fredoka:wght@400;700','"Fredoka",system-ui,sans-serif','comic',1],
+  ['impact','Impact','','Impact,"Anton","Haettenschweiler","Arial Narrow Bold",sans-serif','bold',0],['anton','Anton','Anton','"Anton",Impact,sans-serif','bold',0],
+  ['bebas','Bebas Neue','Bebas Neue','"Bebas Neue",Impact,sans-serif','bold',0],['oswald','Oswald','Oswald:wght@400;700','"Oswald","Arial Narrow",sans-serif','bold',1],
+  ['archivo','Archivo Black','Archivo Black','"Archivo Black",Impact,sans-serif','bold',0],['bungee','Bungee','Bungee','"Bungee",Impact,sans-serif','bold',0],
+  ['blackops','Black Ops One','Black Ops One','"Black Ops One",Impact,sans-serif','bold',0],['russo','Russo One','Russo One','"Russo One",sans-serif','bold',0],
+  ['teko','Teko','Teko:wght@400;700','"Teko",Impact,sans-serif','bold',1],['shrikhand','Shrikhand','Shrikhand','"Shrikhand",cursive','bold',0],
+  ['marker','Permanent Marker','Permanent Marker','"Permanent Marker",cursive','hand',0],['kalam','Kalam','Kalam:wght@400;700','"Kalam",cursive','hand',1],
+  ['caveat','Caveat','Caveat:wght@400;700','"Caveat",cursive','hand',1],['gochi','Gochi Hand','Gochi Hand','"Gochi Hand",cursive','hand',0],['indie','Indie Flower','Indie Flower','"Indie Flower",cursive','hand',0],
+  ['shadows','Shadows Into Light','Shadows Into Light','"Shadows Into Light",cursive','hand',0],['rocksalt','Rock Salt','Rock Salt','"Rock Salt",cursive','hand',0],['amatic','Amatic SC','Amatic SC:wght@400;700','"Amatic SC",cursive','hand',1],
+  ['dancing','Dancing Script','Dancing Script:wght@400;700','"Dancing Script",cursive','script',1],['pacifico','Pacifico','Pacifico','"Pacifico",cursive','script',0],['lobster','Lobster','Lobster','"Lobster",cursive','script',0],
+  ['satisfy','Satisfy','Satisfy','"Satisfy",cursive','script',0],['greatvibes','Great Vibes','Great Vibes','"Great Vibes",cursive','script',0],['yellowtail','Yellowtail','Yellowtail','"Yellowtail",cursive','script',0],
+  ['playfair','Playfair Display','Playfair Display:ital,wght@0,400;0,700;1,400;1,700','"Playfair Display",Georgia,serif','serif',1],['merri','Merriweather','Merriweather:wght@400;700','"Merriweather",Georgia,serif','serif',1],
+  ['lora','Lora','Lora:ital,wght@0,400;0,700;1,400','"Lora",Georgia,serif','serif',1],['cinzel','Cinzel','Cinzel:wght@400;700','"Cinzel","Trajan Pro",serif','serif',1],
+  ['dmserif','DM Serif Display','DM Serif Display','"DM Serif Display",Georgia,serif','serif',0],['abril','Abril Fatface','Abril Fatface','"Abril Fatface",Georgia,serif','serif',0],
+  ['fraktur','UnifrakturMaguntia','UnifrakturMaguntia','"UnifrakturMaguntia",serif','serif',0],['georgia','Georgia','','Georgia,"Times New Roman",serif','serif',1],
+  ['montserrat','Montserrat','Montserrat:ital,wght@0,400;0,700;0,900;1,400;1,700','"Montserrat",system-ui,sans-serif','clean',1],['poppins','Poppins','Poppins:ital,wght@0,400;0,700;1,400;1,700','"Poppins",system-ui,sans-serif','clean',1],
+  ['roboto','Roboto','Roboto:ital,wght@0,400;0,700;1,400;1,700','"Roboto",system-ui,sans-serif','clean',1],['inter','Inter','Inter:wght@400;700','"Inter",system-ui,sans-serif','clean',1],
+  ['arial','Arial','','Arial,Helvetica,sans-serif','clean',1],['spacemono','Space Mono','Space Mono:ital,wght@0,400;0,700;1,400','"Space Mono","Courier New",monospace','clean',1],
+  ['press','Press Start 2P','Press Start 2P','"Press Start 2P",monospace','retro',0],['vt323','VT323','VT323','"VT323",monospace','retro',0],['silkscreen','Silkscreen','Silkscreen','"Silkscreen",monospace','retro',0],
+  ['orbitron','Orbitron','Orbitron:wght@400;700','"Orbitron",sans-serif','retro',1],['audiowide','Audiowide','Audiowide','"Audiowide",sans-serif','retro',0],['monoton','Monoton','Monoton','"Monoton",cursive','retro',0],
+  ['righteous','Righteous','Righteous','"Righteous",cursive','retro',0],['elite','Special Elite','Special Elite','"Special Elite","Courier New",monospace','retro',0],
+  ['creepster','Creepster','Creepster','"Creepster",cursive','fun',0],['nosifer','Nosifer','Nosifer','"Nosifer",cursive','fun',0],['fredericka','Fredericka the Great','Fredericka the Great','"Fredericka the Great",cursive','fun',0],
+  ['sedgwick','Sedgwick Ave Display','Sedgwick Ave Display','"Sedgwick Ave Display",cursive','fun',0],['comicsans','Comic Sans MS','','"Comic Sans MS","Comic Neue",cursive','fun',1]];
+const FONT_KINDS=[['all','All'],['comic','Comic and manga'],['bold','Bold and loud'],['hand','Handwriting'],['script','Script'],['serif','Serif'],['clean','Clean'],['retro','Retro and pixel'],['fun','Spooky and fun'],['mine','Your fonts']];
+const FONTS={};WEB_FONTS.forEach(([id,name,gf,css,kind,bold])=>FONTS[id]={id,name,gf,css,kind,bold:!!bold});
+const GF_LOADED=new Set();
+/* a web font's stylesheet is fetched the first time it's used, one family at a time */
+function needFont(id){const f=FONTS[id];if(!f||!f.gf||GF_LOADED.has(f.gf))return;GF_LOADED.add(f.gf);
+  document.head.append(h('link',{rel:'stylesheet',href:'https://fonts.googleapis.com/css2?family='+f.gf.replace(/ /g,'+')+'&display=swap'}));}
+const fontCss=id=>(FONTS[id]||FONTS.bangers).css;
+/* your fonts: font files you add, kept in this browser (shared by every tool on this site) */
+const FDB={open(){if(FDB.p)return FDB.p;return FDB.p=new Promise(res=>{try{const r=indexedDB.open('pt-fonts',1);r.onupgradeneeded=()=>r.result.createObjectStore('fonts');r.onsuccess=()=>res(r.result);r.onerror=r.onblocked=()=>res(null);}catch(e){res(null);}});},
+  async tx(mode,fn){const db=await FDB.open();if(!db)return null;return new Promise(res=>{try{const t=db.transaction('fonts',mode),s=t.objectStore('fonts'),q=fn(s);t.oncomplete=()=>res(q&&'result' in q?q.result:true);t.onerror=t.onabort=()=>res(null);}catch(e){res(null);}});}};
+/* the name inside a TTF or OTF file ("Segoe Print Bold"), so your fonts show their real names */
+function fontFileName(buf){try{const dv=new DataView(buf),n=dv.getUint16(4);for(let i=0;i<n;i++){const o=12+i*16,tag=String.fromCharCode(dv.getUint8(o),dv.getUint8(o+1),dv.getUint8(o+2),dv.getUint8(o+3));if(tag!=='name')continue;
+    const t=dv.getUint32(o+8),cnt=dv.getUint16(t+2),so=t+dv.getUint16(t+4),got={};
+    for(let k=0;k<cnt;k++){const r=t+6+k*12,pid=dv.getUint16(r),nid=dv.getUint16(r+6),len=dv.getUint16(r+8),off=dv.getUint16(r+10);if(nid!==4&&nid!==1&&nid!==2)continue;let s='';
+      if(pid===3||pid===0){for(let j=0;j<len;j+=2)s+=String.fromCharCode(dv.getUint16(so+off+j));}else if(pid===1){for(let j=0;j<len;j++)s+=String.fromCharCode(dv.getUint8(so+off+j));}else continue;
+      if(s&&(!got[nid]||pid===3))got[nid]=s;}
+    return got[4]||[got[1],got[2]&&got[2]!=='Regular'?got[2]:''].filter(Boolean).join(' ')||null;}}catch(e){}return null;}
+async function useOwnFont(rec){try{const ff=new FontFace('pt-own-'+rec.id,await rec.blob.arrayBuffer());await ff.load();document.fonts.add(ff);
+  FONTS['own-'+rec.id]={id:'own-'+rec.id,name:rec.name,gf:null,css:`"pt-own-${rec.id}",sans-serif`,kind:'mine',bold:false,own:true};return true;}catch(e){return false;}}
+async function loadOwnFonts(){const keys=await FDB.tx('readonly',s=>s.getAllKeys())||[];for(const k of keys){if(FONTS['own-'+k])continue;const rec=await FDB.tx('readonly',s=>s.get(k));if(rec)await useOwnFont(rec);}}
+async function addFontFiles(files){let n=0,bad=0,last=null;
+  for(const f of files){if(!/\.(ttf|otf|woff2?)$/i.test(f.name)&&!/font/.test(f.type)){bad++;continue;}const buf=await f.arrayBuffer();
+    const name=(fontFileName(buf)||f.name.replace(/\.[^.]+$/,'').replace(/^[0-9a-f]{8}-/i,'').replace(/[_-]+/g,' ')).slice(0,60);
+    if(Object.values(FONTS).some(x=>x.own&&x.name===name)){last=Object.values(FONTS).find(x=>x.own&&x.name===name).id;continue;}
+    const rec={id:rkey(),name,blob:new Blob([buf],{type:f.type||'font/ttf'}),added:Date.now()};if(!await useOwnFont(rec)){bad++;continue;}
+    await FDB.tx('readwrite',s=>s.put(rec,rec.id));n++;last='own-'+rec.id;}
+  toast(n?`${n} font${n>1?'s':''} added. ${n>1?'They’re':'It’s'} kept in this browser, ready every time.`:bad?'That file isn’t a font this browser can use. Try a TTF, OTF or WOFF file.':'You already have that font.');return last;}
+async function removeOwnFont(id){const k=id.replace(/^own-/,'');await FDB.tx('readwrite',s=>s.delete(k));delete FONTS[id];S.texts.forEach(t=>{if(t.font===id)t.font='bangers';});commit();}
+
+/* ================= the picture and its text ================= */
+const cv=$('cv');let ctx=cv.getContext('2d');let IMG=null,IMGBLOB=null,IMGNAME='';
+const DEFTEXT=()=>({id:'t_'+rkey(),text:'Your text here',font:'bangers',size:.09,x:.5,y:.5,rot:0,bold:false,italic:false,upper:false,align:'center',spacing:0,lineH:1.12,
+  fill:'solid',color:'#FFFFFF',color2:'#FFD43B',gAngle:90,opacity:1,
+  o1:{on:true,w:.09,color:'#000000'},o2:{on:false,w:.08,color:'#FFFFFF'},
+  shadow:{on:false,color:'#000000',blur:.15,dist:.06,ang:45,op:.6},glow:{on:false,color:'#FF4DD8',size:.35},
+  depth:{on:false,size:.12,ang:45,color:'#7A1FA2'},curve:0,
+  box:{kind:'none',color:'#FFFFFF',op:1,pad:.35,bw:0,bc:'#000000',tail:true,tx:.32,ty:.78}});
+let S={bg:{kind:'sample',color:'#1B1A23',w:1080,h:1080},texts:[],sel:null,fmt:'png',q:.92,maxSide:0};
+let VIEW=null;const IW=()=>VIEW?VIEW.w:cv.width,IH=()=>VIEW?VIEW.h:cv.height;
+const selT=()=>S.texts.find(t=>t.id===S.sel)||null;
+/* a stand-in picture until you open one */
+function sampleBg(c,w,hh){const g=c.createLinearGradient(0,0,0,hh);g.addColorStop(0,'#2B2A6E');g.addColorStop(.6,'#C3487A');g.addColorStop(1,'#FF9A5C');c.fillStyle=g;c.fillRect(0,0,w,hh);
+  c.fillStyle='rgba(255,233,176,.9)';c.beginPath();c.arc(w*.7,hh*.62,hh*.12,0,Math.PI*2);c.fill();c.fillStyle='#1E2A5A';c.beginPath();c.moveTo(0,hh);c.lineTo(w*.3,hh*.6);c.lineTo(w*.55,hh*.82);c.lineTo(w*.8,hh*.58);c.lineTo(w,hh*.75);c.lineTo(w,hh);c.fill();}
+function drawBackground(c,w,hh,forSave){if(S.bg.kind==='img'&&IMG){c.drawImage(IMG,0,0,w,hh);return;}
+  if(S.bg.kind==='color'){c.fillStyle=S.bg.color;c.fillRect(0,0,w,hh);return;}if(S.bg.kind==='clear')return;sampleBg(c,w,hh);}
+
+/* ---------- laying out one piece of text: lines, or letters along a curve ---------- */
+const fontStr=(T,px)=>`${T.italic?'italic ':''}${T.bold?700:400} ${Math.max(1,px)}px ${fontCss(T.font)}`;
+const setSpacing=(c,px)=>{if('letterSpacing' in c)c.letterSpacing=px+'px';};
+function layout(c,T){const sz=T.size*IH(),lh=sz*T.lineH,sp=T.spacing*sz/100,raw=((T.upper?T.text.toUpperCase():T.text)||' ').replace(/\r/g,''),lines=raw.split('\n');
+  c.font=fontStr(T,sz);const native='letterSpacing' in c;setSpacing(c,native?sp:0);
+  const wOf=s=>c.measureText(s).width+(native?0:Math.max(0,[...s].length-1)*sp);
+  const widths=lines.map(wOf),W=Math.max(sz*.3,...widths),Ht=lh*lines.length,items=[];
+  if(!T.curve){lines.forEach((l,j)=>{const x=T.align==='left'?-W/2:T.align==='right'?W/2-widths[j]:-widths[j]/2;items.push({s:l,x,y:-Ht/2+lh*(j+.5),r:0,w:widths[j],line:true});});
+    return{sz,lh,W,Ht,items,bb:{x:-W/2,y:-Ht/2,w:W,h:Ht},lines,widths};}
+  /* along an arc: the widest line bends through up to about 200° */
+  setSpacing(c,0);const k=T.curve/100,A=Math.max(.02,Math.abs(k))*Math.PI*1.1,R=W/A,up=k>0;let mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;
+  lines.forEach((l,j)=>{const cs=[...l],cw=cs.map(ch=>c.measureText(ch).width),tot=cw.reduce((a,b)=>a+b,0)+Math.max(0,cs.length-1)*sp;
+    const y0=-Ht/2+lh*(j+.5),Rj=Math.max(sz,R+(up?(j-(lines.length-1)/2)*lh:-(j-(lines.length-1)/2)*lh));let s=T.align==='left'?-W/2:T.align==='right'?W/2-tot:-tot/2;
+    cs.forEach((ch,i)=>{const mid=s+cw[i]/2,th=mid/Rj,x=Rj*Math.sin(th),dy=Rj*(1-Math.cos(th)),y=up?y0+dy:y0-dy;items.push({s:ch,x,y,r:up?th:-th,w:cw[i],ch:true});s+=cw[i]+sp;
+      mnx=Math.min(mnx,x-cw[i]/2);mxx=Math.max(mxx,x+cw[i]/2);mny=Math.min(mny,y-sz*.6);mxy=Math.max(mxy,y+sz*.6);});});
+  if(!items.length){mnx=-sz/2;mxx=sz/2;mny=-sz/2;mxy=sz/2;}
+  /* keep the text centered on its spot */
+  const cy=(mny+mxy)/2;items.forEach(it=>it.y-=cy);return{sz,lh,W:mxx-mnx,Ht:mxy-mny,items,bb:{x:mnx,y:mny-cy,w:mxx-mnx,h:mxy-mny},lines,widths};}
+/* the box or bubble around the text, in the text's own turned space */
+function boxRect(T,L){const p=T.box.pad*L.sz;return{x:L.bb.x-p,y:L.bb.y-p*.7,w:L.bb.w+p*2,h:L.bb.h+p*1.4};}
+function tailLocal(T){const dx=T.box.tx*IW()-T.x*IW(),dy=T.box.ty*IH()-T.y*IH(),a=-T.rot*Math.PI/180;return{x:dx*Math.cos(a)-dy*Math.sin(a),y:dx*Math.sin(a)+dy*Math.cos(a)};}
+const hasTail=T=>T.box.tail&&/^(speech|oval|thought)$/.test(T.box.kind);
+function rrPath(c,x,y,w,hh,r){r=Math.min(r,w/2,hh/2);c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+hh,r);c.arcTo(x+w,y+hh,x,y+hh,r);c.arcTo(x,y+hh,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+/* a pointed tail from the bubble's middle toward the tip, as one more piece of the same shape */
+function tailPath(c,R,tip,wide){const cx=R.x+R.w/2,cy=R.y+R.h/2,ang=Math.atan2(tip.y-cy,tip.x-cx),bw=Math.min(R.w,R.h)*(wide||.22),px=Math.cos(ang+Math.PI/2)*bw/2,py=Math.sin(ang+Math.PI/2)*bw/2;
+  /* drawn the same way round as the bubble, so the two join into one shape instead of cancelling out */
+  let ax=cx+px,ay=cy+py,bx=cx-px,by=cy-py,s=1;if((tip.x-ax)*(by-ay)-(tip.y-ay)*(bx-ax)<0){[ax,ay,bx,by]=[bx,by,ax,ay];s=-1;}
+  c.moveTo(ax,ay);c.quadraticCurveTo((cx+tip.x)/2+px*.3*s,(cy+tip.y)/2+py*.3*s,tip.x,tip.y);c.quadraticCurveTo((cx+tip.x)/2-px*.3*s,(cy+tip.y)/2-py*.3*s,bx,by);c.closePath();}
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function boxShape(c,T,L){const B=T.box,R=boxRect(T,L),k=B.kind,tip=hasTail(T)?tailLocal(T):null;c.beginPath();
+  if(k==='box')c.rect(R.x,R.y,R.w,R.h);
+  else if(k==='round')rrPath(c,R.x,R.y,R.w,R.h,Math.min(R.w,R.h)*.22);
+  else if(k==='pill')rrPath(c,R.x,R.y,R.w,R.h,R.h/2);
+  else if(k==='lines'){const p=B.pad*L.sz*.6;L.items.forEach(it=>{if(!it.line||!it.s.trim())return;rrPath(c,it.x-p,it.y-L.lh/2+L.lh*.04,it.w+p*2,L.lh*.92,L.lh*.18);});}
+  else if(k==='speech'){rrPath(c,R.x,R.y,R.w,R.h,Math.min(R.w,R.h)*.42);if(tip)tailPath(c,R,tip);}
+  else if(k==='oval'){c.ellipse(R.x+R.w/2,R.y+R.h/2,R.w/2*1.18,R.h/2*1.32,0,0,Math.PI*2);c.closePath();if(tip)tailPath(c,R,tip,.3);}
+  else if(k==='thought'){const cx=R.x+R.w/2,cy=R.y+R.h/2,rx=R.w/2*1.12,ry=R.h/2*1.2,n=Math.max(8,Math.round((rx+ry)/(L.sz*.55)));
+    c.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);c.closePath();for(let i=0;i<n;i++){const a=i/n*Math.PI*2,bx=cx+Math.cos(a)*rx,by=cy+Math.sin(a)*ry,r=Math.min(rx,ry)*(.32+.08*Math.sin(i*2.3));c.moveTo(bx+r,by);c.arc(bx,by,r,0,Math.PI*2);c.closePath();}
+    if(tip)[.62,.8,.93].forEach((f,i)=>{const bx=cx+(tip.x-cx)*f,by=cy+(tip.y-cy)*f,r=Math.min(rx,ry)*(.2-i*.055);c.moveTo(bx+r,by);c.arc(bx,by,Math.max(2,r),0,Math.PI*2);c.closePath();});}
+  else if(k==='shout'){const cx=R.x+R.w/2,cy=R.y+R.h/2,rx=R.w/2*1.25,ry=R.h/2*1.45,n=18,rnd=mulberry(7);for(let i=0;i<=n*2;i++){const a=i/(n*2)*Math.PI*2,o=i%2?.78+rnd()*.06:1.08+rnd()*.12,x=cx+Math.cos(a)*rx*o,y=cy+Math.sin(a)*ry*o;if(!i)c.moveTo(x,y);else c.lineTo(x,y);}c.closePath();}
+  else if(k==='tag'){const n=R.h*.42;c.moveTo(R.x,R.y);c.lineTo(R.x+R.w,R.y);c.lineTo(R.x+R.w+n,R.y+R.h/2);c.lineTo(R.x+R.w,R.y+R.h);c.lineTo(R.x,R.y+R.h);c.closePath();}}
+function drawBox(c,T,L){const B=T.box;if(B.kind==='none'||B.kind==='bar')return;c.save();
+  if(B.bw>0){boxShape(c,T,L);c.lineJoin='round';c.lineWidth=B.bw*L.sz*2;c.strokeStyle=B.bc;c.globalAlpha*=1;c.stroke();}
+  boxShape(c,T,L);c.globalAlpha*=B.op;c.fillStyle=B.color;c.fill('nonzero');c.restore();}
+/* a strip right across the picture, behind the text (it stays level when the text is turned) */
+function drawBar(c,T,L){const B=T.box,p=B.pad*L.sz,hh=L.bb.h+p*1.4;c.save();c.globalAlpha*=B.op;c.fillStyle=B.color;c.fillRect(0,T.y*IH()-hh/2,IW(),hh);
+  if(B.bw>0){c.globalAlpha=T.opacity;c.fillStyle=B.bc;const t=B.bw*L.sz;c.fillRect(0,T.y*IH()-hh/2-t,IW(),t);c.fillRect(0,T.y*IH()+hh/2,IW(),t);}c.restore();}
+/* the fill: one color, a blend of two, or none at all (just the outline) */
+function fillStyleFor(c,T,L){if(T.fill!=='gradient')return T.color;const a=T.gAngle*Math.PI/180,r=Math.hypot(L.bb.w,L.bb.h)/2,cx=L.bb.x+L.bb.w/2,cy=L.bb.y+L.bb.h/2;
+  const g=c.createLinearGradient(cx-Math.cos(a)*r,cy-Math.sin(a)*r,cx+Math.cos(a)*r,cy+Math.sin(a)*r);g.addColorStop(0,T.color);g.addColorStop(1,T.color2);return g;}
+function eachGlyph(c,L,fn){L.items.forEach(it=>{if(it.ch){c.save();c.translate(it.x,it.y);c.rotate(it.r);c.textAlign='center';fn(it.s,0,0);c.restore();}else{c.textAlign='left';fn(it.s,it.x,it.y);}});}
+/* one piece of text, with everything on it, at its place on the picture */
+function drawText(c,T){const L=layout(c,T);c.save();c.globalAlpha=T.opacity;if(T.box.kind==='bar')drawBar(c,T,L);
+  c.translate(T.x*IW(),T.y*IH());c.rotate(T.rot*Math.PI/180);drawBox(c,T,L);
+  c.font=fontStr(T,L.sz);c.textBaseline='middle';c.lineJoin='round';c.miterLimit=2;setSpacing(c,L.items.some(i=>i.ch)?0:T.spacing*L.sz/100);
+  const o1=T.o1.on?T.o1.w*L.sz:0,o2=T.o2.on?T.o2.w*L.sz:0,fillOn=T.fill!=='none';
+  const strokes=(col1,col2)=>{if(o2){c.lineWidth=(o1+o2)*2;c.strokeStyle=col2||T.o2.color;eachGlyph(c,L,(s,x,y)=>c.strokeText(s,x,y));}if(o1){c.lineWidth=o1*2;c.strokeStyle=col1||T.o1.color;eachGlyph(c,L,(s,x,y)=>c.strokeText(s,x,y));}};
+  const body=(col)=>{if(fillOn||col){c.fillStyle=col||fillStyleFor(c,T,L);eachGlyph(c,L,(s,x,y)=>c.fillText(s,x,y));}};
+  /* 3D: copies of the letters stepping back */
+  if(T.depth.on&&T.depth.size>0){const d=T.depth.size*L.sz,a=T.depth.ang*Math.PI/180,n=Math.min(60,Math.ceil(d)),ux=Math.cos(a),uy=Math.sin(a);
+    for(let i=n;i>=1;i--){c.save();c.translate(ux*d*i/n,uy*d*i/n);const col=i===n?shade(T.depth.color,-.35):T.depth.color;strokes(col,col);if(!o1&&!o2)body(col);else{c.fillStyle=col;eachGlyph(c,L,(s,x,y)=>c.fillText(s,x,y));}c.restore();}}
+  /* glow: soft light all around */
+  if(T.glow.on&&T.glow.size>0){c.save();c.shadowColor=T.glow.color;c.shadowBlur=T.glow.size*L.sz;for(let k=0;k<2;k++){strokes(T.glow.color,T.glow.color);body(T.glow.color);}c.restore();}
+  /* shadow: the whole thing, outline and all, casts one shadow */
+  if(T.shadow.on){c.save();const a=T.shadow.ang*Math.PI/180,d=T.shadow.dist*L.sz;c.shadowColor=rgba(T.shadow.color,T.shadow.op);c.shadowBlur=T.shadow.blur*L.sz;c.shadowOffsetX=Math.cos(a)*d;c.shadowOffsetY=Math.sin(a)*d;
+    strokes();if(fillOn)body();else if(!o1&&!o2)body(T.color);c.restore();}
+  strokes();body();c.restore();return L;}
+function shade(hx,amt){const[r,g,b]=hexRGB(hx),f=v=>Math.round(clamp(amt<0?v*(1+amt):v+(255-v)*amt,0,255)).toString(16).padStart(2,'0');return'#'+f(r)+f(g)+f(b);}
+
+/* ================= drawing the stage, with handles on the selected text ================= */
+let SHOWUI=true;
+function render(){const w=IW(),hh=IH();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,w,hh);drawBackground(ctx,w,hh);
+  S.texts.forEach(T=>{T._L=drawText(ctx,T);});if(SHOWUI)drawHandles();}
+const uiScale=()=>cv.width/Math.max(1,cv.getBoundingClientRect().width||cv.width);
+function handlesOf(T){const L=T._L||layout(ctx,T),R=T.box.kind!=='none'&&T.box.kind!=='bar'&&T.box.kind!=='lines'?boxRect(T,L):{x:L.bb.x-L.sz*.08,y:L.bb.y-L.sz*.05,w:L.bb.w+L.sz*.16,h:L.bb.h+L.sz*.1};
+  if(T.box.kind==='oval'||T.box.kind==='thought'||T.box.kind==='shout'){const f=T.box.kind==='shout'?1.3:1.2;R.x-=R.w*(f-1)/2;R.y-=R.h*(f-1)/2;R.w*=f;R.h*=f*1.05;}
+  const u=uiScale();return{R,u,rot:{x:R.x+R.w/2,y:R.y-30*u},corner:{x:R.x+R.w,y:R.y+R.h},tail:hasTail(T)?tailLocal(T):null};}
+function drawHandles(){const T=selT();if(!T)return;const H=handlesOf(T),u=H.u;ctx.save();ctx.translate(T.x*IW(),T.y*IH());ctx.rotate(T.rot*Math.PI/180);
+  ctx.lineWidth=2*u;ctx.setLineDash([8*u,6*u]);ctx.strokeStyle='rgba(255,255,255,.95)';ctx.strokeRect(H.R.x,H.R.y,H.R.w,H.R.h);ctx.strokeStyle='rgba(0,0,0,.6)';ctx.lineDashOffset=7*u;ctx.strokeRect(H.R.x,H.R.y,H.R.w,H.R.h);ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(H.R.x+H.R.w/2,H.R.y);ctx.lineTo(H.rot.x,H.rot.y);ctx.strokeStyle='rgba(255,255,255,.9)';ctx.stroke();
+  const dot=(p,r,fill)=>{ctx.beginPath();ctx.arc(p.x,p.y,r*u,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();ctx.lineWidth=2.5*u;ctx.strokeStyle='#5B3DF5';ctx.stroke();};
+  dot(H.rot,9,'#fff');ctx.save();ctx.translate(H.corner.x,H.corner.y);ctx.fillStyle='#fff';ctx.strokeStyle='#5B3DF5';ctx.lineWidth=2.5*u;ctx.fillRect(-8*u,-8*u,16*u,16*u);ctx.strokeRect(-8*u,-8*u,16*u,16*u);ctx.restore();
+  if(H.tail)dot(H.tail,8,'#FFD43B');ctx.restore();}
+
+/* ================= moving, resizing and turning on the picture ================= */
+const toCanvas=e=>{const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*cv.width,y:(e.clientY-r.top)/r.height*cv.height};};
+const toLocal=(T,p)=>{const dx=p.x-T.x*IW(),dy=p.y-T.y*IH(),a=-T.rot*Math.PI/180;return{x:dx*Math.cos(a)-dy*Math.sin(a),y:dx*Math.sin(a)+dy*Math.cos(a)};};
+function hitText(p){for(let i=S.texts.length-1;i>=0;i--){const T=S.texts[i],H=handlesOf(T),q=toLocal(T,p);if(q.x>=H.R.x&&q.x<=H.R.x+H.R.w&&q.y>=H.R.y&&q.y<=H.R.y+H.R.h)return T;}return null;}
+let DR=null,lastTapAt=0,lastTapId=null;
+cv.addEventListener('pointerdown',e=>{const p=toCanvas(e),T=selT();
+  if(T){const H=handlesOf(T),q=toLocal(T,p),near=(a,r)=>a&&Math.hypot(q.x-a.x,q.y-a.y)<r*H.u;
+    if(near(H.tail,18)){DR={mode:'tail',T};}
+    else if(near(H.rot,20)){DR={mode:'rot',T};}
+    else if(near(H.corner,20)){const L=T._L;DR={mode:'size',T,s0:T.size,d0:Math.max(1,Math.hypot(q.x,q.y))};}}
+  if(!DR){const hit=hitText(p);if(hit){if(hit.id!==S.sel){S.sel=hit.id;renderPanel();}DR={mode:'move',T:hit,p0:p,x0:hit.x,y0:hit.y,tx0:hit.box.tx,ty0:hit.box.ty};
+      const now=performance.now();if(lastTapId===hit.id&&now-lastTapAt<380){DR=null;focusText();return;}lastTapAt=now;lastTapId=hit.id;}
+    else{if(S.sel){S.sel=null;renderPanel();render();}return;}}
+  DR.moved=false;cv.setPointerCapture(e.pointerId);e.preventDefault();render();});
+cv.addEventListener('pointermove',e=>{const p=toCanvas(e);if(!DR){const T=selT();let cur='default';if(T){const H=handlesOf(T),q=toLocal(T,p),near=(a,r)=>a&&Math.hypot(q.x-a.x,q.y-a.y)<r*H.u;cur=near(H.tail,18)?'crosshair':near(H.rot,20)?'grab':near(H.corner,20)?'nwse-resize':'';}if(!cur||cur==='default')cur=hitText(p)?'move':'default';cv.style.cursor=cur;return;}
+  const T=DR.T;DR.moved=true;
+  if(DR.mode==='move'){let nx=DR.x0+(p.x-DR.p0.x)/IW(),ny=DR.y0+(p.y-DR.p0.y)/IH();const sn=6*uiScale();if(Math.abs(nx-.5)*IW()<sn)nx=.5;if(Math.abs(ny-.5)*IH()<sn)ny=.5;
+    T.x=clamp(nx,-.2,1.2);T.y=clamp(ny,-.2,1.2);T.box.tx=clamp(DR.tx0+(T.x-DR.x0),.02,.98);T.box.ty=clamp(DR.ty0+(T.y-DR.y0),.02,.98);}
+  else if(DR.mode==='rot'){let a=Math.atan2(p.y-T.y*IH(),p.x-T.x*IW())*180/Math.PI+90;a=((a+180)%360+360)%360-180;for(const s of[-180,-90,-45,0,45,90,180])if(Math.abs(a-s)<4)a=s;T.rot=Math.round(a);}
+  else if(DR.mode==='size'){const q=toLocal(T,p);T.size=clamp(DR.s0*Math.hypot(q.x,q.y)/DR.d0,.01,.8);}
+  else if(DR.mode==='tail'){T.box.tx=clamp(p.x/IW(),.02,.98);T.box.ty=clamp(p.y/IH(),.02,.98);}
+  render();syncPlace();});
+['pointerup','pointercancel'].forEach(ev=>cv.addEventListener(ev,()=>{if(!DR)return;const m=DR.moved;DR=null;if(m){commit();}}));
+cv.addEventListener('dblclick',e=>{if(hitText(toCanvas(e)))focusText();});
+function focusText(){const t=$('txt');if(isPhone()){const sec=t.closest('.fsec');}t.focus();t.select();t.scrollIntoView({block:'nearest',behavior:'smooth'});}
+document.addEventListener('keydown',e=>{const tag=(e.target&&e.target.tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tag)||!$('fmodal').hidden)return;
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();return;}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();redo();return;}
+  const T=selT();if(!T)return;const st=(e.shiftKey?10:1)/Math.max(IW(),IH());
+  if(e.key==='ArrowLeft'){T.x-=st;}else if(e.key==='ArrowRight'){T.x+=st;}else if(e.key==='ArrowUp'){T.y-=st;}else if(e.key==='ArrowDown'){T.y+=st;}
+  else if(e.key==='Delete'||e.key==='Backspace'){delText();e.preventDefault();return;}else return;e.preventDefault();render();syncPlace();commitSoon();});
+
+/* ================= undo, and keeping your work ================= */
+let HIST=[],HI=-1;
+const snap=()=>JSON.stringify(S.texts.map(t=>{const o={...t};delete o._L;return o;}));
+function commit(){const s=snap();if(HIST[HI]!==s){HIST=HIST.slice(0,HI+1);HIST.push(s);if(HIST.length>80)HIST.shift();HI=HIST.length-1;}syncUndo();save();renderLayers();}
+let cT=0;const commitSoon=()=>{clearTimeout(cT);cT=setTimeout(commit,400);};
+function restoreSnap(s){const sel=S.sel;S.texts=JSON.parse(s);if(!S.texts.some(t=>t.id===sel))S.sel=S.texts.length?S.texts[S.texts.length-1].id:null;renderPanel();render();save();renderLayers();syncUndo();}
+function undo(){if(HI>0){HI--;restoreSnap(HIST[HI]);}}
+function redo(){if(HI<HIST.length-1){HI++;restoreSnap(HIST[HI]);}}
+function syncUndo(){$('undo').disabled=HI<=0;$('redo').disabled=HI>=HIST.length-1;}
+$('undo').onclick=undo;$('redo').onclick=redo;
+const DB={open(){if(DB.p)return DB.p;return DB.p=new Promise(res=>{try{const r=indexedDB.open('caption-maker',1);r.onupgradeneeded=()=>r.result.createObjectStore('state');r.onsuccess=()=>res(r.result);r.onerror=r.onblocked=()=>res(null);}catch(e){res(null);}});},
+  async tx(mode,fn){const db=await DB.open();if(!db)return null;return new Promise(res=>{try{const t=db.transaction('state',mode),s=t.objectStore('state'),q=fn(s);t.oncomplete=()=>res(q&&'result' in q?q.result:true);t.onerror=t.onabort=()=>res(null);}catch(e){res(null);}});}};
+let restored=false,sT=0;
+function writeState(){if(!restored)return Promise.resolve();return DB.tx('readwrite',s=>s.put({S:{...S,texts:JSON.parse(snap())},img:S.bg.kind==='img'?IMGBLOB:null,name:IMGNAME},'current'));}
+function save(){clearTimeout(sT);sT=setTimeout(writeState,500);}
+let LOOKS_MINE=[];
+async function restore(){try{const m=await DB.tx('readonly',s=>s.get('looks'));if(Array.isArray(m))LOOKS_MINE=m;
+  const st=await DB.tx('readonly',s=>s.get('current'));if(st&&st.S){const t=st.S.texts||[];S={...S,...st.S,texts:t.map(x=>mergeDeep(DEFTEXT(),x))};if(st.img&&S.bg.kind==='img')await setImage(st.img,st.name,true);else setCanvasSize(S.bg.w||1080,S.bg.h||1080);}}catch(e){}
+  restored=true;if(!S.texts.length)addText(true);HIST=[snap()];HI=0;syncUndo();renderAll();}
+function mergeDeep(a,b){for(const k in b){if(b[k]&&typeof b[k]==='object'&&!Array.isArray(b[k])&&a[k]&&typeof a[k]==='object')a[k]=mergeDeep({...a[k]},b[k]);else a[k]=b[k];}return a;}
+
+/* ================= the picture: open, blank, or see-through ================= */
+function setCanvasSize(w,hh){cv.width=Math.max(16,Math.round(w));cv.height=Math.max(16,Math.round(hh));}
+async function setImage(blob,name,quiet){const url=URL.createObjectURL(blob),im=new Image();im.src=url;try{await im.decode();}catch(e){toast('That picture couldn’t be opened.');return false;}
+  let w=im.naturalWidth,hh=im.naturalHeight;const max=8192;if(Math.max(w,hh)>max){const k=max/Math.max(w,hh);w*=k;hh*=k;}
+  /* text keeps its size relative to the picture, so switching pictures keeps the layout */
+  IMG=im;IMGBLOB=blob;IMGNAME=name||'picture';S.bg={...S.bg,kind:'img',w:Math.round(w),h:Math.round(hh)};setCanvasSize(w,hh);if(!quiet){renderPanel();render();save();}return true;}
+const isImg=f=>/^image\//.test(f.type)||/\.(png|jpe?g|webp|gif|avif|heic|bmp)$/i.test(f.name||'');
+async function openFiles(fs){const f=[...fs].find(isImg);if(f){await setImage(f,f.name);toast('Picture opened. Your text is still where it was.');return;}
+  const fontsIn=[...fs].filter(f=>/\.(ttf|otf|woff2?)$/i.test(f.name));if(fontsIn.length){const id=await addFontFiles(fontsIn);if(id&&selT()){selT().font=id;commit();renderPanel();render();}}}
+const SIZES=[['1080x1080','Square'],['1080x1350','Portrait 4:5'],['1080x1920','Tall 9:16'],['1920x1080','Wide 16:9'],['1600x900','Banner']];
+function blank(kind,size){const[w,hh]=String(size||S.bg.w+'x'+S.bg.h).split('x').map(Number);IMG=null;IMGBLOB=null;S.bg={...S.bg,kind,w,h:hh};setCanvasSize(w,hh);renderPanel();render();save();}
+const dropEl=$('drop');
+['dragenter','dragover'].forEach(ev=>dropEl.addEventListener(ev,e=>{e.preventDefault();dropEl.classList.add('drop');}));
+['dragleave','drop'].forEach(ev=>dropEl.addEventListener(ev,e=>{e.preventDefault();dropEl.classList.remove('drop');}));
+dropEl.addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files.length)openFiles(e.dataTransfer.files);});
+document.addEventListener('paste',e=>{const tag=(e.target&&e.target.tagName)||'';if(/INPUT|TEXTAREA/.test(tag))return;const fs=[...(e.clipboardData&&e.clipboardData.files)||[]];if(fs.length){e.preventDefault();openFiles(fs);}});
+
+/* ================= text: add, copy, order ================= */
+function addText(quiet){const T=DEFTEXT(),last=selT();if(last){const keep=JSON.parse(JSON.stringify(last));Object.assign(T,keep,{id:T.id,text:'More text',y:clamp(last.y+.14,.08,.92),x:last.x,rot:0});T.box={...keep.box,tx:keep.box.tx,ty:clamp(keep.box.ty+.14,0,1)};}
+  else if(S.texts.length===0){T.text='Your text here';T.y=.82;T.box.ty=1;}
+  S.texts.push(T);S.sel=T.id;needFont(T.font);if(!quiet){commit();renderPanel();render();focusText();}}
+function delText(){const i=S.texts.findIndex(t=>t.id===S.sel);if(i<0)return;S.texts.splice(i,1);S.sel=S.texts.length?S.texts[Math.max(0,i-1)].id:null;commit();renderPanel();render();}
+$('addText').onclick=()=>addText();$('delText').onclick=delText;
+$('dupText').onclick=()=>{const T=selT();if(!T)return;const c=JSON.parse(JSON.stringify(T));delete c._L;c.id='t_'+rkey();c.x=clamp(T.x+.03,0,1);c.y=clamp(T.y+.03,0,1);c.box.tx+=.03;c.box.ty+=.03;S.texts.push(c);S.sel=c.id;commit();renderPanel();render();};
+$('upText').onclick=()=>{const i=S.texts.findIndex(t=>t.id===S.sel);if(i<0||i===S.texts.length-1)return;[S.texts[i],S.texts[i+1]]=[S.texts[i+1],S.texts[i]];commit();render();};
+$('downText').onclick=()=>{const i=S.texts.findIndex(t=>t.id===S.sel);if(i<=0)return;[S.texts[i],S.texts[i-1]]=[S.texts[i-1],S.texts[i]];commit();render();};
+function renderLayers(){const L=$('layers');L.innerHTML='';S.texts.slice().reverse().forEach(T=>L.append(h('button',{type:'button','aria-pressed':String(T.id===S.sel),style:`font-family:${fontCss(T.font)}`,onclick:()=>{S.sel=T.id;renderPanel();render();}},(T.text||'…').split('\n')[0].slice(0,40)||'…')));
+  ['dupText','delText','upText','downText'].forEach(id=>$(id).disabled=!selT());}
+
+/* ================= looks: whole styles in one tap ================= */
+const LOOK=(name,o)=>({name,o});
+const LOOKS=[
+  LOOK('Meme',{font:'impact',upper:true,bold:false,italic:false,fill:'solid',color:'#FFFFFF',o1:{on:true,w:.1,color:'#000000'},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'none'},lineH:1.05,spacing:0}),
+  LOOK('Subtitle',{font:'roboto',upper:false,bold:true,italic:false,fill:'solid',color:'#FFFFFF',o1:{on:false},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'box',color:'#000000',op:.62,pad:.3,bw:0},lineH:1.2,spacing:0}),
+  LOOK('Social',{font:'montserrat',upper:false,bold:true,italic:false,fill:'solid',color:'#111111',o1:{on:false},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'lines',color:'#FFFFFF',op:1,pad:.4,bw:0},lineH:1.3,spacing:0}),
+  LOOK('Speech',{font:'comicneue',upper:false,bold:true,italic:false,fill:'solid',color:'#111111',o1:{on:false},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'speech',color:'#FFFFFF',op:1,pad:.55,bw:.07,bc:'#111111',tail:true},lineH:1.15,spacing:0}),
+  LOOK('Round bubble',{font:'patrick',upper:false,bold:false,italic:false,fill:'solid',color:'#111111',o1:{on:false},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'oval',color:'#FFFFFF',op:1,pad:.5,bw:.06,bc:'#111111',tail:true},lineH:1.1,spacing:0}),
+  LOOK('Thought',{font:'patrick',upper:false,bold:false,italic:true,fill:'solid',color:'#222222',o1:{on:false},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'thought',color:'#FFFFFF',op:1,pad:.45,bw:.05,bc:'#222222',tail:true},lineH:1.1,spacing:0}),
+  LOOK('Shout',{font:'bangers',upper:true,bold:false,italic:false,fill:'solid',color:'#111111',o1:{on:false},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'shout',color:'#FFE14D',op:1,pad:.5,bw:.07,bc:'#111111',tail:false},lineH:1,spacing:2}),
+  LOOK('Comic caption',{font:'comicneue',upper:true,bold:true,italic:false,fill:'solid',color:'#111111',o1:{on:false},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'box',color:'#FFE88A',op:1,pad:.4,bw:.05,bc:'#111111'},lineH:1.15,spacing:0}),
+  LOOK('Manga',{font:'bangers',upper:false,bold:false,italic:false,fill:'solid',color:'#FFFFFF',o1:{on:true,w:.08,color:'#000000'},o2:{on:true,w:.06,color:'#FFFFFF'},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'none'},lineH:1.05,spacing:3}),
+  LOOK('Sticker',{font:'luckiest',upper:false,bold:false,italic:false,fill:'solid',color:'#FF4D8D',o1:{on:true,w:.08,color:'#FFFFFF'},o2:{on:false},shadow:{on:true,color:'#000000',blur:.12,dist:.06,ang:60,op:.45},glow:{on:false},depth:{on:false},curve:0,box:{kind:'none'},lineH:1.05,spacing:0}),
+  LOOK('Neon',{font:'righteous',upper:false,bold:false,italic:false,fill:'solid',color:'#FFFFFF',o1:{on:true,w:.035,color:'#FF4DD8'},o2:{on:false},shadow:{on:false},glow:{on:true,color:'#FF4DD8',size:.45},depth:{on:false},curve:0,box:{kind:'none'},lineH:1.1,spacing:2}),
+  LOOK('Retro 3D',{font:'bungee',upper:true,bold:false,italic:false,fill:'gradient',color:'#FFE14D',color2:'#FF7A1A',gAngle:90,o1:{on:true,w:.04,color:'#3B0A57'},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:true,size:.14,ang:50,color:'#7A1FA2'},curve:0,box:{kind:'none'},lineH:1.05,spacing:0}),
+  LOOK('Gold',{font:'cinzel',upper:true,bold:true,italic:false,fill:'gradient',color:'#FFF1A8',color2:'#B8860B',gAngle:90,o1:{on:true,w:.03,color:'#4A3300'},o2:{on:false},shadow:{on:true,color:'#000000',blur:.2,dist:.05,ang:90,op:.55},glow:{on:false},depth:{on:false},curve:0,box:{kind:'none'},lineH:1.1,spacing:4}),
+  LOOK('Horror',{font:'creepster',upper:false,bold:false,italic:false,fill:'solid',color:'#C1121F',o1:{on:true,w:.03,color:'#2B0000'},o2:{on:false},shadow:{on:false},glow:{on:true,color:'#000000',size:.3},depth:{on:false},curve:0,box:{kind:'none'},lineH:1.05,spacing:2}),
+  LOOK('Note',{font:'caveat',upper:false,bold:true,italic:false,fill:'solid',color:'#2A2318',o1:{on:false},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'box',color:'#FFF3A6',op:1,pad:.45,bw:0},lineH:1.1,spacing:0}),
+  LOOK('Lower third',{font:'oswald',upper:true,bold:true,italic:false,fill:'solid',color:'#FFFFFF',o1:{on:false},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'tag',color:'#5B3DF5',op:1,pad:.35,bw:0},lineH:1.1,spacing:2}),
+  LOOK('Banner',{font:'anton',upper:true,bold:false,italic:false,fill:'solid',color:'#FFFFFF',o1:{on:false},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'bar',color:'#000000',op:.7,pad:.3,bw:0},lineH:1.05,spacing:1}),
+  LOOK('Pixel',{font:'press',upper:true,bold:false,italic:false,fill:'solid',color:'#FFFFFF',o1:{on:true,w:.12,color:'#000000'},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:true,size:.08,ang:45,color:'#000000'},curve:0,box:{kind:'none'},lineH:1.3,spacing:0}),
+  LOOK('Arched',{font:'shrikhand',upper:false,bold:false,italic:false,fill:'solid',color:'#FFFFFF',o1:{on:true,w:.07,color:'#C2368C'},o2:{on:false},shadow:{on:true,color:'#000000',blur:.1,dist:.05,ang:90,op:.4},glow:{on:false},depth:{on:false},curve:45,box:{kind:'none'},lineH:1.05,spacing:0}),
+  LOOK('Wedding',{font:'greatvibes',upper:false,bold:false,italic:false,fill:'solid',color:'#FFFFFF',o1:{on:false},o2:{on:false},shadow:{on:true,color:'#000000',blur:.25,dist:.03,ang:90,op:.5},glow:{on:false},depth:{on:false},curve:0,box:{kind:'none'},lineH:1.15,spacing:0}),
+  LOOK('Typewriter',{font:'elite',upper:false,bold:false,italic:false,fill:'solid',color:'#1A1A1A',o1:{on:false},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'box',color:'#F4EBD6',op:.95,pad:.45,bw:.02,bc:'#8B7355'},lineH:1.25,spacing:0})];
+/* a look leaves your words, place, turn and size alone */
+function applyLook(o){const T=selT();if(!T)return;const keep={id:T.id,text:T.text,x:T.x,y:T.y,rot:T.rot,size:T.size,box:{...T.box}};const base=DEFTEXT();
+  const n=mergeDeep(mergeDeep(base,JSON.parse(JSON.stringify(stripLook(T)))),JSON.parse(JSON.stringify(o)));Object.assign(T,n,{id:keep.id,text:keep.text,x:keep.x,y:keep.y,rot:keep.rot,size:keep.size});
+  T.box={...T.box,tx:keep.box.tx,ty:keep.box.ty};fixTail(T);needFont(T.font);commit();renderPanel();render();}
+const stripLook=T=>{const o={...T};['id','text','x','y','rot','size','_L'].forEach(k=>delete o[k]);return o;};
+const lookPreview=(o,w,hh)=>{const c=document.createElement('canvas');c.width=w;c.height=hh;const g=c.getContext('2d'),T=mergeDeep(DEFTEXT(),JSON.parse(JSON.stringify(o)));T.text=o.upper?'Wow':'Wow!';T.size=.4;T.x=.5;T.y=.5;T.box.tx=.18;T.box.ty=1.05;
+  VIEW={w,h:hh};try{drawText(g,T);}catch(e){}VIEW=null;return c;};
+/* a bubble's tail starts somewhere sensible: below the text, or above it near the bottom of the picture */
+function fixTail(T){if(!/speech|oval|thought/.test(T.box.kind))return;const off=T.box.tx<0||T.box.tx>1||T.box.ty<0||T.box.ty>1;if(off||Math.hypot(T.box.tx-T.x,T.box.ty-T.y)<.12||Math.abs(T.box.ty-T.y)<.06){const d=T.size*1.7+.05;T.box.tx=clamp(T.x-T.size*1.3,.03,.97);T.box.ty=clamp(T.y>.6?T.y-d:T.y+d,.03,.97);}}
+function renderLooks(){const box=$('looks');box.innerHTML='';const T=selT();
+  [...LOOKS.map(l=>({...l,mine:false})),...LOOKS_MINE.map(l=>({...l,mine:true}))].forEach((l,k)=>{needFont(l.o.font);const b=h('button',{type:'button',class:l.mine?'mine':'',title:l.name,onclick:e=>{if(e.target.closest('i')){LOOKS_MINE.splice(LOOKS_MINE.indexOf(LOOKS_MINE.find(x=>x.name===l.name)),1);DB.tx('readwrite',s=>s.put(LOOKS_MINE,'looks'));renderLooks();return;}applyLook(l.o);toast(l.name+' look on.');}},
+    lookPreview(l.o,180,100),h('span',{},l.name));if(l.mine)b.append(h('i',{title:'Remove this look','aria-label':'Remove '+l.name},'✕'));if(!T)b.disabled=true;box.append(b);});
+  render();}
+$('saveLook').onclick=()=>{const T=selT();if(!T)return;const name=(prompt('Name this look','My look '+(LOOKS_MINE.length+1))||'').trim();if(!name)return;LOOKS_MINE=LOOKS_MINE.filter(x=>x.name!==name);LOOKS_MINE.push({name,o:JSON.parse(JSON.stringify(stripLook(T)))});DB.tx('readwrite',s=>s.put(LOOKS_MINE,'looks'));renderLooks();toast(`Saved “${name}”. It’s with the other looks now.`);};
+
+/* ================= the settings for the selected text ================= */
+let paneT=null;
+const ch=(fn,fin)=>(v,done)=>{const T=selT();if(!T)return;fn(T,v);render();if(done!==false){commit();if(fin)renderPanel();}else commitSoon();};
+function renderAll(){renderPanel();renderLayers();renderLooks();render();}
+function renderPanel(){const T=selT();$('txt').value=T?T.text:'';$('txt').disabled=!T;
+  const none=h('p',{class:'help'},'Tap some text on the picture, or press + Text.');
+  ['fontF','colorF','outF','shadowF','depthF','boxF','placeF'].forEach(id=>{const el=$(id);el.innerHTML='';if(!T)el.append(none.cloneNode(true));});
+  renderPic();renderSave();renderLayers();if(paneT!==S.sel){paneT=S.sel;renderLooks();}if(!T){render();return;}needFont(T.font);
+  /* font */
+  const F=FONTS[T.font]||FONTS.bangers;
+  $('fontF').append(h('button',{type:'button',class:'fontbtn',id:'fontBtn',style:`font-family:${F.css}`,onclick:openFonts},h('span',{},F.name),h('small',{},'Change ▸')),
+    rangeF('sz','Size',.01,.4,.001,T.size,v=>Math.round(v*IH())+' px',ch((T,v)=>T.size=v)),
+    h('div',{class:'row'},checkF('bold','Bold',T.bold,ch((T,v)=>T.bold=v)),checkF('ital','Italic',T.italic,ch((T,v)=>T.italic=v)),checkF('caps','ALL CAPS',T.upper,ch((T,v)=>T.upper=v))),
+    segF('al','Line up',[['left','Left'],['center','Middle'],['right','Right']],T.align,v=>ch((T,x)=>T.align=x,true)(v)),
+    h('div',{class:'grid2'},rangeF('ls','Letter spacing',-10,40,1,T.spacing,v=>v+'',ch((T,v)=>T.spacing=v)),rangeF('lh','Line spacing',.7,2,.01,T.lineH,v=>v.toFixed(2),ch((T,v)=>T.lineH=v))));
+  if(!F.bold&&T.bold)$('fontF').append(h('p',{class:'help'},'This font has no bold of its own, so the browser thickens it.'));
+  /* color */
+  $('colorF').append(segF('fill','Fill',[['solid','One color'],['gradient','Two-color blend'],['none','None (outline only)']],T.fill,v=>ch((T,x)=>T.fill=x,true)(v)));
+  if(T.fill!=='none')$('colorF').append(colorF('c1',T.fill==='gradient'?'From':'Color',T.color,ch((T,v)=>T.color=v)));
+  if(T.fill==='gradient')$('colorF').append(colorF('c2','To',T.color2,ch((T,v)=>T.color2=v)),rangeF('ga','Direction',0,360,1,T.gAngle,deg,ch((T,v)=>T.gAngle=v)));
+  $('colorF').append(rangeF('op','See-through',0,1,.01,1-T.opacity,v=>pct(v),ch((T,v)=>T.opacity=1-v)));
+  /* outline */
+  $('outF').append(checkF('o1on','Outline',T.o1.on,ch((T,v)=>T.o1.on=v,true)));
+  if(T.o1.on)$('outF').append(rangeF('o1w','Thickness',.005,.3,.005,T.o1.w,v=>pct(v),ch((T,v)=>T.o1.w=v)),colorF('o1c','Outline color',T.o1.color,ch((T,v)=>T.o1.color=v)));
+  $('outF').append(checkF('o2on','Second outline around it',T.o2.on,ch((T,v)=>T.o2.on=v,true)));
+  if(T.o2.on)$('outF').append(rangeF('o2w','Thickness',.005,.3,.005,T.o2.w,v=>pct(v),ch((T,v)=>T.o2.w=v)),colorF('o2c','Color',T.o2.color,ch((T,v)=>T.o2.color=v)));
+  /* shadow and glow */
+  $('shadowF').append(checkF('shon','Shadow',T.shadow.on,ch((T,v)=>T.shadow.on=v,true)));
+  if(T.shadow.on)$('shadowF').append(h('div',{class:'grid2'},rangeF('shd','Distance',0,.5,.005,T.shadow.dist,v=>pct(v),ch((T,v)=>T.shadow.dist=v)),rangeF('shb','Softness',0,1,.01,T.shadow.blur,v=>pct(v),ch((T,v)=>T.shadow.blur=v)),
+      rangeF('sha','Direction',0,360,1,T.shadow.ang,deg,ch((T,v)=>T.shadow.ang=v)),rangeF('sho','Strength',0,1,.01,T.shadow.op,v=>pct(v),ch((T,v)=>T.shadow.op=v))),colorF('shc','Shadow color',T.shadow.color,ch((T,v)=>T.shadow.color=v)));
+  $('shadowF').append(checkF('glon','Glow',T.glow.on,ch((T,v)=>T.glow.on=v,true)));
+  if(T.glow.on)$('shadowF').append(rangeF('gls','Glow size',.02,1.5,.01,T.glow.size,v=>pct(v),ch((T,v)=>T.glow.size=v)),colorF('glc','Glow color',T.glow.color,ch((T,v)=>T.glow.color=v),['#FF4DD8','#3EE6FF','#FFE14D','#7CFF6B','#FFFFFF','#FF4D4D','#9C88FF','#000000']));
+  /* 3D and curve */
+  $('depthF').append(checkF('dpon','3D depth',T.depth.on,ch((T,v)=>T.depth.on=v,true)));
+  if(T.depth.on)$('depthF').append(h('div',{class:'grid2'},rangeF('dps','Depth',.01,.5,.005,T.depth.size,v=>pct(v),ch((T,v)=>T.depth.size=v)),rangeF('dpa','Direction',0,360,1,T.depth.ang,deg,ch((T,v)=>T.depth.ang=v))),colorF('dpc','Side color',T.depth.color,ch((T,v)=>T.depth.color=v)));
+  $('depthF').append(rangeF('cur','Curve',-100,100,1,T.curve,v=>v===0?'straight':v>0?'arch up '+v:'dip down '+(-v),ch((T,v)=>T.curve=v)));
+  /* box and bubble */
+  const B=T.box;
+  $('boxF').append(segF('bk','Behind the text',[['none','Nothing'],['box','Box'],['round','Rounded'],['pill','Pill'],['lines','Each line'],['speech','Speech'],['oval','Round bubble'],['thought','Thought'],['shout','Shout'],['tag','Tag'],['bar','Strip across']],B.kind,v=>ch((T,x)=>{T.box.kind=x;fixTail(T);},true)(v)));
+  if(B.kind!=='none'){$('boxF').append(colorF('bcol','Box color',B.color,ch((T,v)=>T.box.color=v)),h('div',{class:'grid2'},rangeF('bop','Solid',0,1,.01,B.op,v=>pct(v),ch((T,v)=>T.box.op=v)),rangeF('bpad','Room around text',0,1.5,.01,B.pad,v=>pct(v),ch((T,v)=>T.box.pad=v))),
+    rangeF('bbw','Border',0,.2,.005,B.bw,v=>v?pct(v):'none',ch((T,v)=>T.box.bw=v)));
+    if(B.bw>0)$('boxF').append(colorF('bbc','Border color',B.bc,ch((T,v)=>T.box.bc=v)));
+    if(/speech|oval|thought/.test(B.kind))$('boxF').append(checkF('btail','Tail (drag the yellow dot to point it)',B.tail,ch((T,v)=>T.box.tail=v,true)));}
+  /* size, place and turn */
+  $('placeF').append(h('div',{class:'grid2'},rangeF('px','Across',0,1,.001,clamp(T.x,0,1),v=>pct(v),ch((T,v)=>{const d=v-T.x;T.x=v;T.box.tx+=d;})),rangeF('py','Up and down',0,1,.001,clamp(T.y,0,1),v=>pct(v),ch((T,v)=>{const d=v-T.y;T.y=v;T.box.ty+=d;}))),
+    rangeF('rot','Turn',-180,180,1,T.rot,deg,ch((T,v)=>T.rot=v)),
+    h('div',{class:'row'},h('button',{type:'button',onclick:()=>moveTo(.5,null)},'Center across'),h('button',{type:'button',onclick:()=>moveTo(null,.5)},'Center up and down'),h('button',{type:'button',onclick:()=>moveTo(null,.12)},'Top'),h('button',{type:'button',onclick:()=>moveTo(null,.88)},'Bottom'),h('button',{type:'button',onclick:()=>ch((T)=>T.rot=0,true)()},'Straighten')));
+  render();}
+function moveTo(x,y){const T=selT();if(!T)return;if(x!=null){T.box.tx=clamp(T.box.tx+x-T.x,0,1);T.x=x;}if(y!=null){T.box.ty=clamp(T.box.ty+y-T.y,0,1);T.y=y;}fixTail(T);commit();renderPanel();}
+function syncPlace(){const T=selT();if(!T)return;const set=(id,v,txt)=>{const i=$(id);if(!i)return;i.value=v;const o=i.parentElement.querySelector('output');if(o&&txt)o.textContent=txt;};
+  set('px',T.x,pct(T.x));set('py',T.y,pct(T.y));set('rot',T.rot,deg(T.rot));set('sz',T.size,Math.round(T.size*IH())+' px');}
+$('txt').oninput=()=>{const T=selT();if(!T)return;T.text=$('txt').value;render();commitSoon();renderLayers();};
+
+/* ================= the font picker ================= */
+let FCAT='all';
+function openFonts(){$('fmodal').hidden=false;$('fSearch').value='';renderFonts();setTimeout(()=>$('fSearch').focus(),30);}
+$('fClose').onclick=()=>{$('fmodal').hidden=true;renderPanel();};
+$('fmodal').addEventListener('click',e=>{if(e.target===$('fmodal')){$('fmodal').hidden=true;renderPanel();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('fmodal').hidden){$('fmodal').hidden=true;renderPanel();}});
+$('fSearch').oninput=()=>renderFonts();
+function renderFonts(){const T=selT(),q=$('fSearch').value.trim().toLowerCase(),sample=(T&&T.text.split('\n')[0].slice(0,24))||'Hello there';
+  $('fCats').innerHTML='';FONT_KINDS.forEach(([k,l])=>$('fCats').append(h('button',{type:'button','aria-pressed':String(k===FCAT),onclick:()=>{FCAT=k;renderFonts();}},l)));
+  const list=$('fList');list.innerHTML='';const all=Object.values(FONTS).filter(f=>(FCAT==='all'||f.kind===FCAT)&&(!q||f.name.toLowerCase().includes(q)));
+  all.sort((a,b)=>(b.own?1:0)-(a.own?1:0));
+  all.forEach(f=>{needFont(f.id);list.append(h('button',{type:'button',class:'fopt'+(f.own?' own':''),role:'option','aria-pressed':String(T&&T.font===f.id),'aria-selected':String(T&&T.font===f.id),onclick:()=>{const T=selT();if(!T)return;T.font=f.id;commit();render();renderFonts();renderLayers();}},
+    h('span',{class:'fs',style:`font-family:${f.css}`},sample),h('span',{class:'fn'},f.name)));});
+  if(!all.length)list.append(h('p',{class:'help'},FCAT==='mine'?'No fonts of your own yet. Add font files below.':'No fonts match that.'));
+  const mine=Object.values(FONTS).filter(f=>f.own),mf=$('myFonts');mf.innerHTML='';
+  const inp=h('input',{type:'file',id:'fontFiles',accept:'.ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2',multiple:true});inp.onchange=async()=>{const fs=[...inp.files];inp.value='';if(!fs.length)return;const id=await addFontFiles(fs);FCAT='mine';if(id&&selT()){selT().font=id;commit();render();}renderFonts();};
+  mf.append(h('div',{class:'ffoot'},h('strong',{},'Your fonts'),h('span',{class:'rv'},mine.length?`${mine.length} kept in this browser`:'TTF, OTF or WOFF files'),h('span',{class:'spacer'}),h('label',{class:'btn primary',for:'fontFiles'},'+ Add font files',inp)));
+  if(mine.length)mf.append(h('ul',{},...mine.map(f=>h('li',{},h('span',{style:`font-family:${f.css};font-size:17px`},f.name),h('button',{type:'button','aria-label':'Remove '+f.name,onclick:async()=>{if(!confirm(`Remove “${f.name}” from this browser?`))return;await removeOwnFont(f.id);renderFonts();}},'Remove')))));
+  mf.append(h('p',{class:'help'},'Fonts you add stay on this device only. Nothing is uploaded.'));}
+
+/* ================= the picture section ================= */
+function renderPic(){const p=$('picF');p.innerHTML='';const inp=h('input',{type:'file',id:'pickImg',accept:'image/*'});inp.onchange=()=>{const f=inp.files[0];inp.value='';if(f)openFiles([f]);};
+  p.append(h('div',{class:'row'},h('label',{class:'btn primary',for:'pickImg'},S.bg.kind==='img'?'Change picture':'Open a picture',inp)),
+    h('p',{class:'help'},S.bg.kind==='img'?`${IMGNAME} · ${IW()} × ${IH()}`:S.bg.kind==='sample'?'You’re trying things on a sample picture. Open your own, drop one here, or paste one.':`A blank ${IW()} × ${IH()} canvas.`));
+  p.append(segF('blank','Or start blank',[['color','Solid color'],['clear','See-through (text only)']],S.bg.kind==='color'||S.bg.kind==='clear'?S.bg.kind:'',v=>blank(v)));
+  if(S.bg.kind==='color'||S.bg.kind==='clear'){p.append(segF('bsz','Canvas size',SIZES.map(([k,l])=>[k,l+' · '+k.replace('x',' × ')]),IW()+'x'+IH(),v=>blank(S.bg.kind,v)));
+    if(S.bg.kind==='color')p.append(colorF('bgc','Canvas color',S.bg.color,(v,done)=>{S.bg.color=v;render();if(done!==false)save();},['#000000','#FFFFFF','#1B1A23','#FFE88A','#5B3DF5','#FF4D8D','#2FBF71','#3E8BFF']));
+    else p.append(h('p',{class:'help'},'Saves as a PNG with only your text, ready to put on top of a video or another picture.'));}}
+
+/* ================= saving ================= */
+let topLevel=false;try{topLevel=window.top===window.self;}catch(e){}
+let DL=null;try{if(window.claude&&typeof window.claude.use==='function')window.claude.use('downloads').then(d=>{DL=d||null;renderSave();}).catch(()=>{});}catch(e){}
+const canSave=()=>!!DL||topLevel;
+async function saveFile(blob,filename){
+  if(DL){try{await DL.save({filename,data:blob});return'Saved.';}catch(err){const c=err&&err.code;if(c==='declined')return'Not saved.';if(c==='rate_limited')return'A save prompt is already open.';if(c==='too_large')return'That file is too big to save here.';
+    if(!topLevel)return'Saving isn’t available here.';}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),60000);return'Saved to your downloads.';}
+async function cleanJpeg(blob){try{const b=new Uint8Array(await blob.arrayBuffer());if(b[0]!==0xFF||b[1]!==0xD8)return blob;const parts=[b.subarray(0,2)];let p=2;
+  while(p+4<=b.length&&b[p]===0xFF){const m=b[p+1];if(m===0xDA){parts.push(b.subarray(p));return new Blob(parts,{type:'image/jpeg'});}
+    const n=(b[p+2]<<8)|b[p+3];if(!((m>=0xE1&&m<=0xEF)||m===0xFE))parts.push(b.subarray(p,p+2+n));p+=2+n;}
+  return blob;}catch(e){return blob;}}
+const rndCode=(n=6)=>{const a='abcdefghjkmnpqrstuvwxyz23456789',u=new Uint8Array(n);crypto.getRandomValues(u);return[...u].map(x=>a[x%a.length]).join('');};
+const say=m=>{$('status').textContent=m;};
+/* the finished picture, without the handles, at full size (or smaller if you ask) */
+async function makeImage(){try{await Promise.race([Promise.all(S.texts.map(t=>document.fonts.load(fontStr(t,40),t.text||'A'))),new Promise(r=>setTimeout(r,3000))]);}catch(e){}
+  SHOWUI=false;render();SHOWUI=true;let src=cv;const max=+S.maxSide||0;
+  if(max&&Math.max(cv.width,cv.height)>max){const k=max/Math.max(cv.width,cv.height),c=document.createElement('canvas');c.width=Math.round(cv.width*k);c.height=Math.round(cv.height*k);const g=c.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(cv,0,0,c.width,c.height);src=c;}
+  let fmt=S.fmt;if(S.bg.kind==='clear'&&fmt==='jpg')fmt='png';
+  const type=fmt==='jpg'?'image/jpeg':fmt==='webp'?'image/webp':'image/png';
+  if(fmt==='jpg'){const c=document.createElement('canvas');c.width=src.width;c.height=src.height;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(src,0,0);src=c;}
+  let blob=await new Promise(r=>src.toBlob(r,type,S.q));render();if(!blob)throw new Error('the browser couldn’t make the picture');if(blob.type==='image/jpeg')blob=await cleanJpeg(blob);
+  const ext=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg',base=S.bg.kind==='img'?IMGNAME.replace(/\.[^.]+$/,'').replace(/[\\/:*?"<>|]+/g,'_').slice(0,60)+'-caption':'caption-'+rndCode();
+  return new File([blob],`${base}.${ext}`,{type:blob.type});}
+let busy=false;async function run(fn){if(busy)return;busy=true;try{await fn();}catch(err){say('That didn’t work: '+(err&&err.message||err)+'.');}finally{busy=false;}}
+function renderSave(){const p=$('saveF');p.innerHTML='';
+  p.append(segF('fmt','Format',[['png','PNG'],['jpg','JPG'],['webp','WebP']],S.fmt,v=>{S.fmt=v;save();renderSave();}));
+  if(S.fmt!=='png')p.append(rangeF('q','Quality',.5,1,.01,S.q,v=>Math.round(v*100)+'',(v,done)=>{S.q=v;if(done!==false)save();}));
+  if(S.fmt==='jpg'&&S.bg.kind==='clear')p.append(h('p',{class:'help'},'JPG can’t be see-through, so a see-through canvas saves as PNG.'));
+  p.append(segF('max','Size',[[0,`Full · ${IW()} × ${IH()}`],[2048,'2048 px'],[1080,'1080 px']],S.maxSide||0,v=>{S.maxSide=v;save();renderSave();}));
+  let share=false;try{share=topLevel&&!!navigator.canShare&&navigator.canShare({files:[new File([new Blob(['x'],{type:'image/png'})],'a.png',{type:'image/png'})]});}catch(e){}
+  const b=h('div',{class:'row'});
+  if(canSave())b.append(h('button',{type:'button',class:'primary',id:'saveBtn',onclick:()=>run(async()=>{say('Making the picture…');const f=await makeImage();say(await saveFile(f,f.name)+` ${(f.size/1e6).toFixed(f.size<1e6?2:1)} MB.`);})},'Save picture'));
+  if(share)b.append(h('button',{type:'button',onclick:()=>run(async()=>{const f=await makeImage();say('');try{await navigator.share({files:[f]});say('Shared.');}catch(err){say(err&&err.name==='AbortError'?'':'Sharing didn’t work here. Save it instead.');}})},'Share'));
+  if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write)b.append(h('button',{type:'button',onclick:()=>run(async()=>{const old=S.fmt;S.fmt='png';const f=await makeImage();S.fmt=old;try{await navigator.clipboard.write([new ClipboardItem({'image/png':f})]);say('Copied. Paste it anywhere.');}catch(err){say('Copying isn’t allowed here. Save it instead.');}})},'Copy'));
+  p.append(b);if(!canSave())p.append(h('p',{class:'help'},'Saving isn’t available here. Open the Photo Tools website or app to save.'));}
+
+/* ================= passing files between tools, and from your gallery's Share menu ================= */
+const HANDOFF={name:'pt-handoff',ok(){try{return window.top===window.self&&'caches' in window;}catch(e){return false;}},
+  async take(){if(!this.ok()||!/[?&]handoff\b/.test(location.search))return[];const out=[];
+    try{const c=await caches.open(this.name);for(const k of await c.keys()){const r=await c.match(k);if(r){const b=await r.blob();out.push(new File([b],decodeURIComponent(r.headers.get('x-name')||'file'),{type:b.type||r.headers.get('content-type')||''}));}await c.delete(k);}}catch(e){}
+    try{history.replaceState(null,'',location.pathname+location.hash);}catch(e){}return out;}};
+
+/* ================= switching tools ================= */
+(function(){
+  const ART={'photo-frame-studio.html':'https://claude.ai/artifact/BTFF4oB7m8EHQMWNwCo2Uw','photo-splitter.html':'https://claude.ai/artifact/ENVcKXEpCdopL6rRfj1fT9','chat-reel.html':'https://claude.ai/artifact/Tzehgnj1qjBYtpZ6oxKAhG','metadata-scrubber.html':'https://claude.ai/artifact/8kwiNFdeFAR3uZ8NTzKVnX','watermark.html':'https://claude.ai/artifact/KY6NSnRSjL5vHT5tjTEZeu','caption-maker.html':'https://claude.ai/artifact/5E6VdnrgfSVCytQtsQUNVc','background-remover.html':'https://claude.ai/artifact/FzXZ8jMRnT8kFRFXS4G3wF','video-layers.html':'https://claude.ai/artifact/HMnHFrAaDUyaiSg7H8uxwN','delivery-reel.html':'https://claude.ai/artifact/4XzpUcdVZdRCviwGjyvTNQ','visual-novel.html':'https://claude.ai/artifact/GUKwPgmd3o8tZarDH4ygRx','motion-comic.html':'https://claude.ai/artifact/QA3g3sR3Jy4etrFoq8rNBD'};
+  document.querySelectorAll('.switch a').forEach(a=>{
+    if(a.getAttribute('aria-current')){a.addEventListener('click',e=>e.preventDefault());return;}
+    if(!topLevel){const u=ART[a.getAttribute('href')];if(u&&u.startsWith('https:')){a.href=u;a.target='_blank';a.rel='noopener';}return;}
+    a.addEventListener('click',async e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button)return;e.preventDefault();try{await Promise.race([writeState(),new Promise(r=>setTimeout(r,1500))]);}catch(err){}location.href=a.href;});
+  });
+  addEventListener('pagehide',()=>{try{writeState();}catch(e){}});
+})();
+
+/* ================= start ================= */
+setCanvasSize(1080,1080);
+loadOwnFonts().then(()=>restore()).then(async()=>{const fs=(await HANDOFF.take()).filter(isImg);if(fs.length)await openFiles(fs);});
+if(document.fonts){document.fonts.addEventListener&&document.fonts.addEventListener('loadingdone',()=>{render();clearTimeout(window.__lk);window.__lk=setTimeout(()=>{if($('looks').childElementCount)renderLooks();},200);});document.fonts.ready.then(()=>render());}
+addEventListener('resize',()=>render());
+</script>
+
+</body>
+</html>

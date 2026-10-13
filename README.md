@@ -17,6 +17,7 @@ A small set of personal browser tools for dressing up photos, making short video
 | [Photo Splitter](#photo-splitter) | Cuts one photo into 2, 3 or 4 pieces that join back into the whole picture as you swipe through a post on X, with your own cut lines and your choice of which piece comes first. |
 | [Chat Reel](#chat-reel) | Turns a text conversation into a video, timing every message on a timeline. Group chats, reactions, replies, voice notes and unsent messages, in iPhone, Android, DM, WhatsApp-style, Discord-style or lock-screen looks, or as a sci-fi transmission screen, a retro game cutscene, a video call, a social post with comments, or bubbles over your own video. |
 | [Metadata Scrubber](#metadata-scrubber) | Strips prompts, location and hidden data out of photos and videos and saves clean copies under random names, optionally under a size limit. |
+| [Caption Maker](#caption-maker) | Puts words on a picture (captions, dialogue, speech bubbles, titles) in about 60 fonts or your own, with outlines, shadow, glow, 3D and curved text. |
 | [Watermark](#watermark) | Puts your name or logo on one photo or a whole batch, with ready-made looks (corner signature, label, stamp, proof band, tiled) or your own saved watermarks. |
 | [Background Remover](#background-remover) | Takes the background out of photos and videos: people, animals, everyday things, a plain background or green screen, or any color you pick like a chroma key. Touch-up brush for photos, and see-through, color, blurred or picture backgrounds. |
 | [Video Layers](#video-layers) | Puts pictures, videos, text, music and your voice together and exports a new video or GIF. Automatic background removal, green screen, motion paths with keyframes and one-tap layouts. |
@@ -375,6 +376,37 @@ Removes everything from a photo or video except the picture and sound themselves
 
 ---
 
+## Caption Maker
+
+Puts words on a picture: a caption, a line of dialogue, a speech bubble or a title. Open a picture (or drop or paste one), or start on a blank canvas in a color or see-through.
+
+### Text
+- **As many pieces of text as you like.** Tap one on the picture to pick it, double-tap to type. **+ Text** adds another in the same look.
+- **On the picture:** drag to move (it snaps to the middle), pull the square corner to resize, turn it with the round handle (it snaps to 0°, 45° and 90°), and drag the yellow dot to point a bubble's tail. Arrow keys nudge it.
+- **Undo and redo** (↶ ↷, or Ctrl+Z).
+
+### Looks
+- One tap for a whole style: Meme, Subtitle, Social (each line highlighted), Speech, Round bubble, Thought, Shout, Comic caption, Manga, Sticker, Neon, Retro 3D, Gold, Horror, Note, Lower third, Banner, Pixel, Arched, Wedding and Typewriter. Your words and where they are stay put.
+- **Save this look** keeps your own styles with the others, for the next caption in the same style.
+
+### Fonts
+- About 55 free web fonts in groups (comic and manga, bold, handwriting, script, serif, clean, retro and pixel, spooky and fun), plus Impact, Arial, Georgia and Comic Sans from the device. Each shows your own words in the picker.
+- **Your fonts:** add TTF, OTF or WOFF files (+ Add font files in the picker, or drop them on the picture). They show their real names, stay in this browser for next time, and nothing is uploaded. Fonts you've licensed for your own use (like Segoe Print or RockStyle) belong here rather than in the site, which is public.
+- Size, bold, italic, all caps, line up left, middle or right, letter spacing and line spacing.
+
+### Effects
+- **Fill:** one color, a two-color blend at any angle, or none (just the outline).
+- **Outline**, and a **second outline** around it (the sticker look). **Shadow** with distance, softness, direction and strength. **Glow** in any color.
+- **3D depth** in any direction and color. **Curve** the text into an arch or a dip.
+- **Behind the text:** a box, rounded box, pill, a highlight behind each line, a speech bubble, a round bubble, a thought cloud, a shout burst, a tag, or a strip right across the picture, with its own color, how solid it is, room around the text and a border.
+
+### Saving
+- PNG, JPG or WebP (with quality), at full size or 2048 or 1080 pixels. A see-through canvas saves as a PNG with only your text, for putting on top of a video or another picture.
+- **Save picture**, **Share** on phones, or **Copy** to paste it anywhere. Saved pictures carry no hidden data from the original.
+- Your work, your looks and your fonts are kept in the browser.
+
+---
+
 ## Watermark
 
 Puts your name or logo on your photos. Add one photo or a whole batch; every photo gets the same watermark in the same spot, sized to match.
@@ -618,6 +650,7 @@ Open each tool once while you're online so everything, fonts included, is saved 
 | `chat-reel.html` | Chat Reel |
 | `metadata-scrubber.html` | Metadata Scrubber |
 | `watermark.html` | Watermark |
+| `caption-maker.html` | Caption Maker |
 | `background-remover.html` | Background Remover |
 | `video-layers.html` | Video Layers |
 | `manifest.webmanifest` | App name, icons, shortcuts and the Share menu entry for installing |
