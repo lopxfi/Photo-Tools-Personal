@@ -292,7 +292,16 @@ Write a branching story and play it, export it, or hand it to someone as a file 
 
 ### Playing and exporting
 - **Play it:** tap (or Space, Enter, or 1–4 for choices) to move through it in the page.
-- **Watch:** the video path with a timeline; lines move on by themselves and each choice takes the marked option.
+- **Watch:** the video path; lines move on by themselves and each choice takes the marked option. A timeline under the preview shows it row by row:
+  - **Rows:** Story (every line, narration, card, choice, picture that pauses, and the end), Background, one row per character, Picture, Effects and Sound.
+  - **Seek:** tap or drag the ruler, or drag the playhead, to go anywhere; arrow keys step through it. **Zoom** and **Fit** change how much shows.
+  - **Change timing by dragging:** drag a line to move it later (a striped pause shows before it), drag its ends to change how long it stays, drag a character's or picture's bar to change when it comes in, drag the dotted lines inside a bar to change how long it takes to come in or go out, and drag ◆ markers to move a change. Tap anything to jump there and open that step.
+- **Timing on every step** (⏱ Timing, at the bottom of each step):
+  - Lines and narration: pause before, how long it stays on screen, how long the text takes to appear, and how it appears.
+  - Title cards, choices, the end and pictures that pause: pause before and time on screen. The title screen's time is in Look.
+  - Show and hide someone: start partway through the next line (Starts after), how long they take to come in or go out, and how (slide, fade, pop, rise or straight away).
+  - Backgrounds: when, and how long the transition takes. Pictures: when, and how long they take to come in and go out. Effects: when, and how long. Sounds and music: when.
+  - **Back to automatic** clears it. Time on screen is used when the story plays by itself (Watch, the video); when you tap through, a line waits for your tap. Pauses, delays and in/out times work everywhere, including the playable file.
 - **Video:** MP4, WebM or GIF of the video path.
 - **Playable file:** one HTML file with the whole story and its pictures, GIFs, videos and sounds inside. It opens in any browser on any device, with working choices, a restart button and full screen.
 - **Projects** save as files with the pictures, GIFs, videos and sounds included; work is also kept in the browser.
