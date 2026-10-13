@@ -263,7 +263,7 @@ An order from a made-up delivery app, played out as a video: placed, being prepa
 Write a branching story and play it, export it, or hand it to someone as a file they can play.
 
 ### Scenes
-- **Steps:** a line (someone says something, with an expression and where they stand), narration, a choice, show or hide someone, change the background, a title card, an effect (shake or flash), go to another scene, or the end. Reorder, duplicate and delete them; tap one to preview from there.
+- **Steps:** a line (someone says something, with an expression and where they stand), narration, a choice, show or hide someone, change the background, a title card, an effect (shake or flash), a sound, music, go to another scene, or the end. Reorder, duplicate and delete them; tap one to preview from there.
 - **Choices:** up to four options, each leading to a scene. When you play it, you tap the one you want; a radio button marks which one the video takes.
 - **Scenes:** the first one is where the story starts. Each has its own background.
 
@@ -279,17 +279,22 @@ Write a branching story and play it, export it, or hand it to someone as a file 
 - In the Scenes tab, Line and Show steps pick the expression from a row of faces.
 
 ### Backgrounds
-- Six built-in scenes (field, sunset, night platform, room, hallway, black) or your own pictures, GIFs or videos (they loop), cropped to fill, with a crossfade when they change.
+- Six built-in scenes (field, sunset, night platform, room, hallway, black) or your own pictures, GIFs or videos (they loop), cropped to fill.
+- **Scene changes:** crossfade, cut, through black, through white, wipe, slide, iris, dissolve, blinds or pixelate, for the whole story or one scene.
 
 ### Look
-- Widescreen or tall; five text-box styles (Glass, Classic, Paper, Minimal, Neon); accent color; rounded, serif or plain lettering; text speed and text sounds; a title screen.
+- Widescreen or tall; nine text-box styles (Glass, Classic, Paper, Minimal, Neon, Grail, Ruin with full-screen text pages, Retro, Letter); accent color; ten letterings; text speed; how lines appear (typewriter, fade in, word by word, rise up, scroll up, bounce in, or all at once); a title screen and credits.
+
+### Sounds
+- Little sounds made in the page for text, taps, choices, scene changes, cards and effects, in Classic, Soft or Retro style, or none.
+- **Your own sounds:** MP3, OGG, WAV or M4A, many at once (a whole sound pack). Use them in Sound and Music steps or for any of the events above. They're kept in the browser and go into the project and the playable file.
 
 ### Playing and exporting
 - **Play it:** tap (or Space, Enter, or 1–4 for choices) to move through it in the page.
 - **Watch:** the video path with a timeline; lines move on by themselves and each choice takes the marked option.
 - **Video:** MP4, WebM or GIF of the video path.
-- **Playable file:** one HTML file with the whole story and its pictures, GIFs and videos inside. It opens in any browser on any device, with working choices, a restart button and full screen.
-- **Projects** save as files with the pictures, GIFs and videos included; work is also kept in the browser.
+- **Playable file:** one HTML file with the whole story and its pictures, GIFs, videos and sounds inside. It opens in any browser on any device, with working choices, a restart button and full screen.
+- **Projects** save as files with the pictures, GIFs, videos and sounds included; work is also kept in the browser.
 
 ---
 
