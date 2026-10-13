@@ -88,6 +88,19 @@ button:focus-visible,.btn:focus-within,input:focus-visible,select:focus-visible,
 canvas#cv{display:block;max-width:100%;max-height:min(66vh,820px);width:auto;height:auto;filter:drop-shadow(0 12px 28px rgba(0,0,0,.28));border-radius:6px;cursor:pointer;touch-action:manipulation}
 .tl{display:flex;flex-direction:column;gap:8px;user-select:none;-webkit-user-select:none}
 .tl-bar{display:flex;align-items:center;flex-wrap:wrap;gap:6px 14px}
+.pathbar{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.pb-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.pb-top select{width:auto;flex:1 1 240px;min-width:0;padding:7px 9px;font-size:13px}
+.pb-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px}
+.pb-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 6px;border-radius:9px;border:1px solid var(--line);background:var(--bg);max-width:100%}
+.pb-chip .sc{color:var(--muted);white-space:nowrap;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+.pb-chip select{width:auto;max-width:190px;padding:4px 6px;font-size:12px;border-color:var(--accent)}
+.pb-chip button{padding:3px 7px;font-size:13px;border-radius:6px}
+.pb-chip.end{border-style:dashed}
+.pb-arrow{color:var(--muted);font-size:14px}
+.fork{position:absolute;top:3px;z-index:2;display:flex;align-items:center;gap:2px;transform:translateX(-12px)}
+.fork select{width:auto;max-width:150px;padding:1px 4px;font-size:11px;height:24px;border-radius:6px;border:1px solid #D9821A;background:var(--panel)}
+.fork b{color:#D9821A;font-size:13px}
 .tl-bar .help{flex:1 1 260px}
 .zoom{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
 .zoom input{accent-color:var(--accent);width:120px}
@@ -123,6 +136,37 @@ canvas#cv{display:block;max-width:100%;max-height:min(66vh,820px);width:auto;hei
 .tl-head{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--accent);pointer-events:none;z-index:3}
 .tl-head::before{content:"";position:absolute;top:0;left:-6px;border:7px solid transparent;border-top:9px solid var(--accent)}
 .stage.watch canvas#cv{max-height:min(46vh,620px)}
+/* story map */
+.map{display:flex;flex-direction:column;gap:8px}
+.map-bar{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.map-bar button{padding:7px 11px;font-size:13px}
+.mlegend{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.lg{display:inline-block;width:22px;height:0;border-top:2px solid var(--accent);margin-left:6px}.lg.jp{border-top:2px dashed var(--muted)}.lg.cd{border-top-color:#2F8F5B}.lg.on{border-top:4px solid #F2A33A}
+.map-issues{font-size:13px;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--warn) 14%,transparent);color:var(--ink)}
+.map-issues ul{margin:4px 0 0;padding-left:18px}.map-issues button{padding:2px 6px;font-size:12px;margin-left:4px}
+.map-scroll{position:relative;overflow:auto;height:min(64vh,700px);border:1px solid var(--line);border-radius:12px;background:var(--stage) radial-gradient(color-mix(in srgb,var(--muted) 35%,transparent) 1px,transparent 1.5px) 0 0/22px 22px;touch-action:none}
+.map-sizer{position:relative}
+.map-inner{position:absolute;left:0;top:0;transform-origin:0 0}
+.map-svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.mnode{position:absolute;width:210px;min-height:96px;box-sizing:border-box;padding:9px 11px 8px;border-radius:12px;background:var(--panel);border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:grab;user-select:none;-webkit-user-select:none;display:flex;flex-direction:column;gap:4px;font-size:12px;touch-action:none}
+.mnode.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent),0 4px 14px rgba(0,0,0,.18)}
+.mnode.onpath{border-top:4px solid #F2A33A}
+.mnode.off{opacity:.6;border-style:dashed}
+.mnode .nm{font:600 13px/1.25 var(--f-body);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:44px}
+.mnode .mt{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mnode .sn{color:var(--ink);opacity:.85;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-style:italic}
+.mnode .bd{display:flex;flex-wrap:wrap;gap:4px}
+.mnode .bd span{font-size:10.5px;padding:2px 6px;border-radius:99px;background:var(--chip);color:var(--ink)}
+.mnode .bd .warn{background:color-mix(in srgb,var(--warn) 22%,transparent)}
+.mnode .acts{position:absolute;top:6px;right:6px;display:flex;gap:2px}
+.mnode .acts button{padding:3px 6px;font-size:12px;border-radius:6px}
+.mnode .port{position:absolute;right:-9px;top:50%;width:18px;height:18px;margin-top:-9px;border-radius:50%;background:var(--accent);border:3px solid var(--panel);cursor:crosshair;box-shadow:0 0 0 1px var(--accent)}
+.elab{position:absolute;transform:translate(-50%,-50%);max-width:160px;padding:3px 8px;border-radius:99px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--panel);border:1px solid var(--line);color:var(--ink);cursor:pointer;z-index:2}
+.elab.ch{border-color:var(--accent)}.elab.cd{border-color:#2F8F5B}.elab.on{box-shadow:0 0 0 2px #F2A33A}.elab.bad{border-color:var(--warn);color:var(--warn)}
+.mpop{position:absolute;z-index:5;display:flex;flex-direction:column;gap:4px;padding:6px;border-radius:10px;background:var(--panel);border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.mpop button{padding:7px 10px;font-size:13px;text-align:left;justify-content:flex-start}
+.stage.mapon .canvas-wrap{display:none}
+
 .transport{display:flex;align-items:center;flex-wrap:wrap;gap:10px}
 .clock{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;min-width:11ch}
 .chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;cursor:pointer}
@@ -176,6 +220,10 @@ input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line
 .step .hd .acts button{padding:6px 7px}
 .step textarea{min-height:52px;background:var(--panel)}
 .timing{border-top:1px dashed var(--line);padding-top:6px}
+.cond{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px}.cond select{width:auto;flex:1 1 110px;min-width:0;padding:6px 8px;font-size:13px}.cond .vnum{width:72px;padding:6px 8px;font-size:13px}
+.optx{margin:-2px 0 6px 26px;font-size:12px}.optx summary{cursor:pointer;color:var(--muted);display:flex;gap:6px;align-items:center;list-style:none}.optx summary::-webkit-details-marker{display:none}.optx[open]>.cond,.optx[open]>.addrow{margin-top:6px}.optx .tag{color:var(--accent)}
+.vsec>summary{display:flex;align-items:baseline;gap:8px;cursor:pointer;list-style:none}.vsec>summary::-webkit-details-marker{display:none}.vsec>summary h2{margin:0}.vsec[open]>*+*{margin-top:8px}
+.vars{display:flex;flex-direction:column;gap:6px}.var{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;align-items:center;font-size:12px;color:var(--muted)}.var .vnum{width:64px;padding:6px 8px}.var input[type=text]{padding:6px 8px}
 .timing summary{cursor:pointer;display:flex;gap:8px;align-items:baseline;font-size:13px;font-weight:500;list-style:none}
 .timing summary::-webkit-details-marker{display:none}
 .timing summary::after{content:'▾';margin-left:auto;color:var(--muted)}
@@ -270,7 +318,9 @@ input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line
   input[type=text],input[type=number],select,textarea{font-size:16px}
   .seg-b button{padding:10px 12px;font-size:14px}
   .tabs{top:0}
-  .stage.watch{position:static;box-shadow:none}
+  .stage.watch,.stage.mapon{position:static;box-shadow:none}
+  .map-scroll{height:62vh}
+  .mlegend{display:none}
   .stage.watch canvas#cv{max-height:34vh}
   .tl-names{width:88px}
   .tl-names div{font-size:11px;padding:0 6px}
@@ -301,9 +351,9 @@ input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line
 
 <main class="app">
   <section class="stage" aria-label="Preview">
-    <div class="canvas-wrap"><canvas id="cv" width="1920" height="1080" aria-label="The novel. Tap to continue."></canvas></div>
+    <div class="canvas-wrap" id="cvWrap"><canvas id="cv" width="1920" height="1080" aria-label="The novel. Tap to continue."></canvas></div>
     <div class="transport">
-      <div class="mode" role="group" aria-label="Preview mode"><button type="button" id="mPlay" aria-pressed="true">Play it</button><button type="button" id="mWatch" aria-pressed="false">Watch</button></div>
+      <div class="mode" role="group" aria-label="Preview mode"><button type="button" id="mPlay" aria-pressed="true">Play it</button><button type="button" id="mWatch" aria-pressed="false">Watch</button><button type="button" id="mMap" aria-pressed="false">Map</button></div>
       <button type="button" id="play" class="primary" hidden><span id="playIco" aria-hidden="true">▶</span><span id="playLbl">Play</span></button>
       <button type="button" id="restart" aria-label="Back to the start">⏮</button>
       <span class="clock" id="clock" hidden>0.0s / 0.0s</span>
@@ -312,7 +362,14 @@ input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line
       <label class="chk" id="loopL" hidden><input type="checkbox" id="loop"> Loop</label>
       <label class="chk"><input type="checkbox" id="mute"> Mute preview</label>
     </div>
+    <div class="map" id="map" hidden>
+      <div class="map-bar"><button type="button" id="mapNew">+ New scene</button><button type="button" id="mapArrange">Arrange</button><label class="zoom" for="mapZoom">Zoom <input type="range" id="mapZoom" min="40" max="140" value="100"></label><span class="spacer"></span><span class="mlegend"><i class="lg ch"></i>choice <i class="lg jp"></i>go to <i class="lg cd"></i>check <i class="lg on"></i>video path</span></div>
+      <div class="map-issues" id="mapIssues" hidden></div>
+      <div class="map-scroll" id="mapScroll"><div class="map-sizer" id="mapSizer"><div class="map-inner" id="mapInner"><svg class="map-svg" id="mapSvg" aria-hidden="true"></svg></div></div></div>
+      <p class="help">Tap a scene to write in it. Drag scenes to arrange them. Drag from a scene's ● to another scene to connect them, or to an empty spot to start a new scene there. Tap an arrow's label to edit that choice.</p>
+    </div>
     <div class="tl" id="tl" hidden>
+      <div class="pathbar" id="pathBar"></div>
       <div class="tl-bar"><span class="help">Drag a bar to move it, its ends to change how long it lasts, the dotted lines for how long it takes to come in or go out, and ◆ for when it happens. Tap or drag the ruler to jump anywhere.</span>
         <label class="zoom" for="tlZoom">Zoom <input type="range" id="tlZoom" min="12" max="260" value="60"></label><button type="button" id="tlFit">Fit</button></div>
       <div class="tl-wrap"><div class="tl-names" id="tlNames"></div>
@@ -517,6 +574,16 @@ function keyedSrc(ex,src){const[iw,ih]=dimsOf(src);if(!iw||!ih)return src;const 
   c.sid=sid;c.set=(ex.keyTol==null?.35:ex.keyTol)+'|'+(ex.keyColor||'')+'|'+w;return cv2;}
 
 const sceneById=id=>P.scenes.find(s=>s.id===id)||null;
+/* ---------- remembered values: a choice can set or add to them; options, If steps and later scenes can depend on them ---------- */
+const varById=id=>(P.vars||[]).find(v=>v.id===id)||null;
+const initVars=()=>{const o={};(P.vars||[]).forEach(v=>o[v.id]=+v.init||0);return o;};
+const CMPS=[['>=','at least'],['<=','at most'],['==','is'],['!=','is not'],['>','more than'],['<','less than']];
+function testCond(g,c){if(!c||!c.v||!varById(c.v))return true;const a=(g.vars||{})[c.v]||0,b=+c.val||0;switch(c.cmp){case'>=':return a>=b;case'<=':return a<=b;case'>':return a>b;case'<':return a<b;case'!=':return a!==b;default:return a===b;}}
+function applySet(g,list){(list||[]).forEach(e=>{if(!e||!e.v||!varById(e.v))return;g.vars=g.vars||{};const cur=g.vars[e.v]||0;g.vars[e.v]=e.op==='add'?cur+(+e.val||0):(+e.val||0);});}
+/* the options this player can see right now (an option can need a remembered value) */
+const visOpts=(g,st)=>(st.opts||[]).map((o,i)=>({o,i})).filter(x=>testCond(g,x.o.if));
+const firstOpt=(g,st)=>{const v=visOpts(g,st);return v.length?v[0].i:0;};
+const keyOpt=(g,st,k)=>{const v=visOpts(g,st)[k];return v?v.i:null;};
 const charById=id=>P.chars.find(c=>c.id===id)||null;
 const bgById=id=>P.bgs.find(b=>b.id===id)||null;
 /* ---------- built-in backgrounds, drawn once per size ---------- */
@@ -617,21 +684,25 @@ function stepDur(st){if(st.k==='pic'&&st.mode==='flash')return picHold(st);const
 const titleDur=()=>optNum(P.titleDur)!=null?Math.max(.5,optNum(P.titleDur)):2.2;
 const fxD=fx=>fx.d!=null?fx.d:(FX_DUR[fx.kind]||.6);
 function autoDur(st){const n=[...String(st.text||'')].length;switch(st.k){case'say':case'narr':return revealDur(st)+clamp(.9+n*.028,1.2,4.2);case'choice':return 2.4;case'card':return 2.4;case'bg':return(TRANS_DUR[transOf(st.trans)]||0)+.4;case'show':case'hide':return .55;case'fx':return(optNum(st.dur)!=null?optNum(st.dur):FX_DUR[st.kind]||.7)+.1;case'pic':return st.mode==='flash'?picHold(st):2.6;case'picoff':return 0;case'end':return 3;case'jump':case'sound':case'music':return 0;default:return .5;}}
-function newG(){return{started:false,sceneId:null,i:-1,st:null,t0:0,bg:null,prevBg:null,bgT:-9,trans:'fade',chars:{},pic:null,picOld:null,q:[],trD:null,fx:null,choice:-1,choiceT:0,ended:false,endT:0,visited:0,rects:[],page:[],music:null,silent:false,kc:0};}
+function newG(){return{started:false,sceneId:null,i:-1,st:null,t0:0,bg:null,prevBg:null,bgT:-9,trans:'fade',chars:{},vars:{},pic:null,picOld:null,q:[],trD:null,fx:null,choice:-1,choiceT:0,ended:false,endT:0,visited:0,rects:[],page:[],music:null,silent:false,kc:0};}
 /* a sound or music cue while playing live; nothing while the video path is being worked out */
 function live(g,k,arg){if(g.silent)return;try{if(k==='music')playMusic(arg);else if(k==='play')playSnd(arg.snd,arg.vol);else sfx(k);}catch(e){}}
 function setBg(g,bg,trans,now,dur){trans=transOf(trans);if(bg===g.bg&&trans!=='black'&&trans!=='white')return;g.prevBg=g.bg;g.bg=bg||'dark';g.trans=trans;g.bgT=now;g.trD=optNum(dur);g.page=[];if(trans!=='cut')live(g,'scene');}
 let G=newG(),MODE='play';
 const clone=o=>JSON.parse(JSON.stringify(o));
-function startG(g,now){g.started=true;g.sceneId=P.scenes[0]?P.scenes[0].id:null;g.i=-1;g.chars={};g.bg=P.scenes[0]?(P.scenes[0].bg||'dark'):'dark';g.prevBg=null;g.bgT=-9;g.ended=false;g.visited=0;g.page=[];g.music=null;g.q=[];g.pic=null;g.picOld=null;g.fx=null;g.trD=null;live(g,'music',null);advance(g,now);}
+function startG(g,now){g.started=true;g.sceneId=P.scenes[0]?P.scenes[0].id:null;g.i=-1;g.chars={};g.bg=P.scenes[0]?(P.scenes[0].bg||'dark'):'dark';g.prevBg=null;g.bgT=-9;g.ended=false;g.visited=0;g.page=[];g.music=null;g.q=[];g.pic=null;g.picOld=null;g.fx=null;g.trD=null;g.vars=initVars();live(g,'music',null);advance(g,now);}
 /* move to the next step, following jumps and choices already made; applies instant steps as it goes */
 function advance(g,now,choiceIdx){if(g.ended)return;const sc=sceneById(g.sceneId);if(!sc){g.ended=true;g.endT=now;g.st=null;return;}
-  if(g.st&&g.st.k==='choice'){const o=g.st.opts[choiceIdx!=null?choiceIdx:0];if(o&&o.go&&sceneById(o.go)){gotoScene(g,o.go,now);return;}}
+  if(g.st&&g.st.k==='choice'){const o=g.st.opts[choiceIdx!=null?choiceIdx:firstOpt(g,g.st)];if(o)applySet(g,o.set);if(o&&o.go&&sceneById(o.go)){gotoScene(g,o.go,now);return;}}
   if(g.st&&g.st.k==='end'){g.ended=true;g.endT=now;return;}
   if(g.st&&g.st.k==='pic'&&g.st.mode==='flash')picAway(g,now,g.st.outDur);
   for(let guard=0;guard<50;guard++){g.i++;if(++g.visited>600){g.ended=true;g.endT=now;g.st=null;return;}
     const st=sc.steps[g.i];if(!st){g.ended=true;g.endT=now;g.st=null;return;}
     if(st.k==='jump'){g.st=st;if(st.go&&sceneById(st.go)){gotoScene(g,st.go,now);return;}continue;}
+    if(st.k==='set'){applySet(g,[st]);continue;}
+    if(st.k==='if'){g.st=st;const to=testCond(g,st)?st.go:st.els;if(to&&sceneById(to)){gotoScene(g,to,now);return;}continue;}
+    /* a choice whose options all need something the player doesn't have is skipped */
+    if(st.k==='choice'&&!visOpts(g,st).length)continue;
     const ref={sid:sc.id,i:g.i};
     if(isInstant(st)){const at=num(st.at);if(at>0)g.q.push({st,t:now+at,ref,base:now});else doStep(g,st,now,ref,now);continue;}
     g.st=st;g.choice=-1;g.kc=0;const pre=num(st.pre);g.t0=now+pre;
@@ -751,11 +822,11 @@ function drawBox(g,now){const st=g.st;if(!st||(st.k!=='say'&&st.k!=='narr')||now
   ctx.restore();}
 function drawChoice(g,now){const st=g.st;if(!st||st.k!=='choice'||now<g.t0){g.rects=[];return;}const L=lay(),T=themeC(),q=smooth((now-g.t0)/.35);g.rects=[];
   ctx.save();ctx.fillStyle=`rgba(0,0,0,${.45*q})`;ctx.fillRect(0,0,W,H);ctx.globalAlpha=q;
-  const n=st.opts.length,bw=L.choiceW,bh=L.wd?96:110,gap=22;ctx.font=F(L.fs*.9,500,fontOf());
+  const vs=visOpts(g,st),n=vs.length,bw=L.choiceW,bh=L.wd?96:110,gap=22;ctx.font=F(L.fs*.9,500,fontOf());
   let y=H*.5-((n*(bh+gap))-gap)/2+(st.prompt?40:0);
   if(st.prompt){ctx.font=`italic 400 ${L.fs*.85}px ${FAM[fontOf()]}`;ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';const pl=wrap(st.prompt,W*.8);pl.forEach((l,j)=>ctx.fillText(l,W/2,y-80-(pl.length-1-j)*L.lh));}
   ctx.font=F(L.fs*.9,500,fontOf());
-  st.opts.forEach((o,i)=>{const x=W/2-bw/2,picked=g.choice===i,p=picked?clamp((now-g.choiceT)/.25,0,1):0,sc=1+(picked?.04*Math.sin(Math.PI*p):0);
+  vs.forEach(({o,i})=>{const x=W/2-bw/2,picked=g.choice===i,p=picked?clamp((now-g.choiceT)/.25,0,1):0,sc=1+(picked?.04*Math.sin(Math.PI*p):0);
     ctx.save();ctx.translate(W/2,y+bh/2);ctx.scale(sc,sc);ctx.translate(-W/2,-(y+bh/2));
     ctx.fillStyle=picked?T.name:hexA(T.box,.85);rr(x,y,bw,bh,T.r>10?bh/2:8);ctx.fill();ctx.strokeStyle=picked?'#fff':T.edge==='transparent'?'rgba(255,255,255,.5)':T.edge;ctx.lineWidth=3;rr(x,y,bw,bh,T.r>10?bh/2:8);ctx.stroke();
     ctx.fillStyle=picked?T.nameFg:T.text;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(fitEndC(o.text||'…',bw-60),W/2,y+bh/2+2);ctx.restore();
@@ -825,24 +896,26 @@ function render(g,now){ctx.save();ctx.clearRect(0,0,W,H);
   ctx.restore();}
 /* ---------- the video path: the story played through on its own, taking the marked choice at each fork ---------- */
 function stepLabel(st){return st.k==='say'?((charById(st.who)||{}).name||'?')+': '+(st.text||''):st.k==='narr'||st.k==='card'?String(st.text||''):st.k==='end'?(st.text||'The End'):st.k==='pic'?'Picture: '+(bgById(st.bg)||{name:BUILTIN_BG[st.bg]||'?'}).name:st.k==='choice'?'Choice':st.k;}
-function plan(){const segs=[],log=[];const g=newG();g.silent=true;let t=0;PLOG=log;
+function plan(force,light){const segs=[],log=[],choices=[],seq=[];const g=newG();g.silent=true;let t=0;PLOG=log;
   const nextQ=()=>g.q.length?Math.min(...g.q.map(e=>e.t)):null;
   /* a stretch of time; it's cut where a delayed step happens, so each piece has the right state */
   const push=(d,label,kind,ref)=>{const end=t+Math.max(0,d);runQueue(g,t+1e-6);
-    for(let k=0;k<300;k++){const nx=nextQ();if(nx==null||nx>=end-1e-6)break;if(nx>t+1e-6){segs.push({t0:t,t1:nx,g:clone(g),label,kind,ref});t=nx;}runQueue(g,t+1e-6);}
-    if(end>t+1e-6){segs.push({t0:t,t1:end,g:clone(g),label,kind,ref});t=end;}};
+    for(let k=0;k<300;k++){const nx=nextQ();if(nx==null||nx>=end-1e-6)break;if(nx>t+1e-6){if(!light)segs.push({t0:t,t1:nx,g:clone(g),label,kind,ref});t=nx;}runQueue(g,t+1e-6);}
+    if(end>t+1e-6){if(light)segs.length=0;segs.push({t0:t,t1:end,g:light?null:clone(g),label,kind,ref});t=end;}
+    if(g.started&&g.sceneId&&seq[seq.length-1]!==g.sceneId)seq.push(g.sceneId);};
   try{
     if(P.titleScreen!==false){g.started=false;push(titleDur(),P.title||'Title','title',{title:true});}
     g.started=true;startG(g,t);let guard=0;
     while(!g.ended&&g.st&&guard++<400){const st=g.st,ref={sid:g.sceneId,i:g.i},lab=stepLabel(st),pre=g.t0-t;
       if(pre>1e-6)push(pre,lab,'pause',ref);
       const d=stepDur(st);
-      if(st.k==='choice'){const ai=Math.max(0,st.opts.findIndex(o=>o.auto));g.choice=-1;push(Math.max(.3,d-.8),'Choice','choice',ref);g.choice=ai;g.choiceT=t;push(.8,st.opts[ai]?st.opts[ai].text:'','choice',ref);advance(g,t,ai);continue;}
+      if(st.k==='choice'){const vs=visOpts(g,st),k=choices.length,fk=force&&force[k];let ai=(vs.find(x=>x.o.auto)||vs[0]||{i:0}).i;if(fk!=null&&vs.some(x=>x.i===fk))ai=fk;
+        choices.push({sid:g.sceneId,i:g.i,vis:vs.map(x=>x.i),pick:ai,t,forced:fk!=null});g.choice=-1;push(Math.max(.3,d-.8),'Choice','choice',ref);g.choice=ai;g.choiceT=t;push(.8,st.opts[ai]?st.opts[ai].text:'','choice',ref);advance(g,t,ai);continue;}
       if(st.k==='end'){g.ended=true;g.endT=t;push(d,lab,'end',ref);break;}
       push(d,lab,st.k,ref);advance(g,t);}
     if(!segs.length)push(2,'Empty','title',{title:true});
   }finally{PLOG=null;}
-  return{segs,dur:t,log};}
+  return{segs,dur:t,log,choices,seq,end:g.st&&g.st.k==='end'?(g.st.text||'The End'):null,endScene:g.sceneId};}
 function frameAt(PL,t){const s=PL.segs.find(x=>t<x.t1)||PL.segs[PL.segs.length-1];render(s.g,t);}
 /* ---------- sounds: three built-in sets made in the browser, or your own files ---------- */
 let AC=null,master=null,monitor=null,MUTED=false,MUSIC=null;const LIVEN=[];const SND={};   /* sound id -> {buf} */
@@ -881,11 +954,13 @@ function renderSide(){document.querySelectorAll('.tabs button').forEach(b=>b.set
   if(TAB==='scenes')scenesPane(p);else if(TAB==='people')peoplePane(p);else if(TAB==='places')placesPane(p);else if(TAB==='sounds')soundsPane(p);else lookPane(p);}
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{TAB=b.dataset.tab;renderSide();});
 /* ---------- scenes and steps ---------- */
-const KINDS=[['say','Line'],['narr','Narration'],['choice','Choice'],['show','Show someone'],['hide','Hide someone'],['bg','Background'],['pic','Picture'],['picoff','Remove picture'],['card','Title card'],['fx','Effect'],['sound','Sound'],['music','Music'],['jump','Go to scene'],['end','The end']];
+const KINDS=[['say','Line'],['narr','Narration'],['choice','Choice'],['show','Show someone'],['hide','Hide someone'],['bg','Background'],['pic','Picture'],['picoff','Remove picture'],['card','Title card'],['fx','Effect'],['sound','Sound'],['music','Music'],['jump','Go to scene'],['set','Change a value'],['if','Check a value'],['end','The end']];
 const FXK=[['shake','Shake'],['flash','Flash'],['blackout','Fade to black'],['whiteout','Fade to white'],['zoom','Punch in']];
 const transName=t=>(TRANS.find(x=>x[0]===t)||['','?'])[1];
 const kindName=k=>(KINDS.find(x=>x[0]===k)||['','?'])[1];
-function stepSummary(st){if(st.k==='say')return(charById(st.who)||{name:'?'}).name+': '+(st.text||'');if(st.k==='narr'||st.k==='card'||st.k==='end')return st.text||'';if(st.k==='choice')return(st.opts||[]).map(o=>o.text).join(' / ');if(st.k==='jump')return'→ '+(sceneById(st.go)||{name:'?'}).name;if(st.k==='show'||st.k==='hide')return(charById(st.who)||{name:'?'}).name;if(st.k==='bg')return bgName(st.bg)+(st.trans?' · '+transName(st.trans):'');if(st.k==='sound')return(sndById(st.snd)||{name:'?'}).name;if(st.k==='pic')return bgName(st.bg)+' · '+(st.mode==='flash'?'flash':'stays up');if(st.k==='picoff')return'the picture goes away';if(st.k==='music')return st.snd?'♪ '+(sndById(st.snd)||{name:'?'}).name:'stop the music';return(FXK.find(x=>x[0]===st.kind)||[,st.kind||''])[1];}
+const varName=id=>(varById(id)||{name:'?'}).name;
+const cmpName=c=>(CMPS.find(x=>x[0]===c)||CMPS[2])[1];
+function stepSummary(st){if(st.k==='set')return varName(st.v)+(st.op==='add'?(+st.val<0?' − '+Math.abs(+st.val):' + '+(+st.val||0)):' = '+(+st.val||0));if(st.k==='if')return'if '+varName(st.v)+' '+cmpName(st.cmp)+' '+(+st.val||0)+' → '+(sceneById(st.go)||{name:'keep going'}).name+(st.els?' · otherwise → '+(sceneById(st.els)||{name:'?'}).name:'');if(st.k==='say')return(charById(st.who)||{name:'?'}).name+': '+(st.text||'');if(st.k==='narr'||st.k==='card'||st.k==='end')return st.text||'';if(st.k==='choice')return(st.opts||[]).map(o=>o.text).join(' / ');if(st.k==='jump')return'→ '+(sceneById(st.go)||{name:'?'}).name;if(st.k==='show'||st.k==='hide')return(charById(st.who)||{name:'?'}).name;if(st.k==='bg')return bgName(st.bg)+(st.trans?' · '+transName(st.trans):'');if(st.k==='sound')return(sndById(st.snd)||{name:'?'}).name;if(st.k==='pic')return bgName(st.bg)+' · '+(st.mode==='flash'?'flash':'stays up');if(st.k==='picoff')return'the picture goes away';if(st.k==='music')return st.snd?'♪ '+(sndById(st.snd)||{name:'?'}).name:'stop the music';return(FXK.find(x=>x[0]===st.kind)||[,st.kind||''])[1];}
 const bgName=id=>BUILTIN_BG[id]||(bgById(id)||{name:'?'}).name;
 function bgOpts(){return[...Object.entries(BUILTIN_BG),...P.bgs.map(b=>[b.id,b.name||'Photo'])];}
 function sceneOpts(){return P.scenes.map(s=>[s.id,s.name||'Scene']);}
@@ -898,6 +973,7 @@ function scenesPane(p){if(!SEL||!sceneById(SEL))SEL=P.scenes[0]?P.scenes[0].id:n
       h('button',{type:'button',class:'ib','aria-label':'Delete scene',onclick:e=>{e.stopPropagation();if(P.scenes.length<=1){toast('Keep at least one scene.');return;}if(!confirm(`Delete “${s.name}”?`))return;P.scenes.splice(i,1);SEL=null;changed();}},'✕')));list.append(row);});
   p.append(sec(h('span',{},'Scenes',h('span',{class:'rv'},' the first one is where it starts')),list,h('div',{class:'addrow'},h('button',{type:'button',onclick:()=>{const s={id:'s_'+rkey(),name:'Scene '+(P.scenes.length+1),bg:sc?sc.bg:'day',steps:[]};P.scenes.push(s);SEL=s.id;changed();}},'+ New scene'),
     h('button',{type:'button',onclick:()=>{if(!sc)return;const c=clone(sc);c.id='s_'+rkey();c.name=sc.name+' copy';P.scenes.splice(P.scenes.indexOf(sc)+1,0,c);SEL=c.id;changed();}},'Duplicate'))));
+  p.append(varsSection());
   if(!sc)return;
   const steps=h('div',{class:'steps'});sc.steps.forEach((st,i)=>steps.append(stepCard(sc,st,i)));
   const addKind=h('div',{class:'addrow'});KINDS.forEach(([k,l])=>addKind.append(h('button',{type:'button',onclick:()=>{const st=newStep(k);const at=SELSTEP>=0?SELSTEP+1:sc.steps.length;sc.steps.splice(at,0,st);SELSTEP=at;changed();previewFrom(sc.id,at);}},'+ '+l)));
@@ -905,7 +981,7 @@ function scenesPane(p){if(!SEL||!sceneById(SEL))SEL=P.scenes[0]?P.scenes[0].id:n
     selF('sc-tr','Comes in with',[['','The usual ('+transName(P.trans||'fade')+')'],...TRANS],sc.trans||'',v=>{sc.trans=v;save();}),
     h('p',{class:'help'},'Steps play in order. Tap a step to preview from there; new steps go in after the selected one.'),steps,h('div',{class:'field'},h('span',{class:'flabel'},'Add a step'),addKind)));}
 function newStep(k){const c0=P.chars[0],c1=P.chars[1]||P.chars[0];switch(k){case'say':return{k,who:c0?c0.id:'',expr:'neutral',pos:'',text:''};case'narr':return{k,text:''};case'choice':return{k,prompt:'',opts:[{text:'Option one',go:'',auto:true},{text:'Option two',go:'',auto:false}]};
-  case'show':return{k,who:c1?c1.id:'',expr:'neutral',pos:'right'};case'hide':return{k,who:c0?c0.id:''};case'bg':return{k,bg:'day'};case'card':return{k,text:'Later'};case'fx':return{k,kind:'shake'};case'sound':return{k,snd:(P.sounds[0]||{}).id||'',vol:1};case'music':return{k,snd:(P.sounds[0]||{}).id||'',vol:.6};case'jump':return{k,go:P.scenes[0]?P.scenes[0].id:''};case'pic':return{k,bg:(P.bgs[0]||{}).id||'room',mode:'stay',wait:false,hold:2,size:.56,x:0,y:-.1,dim:.5,frame:'border',in:'pop',move:'none',moveDur:8,burst:false};case'picoff':return{k};case'end':return{k,text:'The End'};}return{k};}
+  case'show':return{k,who:c1?c1.id:'',expr:'neutral',pos:'right'};case'hide':return{k,who:c0?c0.id:''};case'bg':return{k,bg:'day'};case'card':return{k,text:'Later'};case'fx':return{k,kind:'shake'};case'sound':return{k,snd:(P.sounds[0]||{}).id||'',vol:1};case'music':return{k,snd:(P.sounds[0]||{}).id||'',vol:.6};case'jump':return{k,go:P.scenes[0]?P.scenes[0].id:''};case'pic':return{k,bg:(P.bgs[0]||{}).id||'room',mode:'stay',wait:false,hold:2,size:.56,x:0,y:-.1,dim:.5,frame:'border',in:'pop',move:'none',moveDur:8,burst:false};case'picoff':return{k};case'end':return{k,text:'The End'};case'set':return{k,v:(P.vars[0]||{}).id||'',op:'add',val:1};case'if':return{k,v:(P.vars[0]||{}).id||'',cmp:'>=',val:1,go:'',els:''};}return{k};}
 function stepCard(sc,st,i){const card=h('div',{class:'step'+(i===SELSTEP?' sel':''),onclick:()=>{if(SELSTEP!==i){SELSTEP=i;document.querySelectorAll('.step').forEach(e=>e.classList.remove('sel'));card.classList.add('sel');previewFrom(sc.id,i);}}});
   const kindSel=selF('st-k-'+i,'',KINDS,st.k,v=>{const n=newStep(v);if(n.text!==undefined&&st.text)n.text=st.text;if(n.who!==undefined&&st.who)n.who=st.who;sc.steps[i]=n;changed();});
   card.append(h('div',{class:'hd'},h('span',{class:'kind'},kindName(st.k)),kindSel,h('div',{class:'acts'},h('button',{type:'button',class:'ib','aria-label':'Move up',disabled:i===0,onclick:e=>{e.stopPropagation();[sc.steps[i-1],sc.steps[i]]=[sc.steps[i],sc.steps[i-1]];SELSTEP=i-1;changed();}},'↑'),
@@ -919,8 +995,9 @@ function stepCard(sc,st,i){const card=h('div',{class:'step'+(i===SELSTEP?' sel':
   else if(st.k==='choice'){card.append(textF('st-p-'+i,'Prompt (optional)',st.prompt,v=>{st.prompt=v;soft();},'A line above the options'));const opts=h('div',{class:'opts'});
     st.opts.forEach((o,j)=>{const rad=h('input',{type:'radio',name:'auto-'+sc.id+'-'+i,title:'Taken in the video',checked:!!o.auto,onchange:()=>{st.opts.forEach(x=>x.auto=false);o.auto=true;save();}});
       const tx=h('input',{type:'text',value:o.text,'aria-label':'Option text',oninput:e=>{o.text=e.target.value;soft();}}),go=selF('st-go-'+i+'-'+j,'',[['','(stay here)'],...sceneOpts()],o.go||'',v=>{o.go=v;save();});
-      opts.append(h('div',{class:'opt'},rad,tx,go,h('button',{type:'button',class:'ib','aria-label':'Remove option',onclick:()=>{if(st.opts.length<=2){toast('A choice needs two options.');return;}st.opts.splice(j,1);if(!st.opts.some(x=>x.auto))st.opts[0].auto=true;changed();}},'✕')));});
-    card.append(h('div',{class:'field'},h('span',{class:'flabel'},'Options',h('span',{class:'rv'},'● the one taken in the video')),opts),st.opts.length<4?h('div',{class:'addrow'},h('button',{type:'button',onclick:()=>{st.opts.push({text:'Another option',go:'',auto:false});changed();}},'+ Option')):null);}
+      opts.append(h('div',{class:'opt'},rad,tx,go,h('button',{type:'button',class:'ib','aria-label':'Remove option',onclick:()=>{if(st.opts.length<=2){toast('A choice needs two options.');return;}st.opts.splice(j,1);if(!st.opts.some(x=>x.auto))st.opts[0].auto=true;changed();}},'✕')));
+      if((P.vars||[]).length)opts.append(optMore(sc,st,i,o,j));});
+    card.append(h('div',{class:'field'},h('span',{class:'flabel'},'Options',h('span',{class:'rv'},'● the one taken in the video')),opts),...((P.vars||[]).length?[]:[h('p',{class:'help'},'To make an option depend on earlier choices, or remember this one for later, add a value under Remembered values below the scenes.')]),st.opts.length<4?h('div',{class:'addrow'},h('button',{type:'button',onclick:()=>{st.opts.push({text:'Another option',go:'',auto:false});changed();}},'+ Option')):null);}
   else if(st.k==='show'){const ch=charById(st.who);card.append(...[selF('st-who-'+i,'Who',charOpts(),st.who,pickWho),exprPick('st-ex-'+i,ch,st.expr,v=>{st.expr=v;soft();})].filter(Boolean),segB('st-pos-'+i,'Stands',[['left','Left'],['center','Middle'],['right','Right']],st.pos||'right',v=>{st.pos=v;soft();}));}
   else if(st.k==='hide')card.append(selF('st-who-'+i,'Who',charOpts(),st.who,v=>{st.who=v;soft();}));
   else if(st.k==='bg')card.append(h('div',{class:'grid2'},selF('st-bg-'+i,'Background',bgOpts(),st.bg,v=>{st.bg=v;soft();}),selF('st-tr-'+i,'Comes in with',[['','The usual ('+transName(P.trans||'fade')+')'],...TRANS],st.trans||'',v=>{st.trans=v;soft();})));
@@ -930,6 +1007,11 @@ function stepCard(sc,st,i){const card=h('div',{class:'step'+(i===SELSTEP?' sel':
       h('p',{class:'help'},st.k==='music'?'Loops until another Music step changes or stops it. Scenes can share one; it keeps going across them.':'Plays once, right here, over whatever is on screen.'),
       ...(st.snd&&SND[st.snd]?[h('div',{class:'addrow'},h('button',{type:'button',onclick:e=>{e.stopPropagation();playSnd(st.snd,st.vol);}},'▶ Hear it'))]:[]));}
   else if(st.k==='jump')card.append(selF('st-go-'+i,'Go to',sceneOpts(),st.go,v=>{st.go=v;save();}));
+  else if(st.k==='set'){if(!(P.vars||[]).length)card.append(noVars());else card.append(h('div',{class:'cond'},selF('st-v-'+i,'',varOpts(),st.v,v=>{st.v=v;changed();}),selF('st-op-'+i,'',[['add','add'],['set','set to']],st.op||'add',v=>{st.op=v;changed();}),valIn('st-val-'+i,st.val,v=>{st.val=v;save();renderSideSoon();})),
+    h('p',{class:'help'},'Use a negative number to take away. Later options and Check steps can depend on it.'));}
+  else if(st.k==='if'){if(!(P.vars||[]).length)card.append(noVars());else card.append(h('div',{class:'cond'},h('span',{},'If'),selF('st-v-'+i,'',varOpts(),st.v,v=>{st.v=v;changed();}),selF('st-cmp-'+i,'',CMPS,st.cmp||'>=',v=>{st.cmp=v;changed();}),valIn('st-val-'+i,st.val,v=>{st.val=v;save();renderSideSoon();})),
+    h('div',{class:'grid2'},selF('st-go-'+i,'Go to',[['','(keep going here)'],...sceneOpts()],st.go||'',v=>{st.go=v;changed();}),selF('st-els-'+i,'Otherwise',[['','Keep going here'],...sceneOpts()],st.els||'',v=>{st.els=v;changed();})),
+    h('p',{class:'help'},'Sends the story one way or the other depending on what was picked earlier.'));}
   else if(st.k==='pic'){const pct=v=>Math.round(v*100)+'%',sgn=v=>(v>0?'+':'')+Math.round(v*100)+'%';
     const opts=[...P.bgs.map(b=>[b.id,b.name||'Photo']),...Object.entries(BUILTIN_BG)];
     card.append(h('div',{class:'picrow'},selF('st-pic-'+i,'Picture',opts,st.bg,v=>{st.bg=v;soft();}),
@@ -949,8 +1031,33 @@ function stepCard(sc,st,i){const card=h('div',{class:'step'+(i===SELSTEP?' sel':
       segB('st-pv-'+i,'Movement',PIC_MOVE,st.move||'none',v=>{st.move=v;changed();previewFrom(sc.id,i);}),
       ...(PIC_ONCE[st.move]?[rangeF('st-pt-'+i,'Movement takes',2,20,.5,+st.moveDur||8,v=>v+'s',v=>{st.moveDur=v;save();})]:[]));}
   else if(st.k==='picoff')card.append(h('p',{class:'help'},'The picture fades away and the screen brightens again.'));
-  if(st.k!=='jump')card.append(timingBox(sc,st,i));
+  if(!/^(jump|set|if)$/.test(st.k))card.append(timingBox(sc,st,i));
   return card;}
+/* ---------- remembered values in the editor ---------- */
+const varOpts=()=>(P.vars||[]).map(v=>[v.id,v.name||'value']);
+let rsT=0;const renderSideSoon=()=>{clearTimeout(rsT);rsT=setTimeout(()=>{if(MODE==='watch'){PL=plan();renderStrip();drawNow();}if(MAPON)renderMap();},250);};
+function valIn(id,val,on){const i=h('input',{type:'number',id,step:1,inputmode:'numeric',value:val==null?0:val,'aria-label':'Value',class:'vnum'});i.oninput=()=>on(i.value===''?0:+i.value);return i;}
+const noVars=()=>h('p',{class:'help'},'Add a value under Remembered values (below the scenes) first: points, a friendship score, or 1/0 for whether something happened.');
+function optMore(sc,st,i,o,j){const d=h('details',{class:'optx'}),sum=()=>{const a=o.if&&o.if.v&&varById(o.if.v)?`only if ${varName(o.if.v)} ${cmpName(o.if.cmp)} ${+o.if.val||0}`:'always shown',b=(o.set||[]).filter(e=>e.v&&varById(e.v)).map(e=>`${varName(e.v)} ${e.op==='add'?(+e.val<0?'−'+Math.abs(+e.val):'+'+(+e.val||0)):'= '+(+e.val||0)}`).join(', ');return a+(b?' · '+b:'');};
+  const sm=h('span',{},sum());if(o.if&&o.if.v||(o.set||[]).length)d.open=OPENX.has(o);d.ontoggle=()=>{if(d.open)OPENX.add(o);else OPENX.delete(o);};
+  d.append(h('summary',{},h('span',{class:'tag'},'⑂'),sm));
+  const c=o.if||{},row1=h('div',{class:'cond'},h('span',{},'Only if'),selF('op-if-'+i+'-'+j,'',[['','(always)'],...varOpts()],c.v||'',v=>{if(!v)delete o.if;else o.if={v,cmp:(o.if||{}).cmp||'>=',val:(o.if||{}).val!=null?o.if.val:1};changed();}));
+  if(c.v)row1.append(selF('op-cmp-'+i+'-'+j,'',CMPS,c.cmp||'>=',v=>{o.if.cmp=v;save();sm.textContent=sum();renderSideSoon();}),valIn('op-val-'+i+'-'+j,c.val,v=>{o.if.val=v;save();sm.textContent=sum();renderSideSoon();}));
+  d.append(row1);
+  o.set=o.set||[];o.set.forEach((e,k)=>d.append(h('div',{class:'cond'},h('span',{},k?'and':'Then'),selF('op-sv-'+i+'-'+j+'-'+k,'',varOpts(),e.v,v=>{e.v=v;changed();}),selF('op-so-'+i+'-'+j+'-'+k,'',[['add','add'],['set','set to']],e.op||'add',v=>{e.op=v;save();sm.textContent=sum();renderSideSoon();}),
+    valIn('op-sn-'+i+'-'+j+'-'+k,e.val,v=>{e.val=v;save();sm.textContent=sum();renderSideSoon();}),h('button',{type:'button',class:'ib','aria-label':'Remove',onclick:()=>{o.set.splice(k,1);changed();}},'✕'))));
+  if(o.set.length<3)d.append(h('div',{class:'addrow'},h('button',{type:'button',onclick:()=>{o.set.push({v:(P.vars[0]||{}).id,op:'add',val:1});OPENX.add(o);changed();}},'+ Change a value when picked')));
+  return d;}
+const OPENX=new WeakSet();
+function varsSection(){P.vars=P.vars||[];const list=h('div',{class:'vars'});
+  P.vars.forEach((v,k)=>{const uses=P.scenes.reduce((a,sc)=>a+sc.steps.filter(st=>st.v===v.id||(st.opts||[]).some(o=>(o.if&&o.if.v===v.id)||(o.set||[]).some(e=>e.v===v.id))).length,0);
+    list.append(h('div',{class:'var'},h('input',{type:'text',value:v.name,'aria-label':'Name',oninput:e=>{v.name=e.target.value.slice(0,24);save();}}),h('label',{},'starts at ',valIn('var-i-'+k,v.init,x=>{v.init=x;save();renderSideSoon();})),h('span',{class:'rv'},uses?`used ${uses}×`:'not used yet'),
+      h('button',{type:'button',class:'ib','aria-label':'Delete value',onclick:()=>{if(uses&&!confirm(`“${v.name}” is used ${uses} time${uses>1?'s':''}. Delete it anyway? Options that need it will always show.`))return;P.vars.splice(k,1);changed();}},'✕')));});
+  const d=h('details',{class:'sec vsec',open:VOPEN||!!P.vars.length},h('summary',{},h('h2',{},'Remembered values'),h('span',{class:'rv'},P.vars.length?P.vars.map(v=>v.name).join(', '):'none yet')),
+    h('p',{class:'help'},'Numbers the story keeps as it goes. A choice can add to one or set it; later options can need it, and a Check a value step can send the story to different scenes. Use 1 and 0 for yes and no.'),list,
+    h('div',{class:'addrow'},h('button',{type:'button',onclick:()=>{const n=P.vars.length;P.vars.push({id:'v_'+rkey(),name:['points','trust','met',"courage","clues"][n%5]+(n>=5?n:''),init:0});VOPEN=true;changed();}},'+ Add a value')));
+  d.ontoggle=()=>{VOPEN=d.open;};return d;}
+let VOPEN=false;
 /* ---------- timing: every step can say when it starts, how long it lasts and how it comes in and goes out ---------- */
 const TOPEN=new WeakSet();
 const CFX=[['slide','Slide'],['fade','Fade'],['pop','Pop'],['rise','Rise'],['cut','Straight away']];
@@ -1179,10 +1286,10 @@ function previewFrom(sceneId,stepIdx,keep){if(MODE==='watch'){PL=plan();renderSt
 function drawNow(){fitCanvas();if(MODE==='watch'){if(!PL)PL=plan();state.t=clamp(state.t,0,PL.dur);frameAt(PL,state.t);$('clock').textContent=`${state.t.toFixed(1)}s / ${PL.dur.toFixed(1)}s`;moveHead();}else{render(G,nowS());picHandles();}}
 function loop(){raf=0;if(MODE==='watch'){if(state.playing&&!busy){state.t=(performance.now()-state.start)/1000;if(state.t>=PL.dur){if($('loop').checked){state.start=performance.now();state.t=0;cancelSounds();scheduleSounds(0);}else{state.t=PL.dur;state.playing=false;syncTransport();}}}drawNow();if(state.playing){moveHead(true);raf=requestAnimationFrame(loop);}}
   else{const now=nowS();tickSounds(G,now);render(G,now);picHandles();raf=requestAnimationFrame(loop);}}
-function setMode(m){MODE=m;state.playing=false;cancelSounds();$('mPlay').setAttribute('aria-pressed',String(m==='play'));$('mWatch').setAttribute('aria-pressed',String(m==='watch'));
+function setMode(m){MAPON=false;$('map').hidden=true;document.querySelector('.stage').classList.remove('mapon');$('mMap').setAttribute('aria-pressed','false');MODE=m;state.playing=false;cancelSounds();$('mPlay').setAttribute('aria-pressed',String(m==='play'));$('mWatch').setAttribute('aria-pressed',String(m==='watch'));
   ['play','clock','loopL','tl'].forEach(id=>$(id).hidden=m!=='watch');document.querySelector('.stage').classList.toggle('watch',m==='watch');$('hint').hidden=m==='watch';$('restart').hidden=false;
   if(m==='watch'){PL=plan();renderStrip();state.t=0;}else{G=newG();}cancelAnimationFrame(raf);raf=0;syncTransport();drawNow();if(m==='play')raf=requestAnimationFrame(loop);}
-$('mPlay').onclick=()=>setMode('play');$('mWatch').onclick=()=>setMode('watch');
+$('mPlay').onclick=()=>setMode('play');$('mWatch').onclick=()=>setMode('watch');$('mMap').onclick=()=>openMap();
 $('mute').onchange=()=>{MUTED=$('mute').checked;if(monitor)monitor.gain.value=MUTED?0:1;};
 $('restart').onclick=()=>{if(MODE==='watch'){state.t=0;if(state.playing){state.start=performance.now();cancelSounds();scheduleSounds(0);}drawNow();}else{G=newG();drawNow();}};
 /* taps on the picture */
@@ -1208,8 +1315,133 @@ cv.addEventListener('pointerup',e=>{if(MODE!=='play'||busy)return;if(PDRAG&&PDRA
   if(G.st&&G.st.k==='choice'&&G.choice<0){const hit=G.rects.find(r=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h);if(hit){choose(G,hit.i,now);sfx('pick');setTimeout(()=>{if(G.st&&G.st.k==='choice')advance(G,nowS(),hit.i);},260);}return;}
   if(audio()&&AC.state==='suspended')AC.resume();const was=G.st;tap(G,now);if(G.st!==was||!G.started)sfx('tap');});
 document.addEventListener('keydown',e=>{if(MODE!=='play'||busy||$('xmodal').hidden===false)return;if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
-  if(e.key===' '||e.key==='Enter'){e.preventDefault();const now=nowS();if(G.st&&G.st.k==='choice'){if(G.choice<0){choose(G,0,now);setTimeout(()=>{if(G.st&&G.st.k==='choice')advance(G,nowS(),0);},260);}return;}tap(G,now);}
-  else if(G.st&&G.st.k==='choice'&&/^[1-4]$/.test(e.key)){const i=+e.key-1;if(G.st.opts[i]&&G.choice<0){choose(G,i,nowS());setTimeout(()=>{if(G.st&&G.st.k==='choice')advance(G,nowS(),i);},260);}}});
+  if(e.key===' '||e.key==='Enter'){e.preventDefault();const now=nowS();if(G.st&&G.st.k==='choice'){if(G.choice<0){const k0=firstOpt(G,G.st);choose(G,k0,now);setTimeout(()=>{if(G.st&&G.st.k==='choice')advance(G,nowS(),k0);},260);}return;}tap(G,now);}
+  else if(G.st&&G.st.k==='choice'&&/^[1-4]$/.test(e.key)){const i=keyOpt(G,G.st,+e.key-1);if(i!=null&&G.choice<0){choose(G,i,nowS());setTimeout(()=>{if(G.st&&G.st.k==='choice')advance(G,nowS(),i);},260);}}});
+/* ================= the story map: scenes as boxes, choices and jumps as arrows ================= */
+let MAPON=false,mapScale=1,mapFitted=false;const NW=210,NH=100,GX=170,GY=46;
+const condText=c=>`${varName(c.v)} ${cmpName(c.cmp)} ${+c.val||0}`;
+function mapEdges(){const out=[];P.scenes.forEach(sc=>sc.steps.forEach((st,i)=>{
+  if(st.k==='choice')(st.opts||[]).forEach((o,j)=>{if(o.go)out.push({from:sc.id,to:o.go,kind:'ch',label:(o.if&&o.if.v&&varById(o.if.v)?'⑂ ':'')+(o.text||'…'),title:(o.text||'')+(o.if&&o.if.v&&varById(o.if.v)?` (only if ${condText(o.if)})`:''),i,j,bad:!sceneById(o.go)});});
+  else if(st.k==='jump'&&st.go)out.push({from:sc.id,to:st.go,kind:'jp',label:'',title:'Go to',i,bad:!sceneById(st.go)});
+  else if(st.k==='if'){if(st.go)out.push({from:sc.id,to:st.go,kind:'cd',label:'if '+condText(st),title:'Check: if '+condText(st),i,bad:!sceneById(st.go)});if(st.els)out.push({from:sc.id,to:st.els,kind:'cd2',label:'otherwise',title:'Check: otherwise',i,bad:!sceneById(st.els)});}}));return out;}
+/* how far each scene is from the start, for laying them out left to right */
+function mapLayout(edges){const depth={},order=[];if(!P.scenes.length)return{depth,reach:new Set()};const q=[P.scenes[0].id];depth[q[0]]=0;
+  while(q.length){const id=q.shift();order.push(id);edges.filter(e=>e.from===id&&!e.bad).forEach(e=>{if(depth[e.to]==null){depth[e.to]=depth[id]+1;q.push(e.to);}});}
+  const reach=new Set(order),maxD=Math.max(0,...Object.values(depth));P.scenes.forEach(s=>{if(depth[s.id]==null)depth[s.id]=maxD+1;});
+  const rows={},auto={};P.scenes.forEach(s=>{const d=depth[s.id];rows[d]=(rows[d]||0);auto[s.id]={x:30+d*(NW+GX),y:30+rows[d]*(NH+GY)};rows[d]++;});return{auto,reach};}
+const nodePos=(id,auto)=>(P.map&&P.map[id])||auto[id]||{x:30,y:30};
+function sceneIssues(edges,reach){const out=[];
+  P.scenes.forEach((s,k)=>{if(k&&!reach.has(s.id))out.push({sid:s.id,msg:`“${s.name||'Scene'}” can’t be reached: no choice, Go to or Check leads there.`});
+    if(!s.steps.length)out.push({sid:s.id,msg:`“${s.name||'Scene'}” has no steps yet.`});});
+  edges.filter(e=>e.bad).forEach(e=>out.push({sid:e.from,i:e.i,msg:`A ${e.kind==='ch'?'choice option':e.kind==='jp'?'Go to step':'Check step'} in “${(sceneById(e.from)||{}).name}” points to a scene that was deleted.`}));
+  P.scenes.forEach(s=>s.steps.forEach((st,i)=>{if((st.k==='set'||st.k==='if')&&!varById(st.v))out.push({sid:s.id,i,msg:`A ${st.k==='set'?'Change':'Check'} step in “${s.name}” has no value picked.`});}));
+  return out;}
+function openMap(){if(MODE==='watch')pause();cancelSounds();MAPON=true;$('map').hidden=false;$('tl').hidden=true;document.querySelector('.stage').classList.add('mapon');document.querySelector('.stage').classList.remove('watch');
+  ['play','clock','loopL','restart'].forEach(id=>$(id).hidden=true);$('hint').hidden=true;$('mPlay').setAttribute('aria-pressed','false');$('mWatch').setAttribute('aria-pressed','false');$('mMap').setAttribute('aria-pressed','true');renderMap();
+  /* the first time, zoom out so the whole story fits */
+  if(!mapFitted){mapFitted=true;const w=$('mapInner').offsetWidth,vw=$('mapScroll').clientWidth;if(w>vw){mapScale=clamp(Math.floor(vw/w*100)/100,innerWidth<=900?.55:.45,1);$('mapZoom').value=Math.round(mapScale*100);renderMap();}}}
+function renderMap(){if(!MAPON)return;const inner=$('mapInner'),svg=$('mapSvg');inner.querySelectorAll('.mnode,.elab,.mpop').forEach(e=>e.remove());
+  const edges=mapEdges(),{auto,reach}=mapLayout(edges),R=plan(null,true),seq=R.seq,onPath=new Set(seq),pairs=new Set();for(let k=1;k<seq.length;k++)pairs.add(seq[k-1]+'>'+seq[k]);
+  const picks=new Set(R.choices.map(c=>c.sid+'#'+c.i+'#'+c.pick));
+  /* problems */
+  const iss=sceneIssues(edges,reach),ib=$('mapIssues');ib.hidden=!iss.length;ib.innerHTML='';if(iss.length){const ul=h('ul');iss.slice(0,8).forEach(x=>ul.append(h('li',{},x.msg,h('button',{type:'button',onclick:()=>{if(x.i!=null)openStep(x.sid,x.i);else{SEL=x.sid;SELSTEP=-1;TAB='scenes';renderSide();renderMap();}}},'Show'))));ib.append(h('strong',{},`⚠ ${iss.length} thing${iss.length>1?'s':''} to check`),ul);}
+  let mx=0,my=0;
+  P.scenes.forEach((sc,k)=>{const ps=nodePos(sc.id,auto),firstLine=sc.steps.find(st=>(st.k==='say'||st.k==='narr')&&st.text),outs=edges.filter(e=>e.from===sc.id),hasEnd=sc.steps.some(st=>st.k==='end');
+    const leaves=!outs.length&&!hasEnd,badges=[];if(!k)badges.push(h('span',{},'▶ Start'));if(hasEnd)badges.push(h('span',{},'■ Ending'));
+    const nChoice=sc.steps.filter(st=>st.k==='choice').length;if(nChoice)badges.push(h('span',{},`⑂ ${nChoice} choice${nChoice>1?'s':''}`));
+    if(k&&!reach.has(sc.id))badges.push(h('span',{class:'warn'},'Not reached'));else if(leaves)badges.push(h('span',{},'Story stops here'));if(outs.some(e=>e.bad))badges.push(h('span',{class:'warn'},'Broken link'));
+    const n=h('div',{class:'mnode'+(sc.id===SEL?' sel':'')+(onPath.has(sc.id)?' onpath':'')+(k&&!reach.has(sc.id)?' off':''),style:`left:${ps.x}px;top:${ps.y}px`,'data-sid':sc.id,title:onPath.has(sc.id)?'On the video path':''},
+      h('div',{class:'nm'},sc.name||'Scene'),h('div',{class:'mt'},`${sc.steps.length} step${sc.steps.length===1?'':'s'} · ${bgName(sc.bg)}`),
+      firstLine?h('div',{class:'sn'},(firstLine.k==='say'?(charById(firstLine.who)||{name:'?'}).name+': ':'')+firstLine.text):null,badges.length?h('div',{class:'bd'},...badges):null,
+      h('div',{class:'acts'},h('button',{type:'button','data-act':'play',title:'Play from here','aria-label':'Play from here'},'▶'),h('button',{type:'button','data-act':'menu',title:'Branch out','aria-label':'Branch out'},'+')),
+      h('span',{class:'port',title:'Drag to another scene to connect'}));
+    inner.append(n);mx=Math.max(mx,ps.x+NW);my=Math.max(my,ps.y+NH+40);});
+  inner.style.width=(mx+160)+'px';inner.style.height=(my+80)+'px';inner.style.transform=`scale(${mapScale})`;
+  /* the wrapper takes the zoomed size, so the map scrolls right at any zoom */
+  $('mapSizer').style.width=Math.ceil((mx+160)*mapScale)+'px';$('mapSizer').style.height=Math.ceil((my+80)*mapScale)+'px';
+  const cap=Math.min(innerHeight*(innerWidth<=900?.62:.64),700);$('mapScroll').style.height=Math.round(clamp((my+80)*mapScale+24,260,cap))+'px';svg.setAttribute('width',mx+160);svg.setAttribute('height',my+80);
+  MAPE=edges.map(e=>({...e,on:pairs.has(e.from+'>'+e.to)&&(e.kind!=='ch'||picks.has(e.from+'#'+e.i+'#'+e.j)||!R.choices.some(c=>c.sid===e.from&&c.i===e.i))}));drawEdges();}
+let MAPE=[];
+function nodeBox(id){const n=document.querySelector(`.mnode[data-sid="${id}"]`);return n?{x:n.offsetLeft,y:n.offsetTop,w:n.offsetWidth,h:n.offsetHeight}:null;}
+const bz=(a,b,c,d,t)=>{const u=1-t;return u*u*u*a+3*u*u*t*b+3*u*t*t*c+t*t*t*d;};
+function drawEdges(){const svg=$('mapSvg'),inner=$('mapInner');inner.querySelectorAll('.elab').forEach(e=>e.remove());
+  let html='<defs>'+[['ch','var(--accent)'],['jp','var(--muted)'],['cd','#2F8F5B'],['on','#F2A33A'],['bad','var(--warn)']].map(([k,c])=>`<marker id="ah-${k}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="${c}"/></marker>`).join('')+'</defs>';
+  const outsN={},insN={},outsI={},insI={};MAPE.forEach(e=>{outsN[e.from]=(outsN[e.from]||0)+1;if(!e.bad)insN[e.to]=(insN[e.to]||0)+1;});
+  MAPE.forEach(e=>{const A=nodeBox(e.from);if(!A)return;const oi=outsI[e.from]=(outsI[e.from]||0)+1,on=outsN[e.from];
+    const x1=A.x+A.w,y1=A.y+A.h*(oi/(on+1));let x2,y2,d,lx,ly;
+    const col=e.bad?'bad':e.on?'on':e.kind==='ch'?'ch':e.kind==='jp'?'jp':'cd',stroke={ch:'var(--accent)',jp:'var(--muted)',cd:'#2F8F5B',on:'#F2A33A',bad:'var(--warn)'}[col],dash=e.kind==='jp'||e.kind==='cd2'||e.bad?' stroke-dasharray="7 6"':'';
+    if(e.bad){x2=x1+90;y2=y1+30;d=`M${x1},${y1} C${x1+40},${y1} ${x2-30},${y2} ${x2},${y2}`;lx=x2;ly=y2+14;}
+    else{const B=nodeBox(e.to);if(!B)return;const ii=insI[e.to]=(insI[e.to]||0)+1,inn=insN[e.to];x2=B.x;y2=B.y+B.h*(ii/(inn+1));
+      if(e.from===e.to){d=`M${x1},${y1} C${x1+90},${y1-90} ${x2-90},${y1-90} ${x2},${y2}`;lx=(x1+x2)/2;ly=y1-70;}
+      else if(x2<x1+30){const yb=Math.max(A.y+A.h,B.y+B.h)+50+oi*14;d=`M${x1},${y1} C${x1+110},${y1} ${x1+110},${yb} ${(x1+x2)/2},${yb} S${x2-110},${y2} ${x2},${y2}`;lx=(x1+x2)/2;ly=yb;}
+      else{const dx=Math.max(50,(x2-x1)/2);d=`M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`;lx=bz(x1,x1+dx,x2-dx,x2,.5);ly=bz(y1,y1,y2,y2,.5);}}
+    html+=`<path d="${d}" fill="none" stroke="${stroke}" stroke-width="${e.on?4:2}"${dash} marker-end="url(#ah-${col})" opacity="${e.on||e.bad?1:.85}"/>`;
+    if(e.label||e.bad){const lb=h('div',{class:'elab'+(e.kind==='ch'?' ch':e.kind.startsWith('cd')?' cd':'')+(e.on?' on':'')+(e.bad?' bad':''),style:`left:${lx}px;top:${ly}px`,title:(e.title||'')+' · tap to edit'},e.bad?'⚠ missing scene':e.label);lb.onclick=ev=>{ev.stopPropagation();openStep(e.from,e.i);};inner.append(lb);}});
+  svg.innerHTML=html;}
+/* dragging scenes, and dragging from a scene's ● to connect */
+let MD=null;
+const mapPoint=e=>{const r=$('mapInner').getBoundingClientRect();return{x:(e.clientX-r.left)/mapScale,y:(e.clientY-r.top)/mapScale};};
+$('mapInner').addEventListener('pointerdown',e=>{if(e.target.closest('.elab,.mpop'))return;closePop();const n=e.target.closest('.mnode');if(!n)return;const sid=n.dataset.sid,pt=mapPoint(e);
+  const btn=e.target.closest('button[data-act]');if(btn){e.stopPropagation();if(btn.dataset.act==='play'){setMode('play');SEL=sid;SELSTEP=-1;TAB='scenes';renderSide();previewFrom(sid,0);}else branchMenu(sid,n);return;}
+  if(e.target.closest('.port')){MD={mode:'link',from:sid,p0:pt};}else MD={mode:'move',sid,n,p0:pt,x0:n.offsetLeft,y0:n.offsetTop,moved:false};
+  $('mapInner').setPointerCapture(e.pointerId);e.preventDefault();});
+$('mapInner').addEventListener('pointermove',e=>{if(!MD)return;const pt=mapPoint(e);
+  if(MD.mode==='move'){const dx=pt.x-MD.p0.x,dy=pt.y-MD.p0.y;if(Math.hypot(dx,dy)>4)MD.moved=true;if(!MD.moved)return;MD.n.style.left=Math.max(0,MD.x0+dx)+'px';MD.n.style.top=Math.max(0,MD.y0+dy)+'px';drawEdges();return;}
+  const A=nodeBox(MD.from);if(!A)return;let tmp=$('mapSvg').querySelector('#tmpE');if(!tmp){$('mapSvg').insertAdjacentHTML('beforeend','<path id="tmpE" fill="none" stroke="var(--accent)" stroke-width="3" stroke-dasharray="6 5"/>');tmp=$('mapSvg').querySelector('#tmpE');}
+  const x1=A.x+A.w,y1=A.y+A.h/2;tmp.setAttribute('d',`M${x1},${y1} C${x1+60},${y1} ${pt.x-60},${pt.y} ${pt.x},${pt.y}`);});
+['pointerup','pointercancel'].forEach(ev=>$('mapInner').addEventListener(ev,e=>{const d=MD;MD=null;if(!d)return;const tmp=$('mapSvg').querySelector('#tmpE');if(tmp)tmp.remove();if(ev==='pointercancel')return;
+  if(d.mode==='move'){if(d.moved){P.map=P.map||{};P.map[d.sid]={x:Math.round(d.n.offsetLeft),y:Math.round(d.n.offsetTop)};save();}else{SEL=d.sid;SELSTEP=-1;TAB='scenes';renderSide();document.querySelectorAll('.mnode').forEach(x=>x.classList.toggle('sel',x.dataset.sid===d.sid));}return;}
+  const pt=mapPoint(e),el=document.elementFromPoint(e.clientX,e.clientY),tn=el&&el.closest('.mnode');
+  if(tn&&tn.dataset.sid!==d.from)linkMenu(d.from,tn.dataset.sid,pt);else if(!tn&&Math.hypot(pt.x-d.p0.x,pt.y-d.p0.y)>40)linkMenu(d.from,null,pt);}));
+function closePop(){document.querySelectorAll('.mpop').forEach(x=>x.remove());}
+function popAt(x,y,items){closePop();const m=h('div',{class:'mpop',style:`left:${x}px;top:${y}px`});items.forEach(([l,fn])=>m.append(h('button',{type:'button',onclick:ev=>{ev.stopPropagation();closePop();fn&&fn();}},l)));$('mapInner').append(m);return m;}
+function newSceneAt(from,pt){const f=sceneById(from),s={id:'s_'+rkey(),name:'Scene '+(P.scenes.length+1),bg:f?f.bg:'day',steps:[]};P.scenes.push(s);P.map=P.map||{};
+  const auto=mapLayout(mapEdges()).auto;if(pt)P.map[s.id]={x:Math.max(0,Math.round(pt.x-NW/2)),y:Math.max(0,Math.round(pt.y-NH/2))};else{const a=nodePos(from,auto);P.map[s.id]={x:a.x+NW+GX,y:a.y+((P.scenes.length*37)%160)};}return s;}
+/* connect two scenes: as a new option on the scene's choice (or a new choice), or as a Go to at the end */
+function connect(from,to,how){const sc=sceneById(from);if(!sc||!sceneById(to))return;
+  if(how==='choice'){let ci=-1;for(let i=sc.steps.length-1;i>=0;i--)if(sc.steps[i].k==='choice'){ci=i;break;}
+    if(ci>=0&&sc.steps[ci].opts.length<4){sc.steps[ci].opts.push({text:'Go to '+(sceneById(to).name||'scene'),go:to,auto:false});}
+    else{const st={k:'choice',prompt:'',opts:[{text:'Go to '+(sceneById(to).name||'scene'),go:to,auto:true},{text:'Stay',go:'',auto:false}]};let at=sc.steps.length;while(at>0&&/^(jump|end)$/.test(sc.steps[at-1].k))at--;sc.steps.splice(at,0,st);ci=at;}
+    changed();toast('Added an option. Write what it says in the step that opened.');openStep(from,ci);return;}
+  const last=sc.steps[sc.steps.length-1];if(last&&last.k==='jump')last.go=to;else sc.steps.push({k:'jump',go:to});changed();toast(`“${sc.name}” now goes on to “${sceneById(to).name}”.`);}
+function linkMenu(from,to,pt){const name=to?`“${(sceneById(to)||{}).name}”`:'a new scene';
+  popAt(pt.x,pt.y,[[`⑂ A choice option to ${name}`,()=>{const t=to||newSceneAt(from,pt).id;connect(from,t,'choice');}],[`→ Always go on to ${name}`,()=>{const t=to||newSceneAt(from,pt).id;connect(from,t,'jump');}],['Cancel',null]]);}
+function branchMenu(sid,n){const x=n.offsetLeft+NW-10,y=n.offsetTop+30;
+  popAt(x,y,[['⑂ Branch: a choice option to a new scene',()=>connect(sid,newSceneAt(sid).id,'choice')],['→ Carry on in a new scene',()=>connect(sid,newSceneAt(sid).id,'jump')],['Write in this scene',()=>{SEL=sid;SELSTEP=-1;TAB='scenes';renderSide();renderMap();}],['Cancel',null]]);}
+$('mapNew').onclick=()=>{const s={id:'s_'+rkey(),name:'Scene '+(P.scenes.length+1),bg:'day',steps:[]};P.scenes.push(s);SEL=s.id;SELSTEP=-1;TAB='scenes';changed();toast('New scene added. Connect it by dragging from another scene’s ●.');};
+$('mapArrange').onclick=()=>{P.map={};save();mapFitted=false;openMap();$('mapScroll').scrollTo(0,0);};
+$('mapZoom').oninput=e=>{mapFitted=true;mapScale=+e.target.value/100;renderMap();};
+document.addEventListener('pointerdown',e=>{if(!e.target.closest('.mpop'))closePop();});
+/* ---------- branches: which way each choice goes on the timeline (and in the video) ---------- */
+function setPick(c,j,keepT){const st=stepAt(c);if(!st||!st.opts[j])return;st.opts.forEach((o,k)=>o.auto=k===j);save();PL=plan();if(!keepT){const nc=(PL.choices||[]).find(x=>x.sid===c.sid&&x.i===c.i);state.t=clamp((nc?nc.t:c.t)+.05,0,PL.dur);}
+  renderStrip();drawNow();if(TAB==='scenes')renderSide();}
+/* every way through the story, by trying each option at each choice (up to a limit) */
+let PATHS=null,PATHK='';
+function allPaths(max){max=max||40;const out=[];let n=0;
+  const rec=pre=>{if(out.length>=max||++n>300)return;const R=plan(pre,true),k=pre.length,c=R.choices[k];
+    if(!c||k>=16){out.push({picks:R.choices.map(x=>({sid:x.sid,i:x.i,pick:x.pick})),dur:R.dur,end:R.end,endScene:R.endScene});return;}
+    for(const i of c.vis){rec([...pre,i]);if(out.length>=max)return;}};
+  rec([]);return out;}
+const optText=p=>{const st=stepAt(p);return st&&st.opts[p.pick]?(st.opts[p.pick].text||'…'):'?';};
+function pathsNow(){const k=JSON.stringify([P.scenes,P.vars||[]]);if(k!==PATHK){PATHK=k;PATHS=allPaths();}return PATHS;}
+function applyPath(path){path.picks.forEach(p=>{const st=stepAt(p);if(st&&st.opts)st.opts.forEach((o,k)=>o.auto=k===p.pick);});save();PL=plan();state.t=0;renderStrip();drawNow();if(TAB==='scenes')renderSide();}
+function renderPathBar(){const pb=$('pathBar');if(!pb||!PL)return;pb.innerHTML='';const ch=PL.choices||[];
+  const paths=pathsNow(),sig=ch.map(c=>c.sid+'#'+c.i+'#'+c.pick).join('|'),cur=paths.findIndex(p=>p.picks.map(x=>x.sid+'#'+x.i+'#'+x.pick).join('|')===sig);
+  const top=h('div',{class:'pb-top'},h('strong',{},'Path'));
+  if(paths.length>1){const sel=h('select',{'aria-label':'Every way through the story'});
+    paths.forEach((p,k)=>{const via=p.picks.map(optText).map(t=>t.replace(/[“”"]/g,'').slice(0,26)).join(' → ');sel.append(h('option',{value:k,selected:k===cur},`${k+1} of ${paths.length} · ${via||'no choices'} · ends in ${(sceneById(p.endScene)||{name:'?'}).name}${p.end?'':' (no The End)'} · ${Math.round(p.dur)}s`));});
+    if(cur<0)sel.prepend(h('option',{value:'',selected:true},'A path of your own'));sel.onchange=()=>{if(sel.value!=='')applyPath(paths[+sel.value]);};top.append(sel,h('span',{class:'rv'},`${paths.length}${paths.length>=40?'+':''} ways through`));}
+  else top.append(h('span',{class:'rv'},ch.length?'One way through: each choice here leads to the same place.':'No choices on this path yet. Add a Choice step to branch the story.'));
+  pb.append(top);if(!ch.length)return;
+  const flow=h('div',{class:'pb-flow'});
+  ch.forEach((c,k)=>{const st=stepAt(c);if(!st)return;const vis=c.vis,pos=vis.indexOf(c.pick);
+    const sel=h('select',{'aria-label':`Choice ${k+1} in ${(sceneById(c.sid)||{}).name}`});st.opts.forEach((o,j)=>{const v=vis.includes(j);sel.append(h('option',{value:j,selected:j===c.pick,disabled:!v},(o.text||'…')+(v?'':' (not shown here)')));});sel.onchange=()=>setPick(c,+sel.value);
+    const go=d=>()=>{if(vis.length<2)return;setPick(c,vis[(pos+d+vis.length)%vis.length]);};
+    if(k)flow.append(h('span',{class:'pb-arrow'},'→'));
+    flow.append(h('span',{class:'pb-chip',title:`Jump to this choice on the timeline`},h('span',{class:'sc',onclick:()=>{state.t=c.t+.05;drawNow();moveHead(true);}},'⑂ '+((sceneById(c.sid)||{}).name||'')),
+      h('button',{type:'button','aria-label':'Previous option',disabled:vis.length<2,onclick:go(-1)},'‹'),sel,h('button',{type:'button','aria-label':'Next option',disabled:vis.length<2,onclick:go(1)},'›')));});
+  const last=PL.endScene?sceneById(PL.endScene):null;flow.append(h('span',{class:'pb-arrow'},'→'),h('span',{class:'pb-chip end'},h('span',{class:'sc'},PL.end?'■ '+PL.end:'Story stops'),h('span',{class:'rv'},last?' in '+last.name:'')));
+  pb.append(flow);}
 /* ================= the timeline: the video path, row by row ================= */
 const TPAD=14;let pps=60,tlFit=true;
 const TCOL={title:'#8A76F0',say:'#5B3DF5',narr:'#6E6A85',card:'#3A3846',choice:'#D9821A',end:'#3A3846',pic:'#C2368C',bg:'#2F8F5B',fx:'#D93A40',sound:'#0B84C6',music:'#3A9BD0',pause:'#6E6A85'};
@@ -1219,8 +1451,8 @@ function pathTime(sid,i){if(!PL)return null;const sc=sceneById(sid),st=sc&&sc.st
   const s=PL.segs.find(x=>x.ref&&x.ref.sid===sid&&x.ref.i===i&&x.kind!=='pause')||PL.segs.find(x=>x.ref&&x.ref.sid===sid&&x.ref.i>=i);return s?s.t0+.01:null;}
 const stepAt=r=>{const sc=r&&sceneById(r.sid);return sc?sc.steps[r.i]||null:null;};
 /* everything the rows show, worked out from the path */
-function tlModel(){const M={story:[],bg:[],chars:{},pic:[],fx:[],snd:[]},D=PL.dur;
-  PL.segs.forEach(s=>{const key=s.ref?(s.ref.title?'title':s.ref.sid+'#'+s.ref.i):'?',last=M.story[M.story.length-1];
+function tlModel(){const M={story:[],bg:[],chars:{},pic:[],fx:[],snd:[],scenes:[]},D=PL.dur;
+  PL.segs.forEach(s=>{if(s.g.started&&s.g.sceneId){const ls=M.scenes[M.scenes.length-1];if(ls&&ls.sid===s.g.sceneId)ls.t1=s.t1;else M.scenes.push({sid:s.g.sceneId,t0:s.t0,t1:s.t1});}const key=s.ref?(s.ref.title?'title':s.ref.sid+'#'+s.ref.i):'?',last=M.story[M.story.length-1];
     if(last&&last.key===key){last.t1=s.t1;if(s.kind==='pause')last.pre+=s.t1-s.t0;else if(!last.kind)last.kind=s.kind;}
     else M.story.push({key,ref:s.ref,kind:s.kind==='pause'?null:s.kind,t0:s.t0,t1:s.t1,pre:s.kind==='pause'?s.t1-s.t0:0,label:s.label});
     const g=s.g;if(!g.started)return;
@@ -1269,6 +1501,11 @@ function renderTimeline(){if(!PL||$('tl').hidden)return;ACTS=[];const D=Math.max
   const mark=(el,o)=>{const m=h('div',{class:'tm'+(isSelRef(o.ref)?' sel':''),style:`left:${X(o.t0)}px;--c:${o.c}`,title:o.title||'','data-a':o.a,'data-t':o.t0});if(o.ref)m.dataset.ref=o.ref.sid+'#'+o.ref.i;el.append(m);};
   const atAct=(ref,base,t0)=>{const st=stepAt(ref);return st&&isInstant(st)?act({st,f:'at',v0:num(st.at),t0}):null;};
   const durAct=(st,min)=>act({st,f:'dur',v0:stepDur(st),min:min||.2});
+  /* scenes, with a branch switcher at every choice on the path */
+  const SR=row('Scene');M.scenes.forEach(o=>bar(SR,{...o,c:'#4B4760',label:(sceneById(o.sid)||{name:'?'}).name,ref:{sid:o.sid,i:-1},title:'Scene: '+((sceneById(o.sid)||{}).name||'')}));
+  (PL.choices||[]).forEach((c,k)=>{const st=stepAt(c),f=h('div',{class:'fork',style:`left:${X(c.t)}px`,title:'Which way this choice goes on the timeline and in the video'},h('b',{},'⑂'));if(!st){return;}
+    const sel=h('select',{'aria-label':'Branch at choice '+(k+1)});st.opts.forEach((o,j)=>{const vis=c.vis.includes(j);sel.append(h('option',{value:j,selected:j===c.pick,disabled:!vis},(o.text||'…')+(vis?'':' (not shown)')));});
+    sel.onchange=()=>setPick(c,+sel.value);sel.onpointerdown=e=>e.stopPropagation();f.append(sel);SR.append(f);});
   /* story: the steps that hold the screen */
   const S=row('Story');
   M.story.forEach(o=>{const st=o.ref&&o.ref.title?null:stepAt(o.ref),kind=o.kind||'pause',lab=o.ref&&o.ref.title?'Title screen':(st?stepLabel(st):o.label);
@@ -1306,7 +1543,7 @@ function renderTimeline(){if(!PL||$('tl').hidden)return;ACTS=[];const D=Math.max
   if(M.snd.length){const R=row('Sound',TCOL.sound);M.snd.forEach(o=>{const st=o.ref&&stepAt(o.ref),nm=(sndById(o.id)||{name:'Sound'}).name;
     if(o.mark){mark(R,{t0:o.t0,ref:o.ref,c:TCOL.sound,a:st?act({st,f:'at',v0:num(st.at)}):null,title:nm});return;}
     bar(R,{t0:o.t0,t1:o.t1,ref:o.ref,c:o.music?TCOL.music:TCOL.sound,label:(o.music?'♪ ':'')+nm,body:st?act({st,f:'at',v0:num(st.at)}):null,left:st&&o.music?act({st,f:'at',v0:num(st.at)}):null,title:(o.music?'Music: ':'Sound: ')+nm});});}
-  moveHead();}
+  renderPathBar();moveHead();}
 function renderStrip(){renderTimeline();}
 function moveHead(follow){if(!PL)return;const x=TPAD+state.t*pps,hd=$('tlHead');if(!hd)return;hd.style.left=x+'px';const ru=$('tlRuler');ru.setAttribute('aria-valuemax',PL.dur.toFixed(1));ru.setAttribute('aria-valuenow',state.t.toFixed(1));
   if(follow){const sc=$('tlScroll'),l=sc.scrollLeft,w=sc.clientWidth;if(x<l+20||x>l+w-50)sc.scrollLeft=Math.max(0,x-w*.25);}}
@@ -1342,7 +1579,7 @@ $('tlRows').addEventListener('pointermove',e=>{const d=tdrag;if(!d)return;if(Mat
   if(ev==='pointercancel')return;
   /* a tap: jump there and open that step */
   if(isFinite(d.t)){state.t=clamp(d.t+.01,0,PL.dur);drawNow();}
-  if(d.ref&&d.ref!=='title'){const[sid,i]=d.ref.split('#');openStep(sid,+i);}else if(d.ref==='title'){TAB='look';renderSide();}}));
+  if(d.ref&&d.ref!=='title'){const[sid,i]=d.ref.split('#');if(+i<0){SEL=sid;SELSTEP=-1;TAB='scenes';renderSide();renderTimeline();}else openStep(sid,+i);}else if(d.ref==='title'){TAB='look';renderSide();}}));
 /* show a step in the Scenes tab with its timing open */
 function openStep(sid,i){SEL=sid;SELSTEP=i;TAB='scenes';const st=stepAt({sid,i});if(st)TOPEN.add(st);renderSide();renderTimeline();
   setTimeout(()=>{const card=document.querySelectorAll('#pane .step')[i];if(card)card.scrollIntoView({block:'nearest',behavior:'smooth'});},40);}
@@ -1367,7 +1604,7 @@ function cancelSounds(){stopMusic();LIVEN.splice(0).forEach(n=>{try{n.stop(0);}c
 /* ---------- keeping your work ---------- */
 const KEY='visual-novel-v1';
 function save(){clearTimeout(save.t);save.t=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(P));}catch(e){}},300);}
-function changed(){save();if(MODE==='watch'){PL=plan();renderStrip();}renderSide();drawNow();}
+function changed(){save();if(MODE==='watch'){PL=plan();renderStrip();}renderSide();drawNow();if(MAPON)renderMap();}
 function load(){try{const o=JSON.parse(localStorage.getItem(KEY)||'null');if(o&&Array.isArray(o.scenes)&&o.scenes.length){P={...SAMPLE(),...o};}}catch(e){}}
 const IDB={db:null,open(){if(IDB.p)return IDB.p;return IDB.p=new Promise(res=>{try{const r=indexedDB.open('visual-novel',1);r.onupgradeneeded=()=>r.result.createObjectStore('img');r.onsuccess=()=>{IDB.db=r.result;res(r.result);};r.onerror=r.onblocked=()=>res(null);}catch(e){res(null);}});},
   async tx(mode,fn){const db=await IDB.open();if(!db)return null;return new Promise(res=>{try{const t=db.transaction('img',mode),s=t.objectStore('img'),q=fn(s);t.oncomplete=()=>res(q&&'result' in q?q.result:true);t.onerror=t.onabort=()=>res(null);}catch(e){res(null);}});}};
@@ -1545,8 +1782,8 @@ let lastTap=0;function point(e){const r=cv.getBoundingClientRect();return[(e.cli
 cv.addEventListener('pointerup',e=>{const tn=performance.now();if(tn-lastTap<120)return;lastTap=tn;const[x,y]=point(e),now=nowS();
   if(g.st&&g.st.k==='choice'&&g.choice<0){const hit=g.rects.find(r=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h);if(hit){choose(g,hit.i,now);beep('pick');setTimeout(()=>{if(g.st&&g.st.k==='choice')advance(g,nowS(),hit.i);},260);}return;}
   const was=g.st;tap(g,now);if(g.st!==was||!g.started)beep('tap');});
-document.addEventListener('keydown',e=>{const now=nowS();if(e.key===' '||e.key==='Enter'){e.preventDefault();if(g.st&&g.st.k==='choice'){if(g.choice<0){choose(g,0,now);setTimeout(()=>{if(g.st&&g.st.k==='choice')advance(g,nowS(),0);},260);}return;}tap(g,now);}
-  else if(g.st&&g.st.k==='choice'&&/^[1-4]$/.test(e.key)){const i=+e.key-1;if(g.st.opts[i]&&g.choice<0){choose(g,i,now);setTimeout(()=>{if(g.st&&g.st.k==='choice')advance(g,nowS(),i);},260);}}});
+document.addEventListener('keydown',e=>{const now=nowS();if(e.key===' '||e.key==='Enter'){e.preventDefault();if(g.st&&g.st.k==='choice'){if(g.choice<0){const k0=firstOpt(g,g.st);choose(g,k0,now);setTimeout(()=>{if(g.st&&g.st.k==='choice')advance(g,nowS(),k0);},260);}return;}tap(g,now);}
+  else if(g.st&&g.st.k==='choice'&&/^[1-4]$/.test(e.key)){const i=keyOpt(g,g.st,+e.key-1);if(i!=null&&g.choice<0){choose(g,i,now);setTimeout(()=>{if(g.st&&g.st.k==='choice')advance(g,nowS(),i);},260);}}});
 document.getElementById('rs').onclick=()=>{stopMusic();Object.assign(g,newG());if(P.titleScreen===false)startG(g,nowS());};
 document.getElementById('fs').onclick=()=>{const el=document.documentElement;if(document.fullscreenElement)document.exitFullscreen();else if(el.requestFullscreen)el.requestFullscreen();};
 const pend=Object.entries(DATA.images).map(([id,d])=>new Promise(res=>{const im=new Image();im.onload=()=>{IMGS[id]=im;res();};im.onerror=()=>res();im.src=d;}));

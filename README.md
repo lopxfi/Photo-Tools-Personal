@@ -290,6 +290,18 @@ Write a branching story and play it, export it, or hand it to someone as a file 
 - Little sounds made in the page for text, taps, choices, scene changes, cards and effects, in Classic, Soft or Retro style, or none.
 - **Your own sounds:** MP3, OGG, WAV or M4A, many at once (a whole sound pack). Use them in Sound and Music steps or for any of the events above. They're kept in the browser and go into the project and the playable file.
 
+### Branching
+- **Choices** send the story to different scenes. Each option can go to a scene or carry on in the same one.
+- **Remembered values** (under the scene list): numbers the story keeps as it goes, like points, trust or 1/0 for whether something happened. An option can add to one or set it when it's picked (**⑂** under the option), and can be shown **only if** a value is high enough, low enough or exactly something.
+- **Change a value** and **Check a value** steps: change a value anywhere, or send the story to one scene or another depending on it (for example, a good or a lonely ending).
+- **Map** (next to Play it and Watch): every scene as a box, with arrows for choices (labelled with the option), Go to steps and checks. The path the video takes is in orange.
+  - Tap a scene to write in it, ▶ to play from it, and + to branch out to a new scene.
+  - Drag scenes to arrange them, or press **Arrange**.
+  - Drag from a scene's ● to another scene to connect them, as a choice option or as "always go on", or drop it on an empty spot to start a new scene there.
+  - Tap an arrow's label to edit that choice.
+  - Scenes nothing leads to, links to deleted scenes and empty scenes are listed so you can fix them.
+- **Branches in Watch:** above the timeline, each choice on the path has a dropdown and ‹ › arrows to switch which way it goes. Later choices change to match. **Path** lists every way through the story with its ending and length, and picking one follows it. The timeline's Scene row has a ⑂ switcher at each choice too. Whatever path you pick there is the one the video records.
+
 ### Playing and exporting
 - **Play it:** tap (or Space, Enter, or 1–4 for choices) to move through it in the page.
 - **Watch:** the video path; lines move on by themselves and each choice takes the marked option. A timeline under the preview shows it row by row:
