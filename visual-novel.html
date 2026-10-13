@@ -254,6 +254,10 @@ input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line
 .vprog div{height:100%;width:0;background:var(--accent);transition:width .15s}
 .sheet video,.sheet img.out{max-height:50vh;max-width:100%;align-self:center;border-radius:6px;background:#000;border:1px solid var(--line)}
 .status{min-height:1.2em;font-size:13px;color:var(--accent)}
+.xtarget{align-items:center;gap:8px;flex-wrap:wrap}.xtarget input{width:90px}
+.xest{margin:0;font-size:13px;padding:8px 10px;border-radius:8px;background:var(--chip)}
+.xest b{font-weight:600}
+#xsoundL{align-items:center;gap:10px;flex-wrap:wrap}#xsoundL select{width:auto;padding:6px 8px;font-size:13px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:50;max-width:min(92vw,560px);text-align:center}
 @media (max-width:900px){
   body{padding-inline:12px;padding-block:10px 40px}
@@ -325,8 +329,13 @@ input[type=color]{width:44px;height:34px;padding:2px;border:1px solid var(--line
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="xTitle">
     <h3 id="xTitle">Export video</h3>
     <div class="field" id="xfmtF"><span class="flabel">Format</span><div class="seg-b" id="xfmt"></div></div>
-    <div class="field" id="xsizeF"><span class="flabel">Size</span><div class="seg-b" id="xsize"></div></div>
-    <label class="chk" id="xsoundL"><input type="checkbox" id="xsound" checked> Include the sounds</label>
+    <div class="field" id="xsizeF"><span class="flabel">Picture size</span><div class="seg-b" id="xsize"></div></div>
+    <div class="field" id="xqF"><span class="flabel">File size</span><div class="seg-b" id="xq"></div></div>
+    <div class="row xtarget" id="xtargetR" hidden><label for="xtarget">Keep it under</label><input type="number" id="xtarget" min="0.5" max="2000" step="0.5" inputmode="decimal"><span>MB</span><button type="button" id="xauto">Pick size and smoothness for me</button></div>
+    <div class="field" id="xfpsF"><span class="flabel">Smoothness</span><div class="seg-b" id="xfps"></div></div>
+    <div class="field" id="xcolF" hidden><span class="flabel">Colors</span><div class="seg-b" id="xcol"></div></div>
+    <div class="row" id="xsoundL"><label class="chk"><input type="checkbox" id="xsound" checked> Include the sounds</label><select id="xab" aria-label="Sound quality"><option value="128000">Sound: good</option><option value="64000">Sound: smaller</option><option value="32000">Sound: smallest</option></select></div>
+    <p class="xest" id="xEst"></p>
     <p class="help" id="xHelp"></p>
     <div class="vprog" id="xProg" hidden><div id="xBar"></div></div>
     <video id="xVid" controls loop playsinline hidden></video>
@@ -1479,24 +1488,25 @@ function gifEncoder(w,h,pal,loop,nc){
   const st=gifBegin(w,h,pal,loop,nc);return{async add(data,delay){gifFrame(st,data,delay);await new Promise(r=>setTimeout(r,0));},finish(){return Promise.resolve(gifEnd(st));}};
 }
 
-function pickMime(kind,withSound){if(!window.MediaRecorder||!cv.captureStream)return null;
-  const c=kind==='mp4'?(withSound?['video/mp4;codecs=avc1,mp4a.40.2','video/mp4']:['video/mp4;codecs=avc1','video/mp4']):(withSound?['video/webm;codecs=vp8,opus','video/webm;codecs=vp9,opus','video/webm']:['video/webm;codecs=vp8','video/webm']);
+function pickMime(kind,withSound,small){if(!window.MediaRecorder||!cv.captureStream)return null;
+  /* VP9 makes smaller WebM files for the same look; it's used when you ask for a small file */
+  const c=kind==='mp4'?(withSound?['video/mp4;codecs=avc1,mp4a.40.2','video/mp4']:['video/mp4;codecs=avc1','video/mp4']):small?(withSound?['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm']:['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm']):(withSound?['video/webm;codecs=vp8,opus','video/webm;codecs=vp9,opus','video/webm']:['video/webm;codecs=vp8','video/webm']);
   return c.find(m=>{try{return MediaRecorder.isTypeSupported(m);}catch(e){return false;}})||null;}
 async function recordVideo(mime,onProg,o){o=o||{};const sc=o.scale||1;
-  let src=cv,copy=null;if(sc<1){src=document.createElement('canvas');src.width=Math.round(W*sc/2)*2;src.height=Math.round(H*sc/2)*2;const sg=src.getContext('2d');copy=()=>sg.drawImage(cv,0,0,src.width,src.height);}
-  const vs=src.captureStream(30),tracks=[...vs.getVideoTracks()];let dest=null;
+  let src=cv,copy=null;if(sc<1){src=document.createElement('canvas');src.width=o.w||Math.round(W*sc/2)*2;src.height=o.h||Math.round(H*sc/2)*2;const sg=src.getContext('2d');copy=()=>sg.drawImage(cv,0,0,src.width,src.height);}
+  const vs=src.captureStream(o.fps||30),tracks=[...vs.getVideoTracks()];let dest=null;
   if(o.withSound&&audio()){await AC.resume();dest=AC.createMediaStreamDestination();master.connect(dest);tracks.push(...dest.stream.getAudioTracks());}
-  const opts={mimeType:mime,videoBitsPerSecond:o.vbps||8e6};if(dest)opts.audioBitsPerSecond=128000;
+  const opts={mimeType:mime,videoBitsPerSecond:Math.round(o.vbps||8e6)};if(dest)opts.audioBitsPerSecond=o.abps||128000;
   const rec=new MediaRecorder(new MediaStream(tracks),opts),chunks=[];rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
   const stopped=new Promise(r=>rec.onstop=r),d=PL.dur;frameAt(PL,0);if(copy)copy();rec.start(250);const t0=performance.now();
   if(dest){cancelSounds();scheduleSounds(0,AC.currentTime);}
   await new Promise(res=>{const step=()=>{const t=(performance.now()-t0)/1000;frameAt(PL,Math.min(t,d));if(copy)copy();onProg(Math.min(1,t/d));state.t=Math.min(t,d);moveHead();if(t>=d+.3)return res();requestAnimationFrame(step);};requestAnimationFrame(step);});
   const ms=performance.now()-t0;rec.stop();await stopped;if(dest){try{master.disconnect(dest);}catch(e){}}tracks.forEach(t=>t.stop());
   const blob=new Blob(chunks,{type:mime.split(';')[0]});return cleanOut(mime.includes('webm')?await fixWebmDuration(blob,ms):blob);}
-async function makeGif(onProg){const d=PL.dur,fps=12,gw=Math.round(W/4)*2,gh=Math.round(H/4)*2,off=document.createElement('canvas');off.width=gw;off.height=gh;const og=off.getContext('2d',{willReadFrequently:true});
+async function makeGif(onProg,o){o=o||{};const d=PL.dur,fps=o.fps||12,gs=o.scale||.5,gw=Math.max(2,Math.round(W*gs/2)*2),gh=Math.max(2,Math.round(H*gs/2)*2),nc=Math.max(2,Math.min(256,o.colors||256))-1,off=document.createElement('canvas');off.width=gw;off.height=gh;const og=off.getContext('2d',{willReadFrequently:true});
   const grab=t=>{frameAt(PL,t);og.drawImage(cv,0,0,gw,gh);return og.getImageData(0,0,gw,gh).data;};
   const hist=new Uint32Array(32768);for(let k=0;k<=12;k++){const px=grab(d*k/12);for(let j=0;j<px.length;j+=8)hist[((px[j]>>3)<<10)|((px[j+1]>>3)<<5)|(px[j+2]>>3)]++;await new Promise(r=>setTimeout(r,0));}
-  const enc=gifEncoder(gw,gh,gifPalette(hist,255),$('loop').checked,255),n=Math.ceil(d*fps);let pend=null,pendT=0;
+  const enc=gifEncoder(gw,gh,gifPalette(hist,nc),$('loop').checked,nc),n=Math.ceil(d*fps);let pend=null,pendT=0;
   const same=(a,b)=>{const x=new Uint32Array(a.buffer),y=new Uint32Array(b.buffer);for(let i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;};
   for(let f=0;f<=n;f++){const t=Math.min(d,f/fps),px=grab(t);if(pend&&same(px,pend))continue;if(pend)await enc.add(pend,Math.round(t*100)-Math.round(pendT*100));pend=new Uint8Array(px.buffer.slice(0));pendT=t;onProg(f/n*.97);if(f%2===0)await new Promise(r=>setTimeout(r,0));}
   await enc.add(pend,Math.round((d+1.5)*100)-Math.round(pendT*100));const blob=await enc.finish();onProg(1);return blob;}
@@ -1548,18 +1558,45 @@ Promise.all(pend.concat(fl)).then(loop,loop);
 })();
 <\/script></body></html>`;}
 /* ---------- the export dialog ---------- */
-let xFormat='mp4',xQual='best',xResult=null,xKind='video';
-const MB=1e6,mbs=n=>(n/MB).toFixed(1)+' MB';
-function openExport(kind){xKind=kind||'video';if(MODE==='watch')pause();xResult=null;PL=plan();
+let xFormat='mp4',xResult=null,xKind='video';
+const MB=1e6,mbs=n=>(n/MB).toFixed(n<MB?2:n<10*MB?1:0)+' MB';
+/* how small the file is: picture size, how much detail per second (or a size to aim for), smoothness and sound quality. Kept between visits. */
+const XO={scale:1,q:'balanced',target:8,fps:30,abps:128000,gscale:.5,gfps:12,gcol:256,corr:1};
+try{Object.assign(XO,JSON.parse(localStorage.getItem('vn-export')||'{}'));}catch(e){}
+const saveXO=()=>{try{localStorage.setItem('vn-export',JSON.stringify(XO));}catch(e){}};
+const XQ=[['best','Best look'],['balanced','Balanced'],['small','Small'],['smallest','Smallest'],['target','Aim for a size']];
+const BPP={best:.1,balanced:.05,small:.025,smallest:.012};
+const dimsAt=sc=>[Math.max(2,Math.round(W*sc/2)*2),Math.max(2,Math.round(H*sc/2)*2)];
+function xPlan(){const[w,h]=dimsAt(XO.scale),fps=XO.fps,d=Math.max(.5,PL.dur),ab=$('xsound').checked?+XO.abps:0;
+  let vb=XO.q==='target'?(Math.max(.2,+XO.target||8)*8e6*.9/d-ab)*XO.corr:w*h*fps*(BPP[XO.q]||.05);vb=clamp(vb,60e3,16e6);
+  return{w,h,fps,vb,ab,d,est:(vb+ab)*d/8,bpp:vb/(w*h*fps)};}
+/* the biggest picture and smoothest motion that still look clean at the size you aim for */
+function autoFit(){const d=Math.max(.5,PL.dur),ab=$('xsound').checked?+XO.abps:0,vb=Math.max(60e3,(Math.max(.2,+XO.target||8)*8e6*.9/d-ab)*XO.corr);
+  for(const sc of[1,2/3,.5,1/3,.25])for(const f of[30,24,15]){const[w,h]=dimsAt(sc);if(vb/(w*h*f)>=.02){XO.scale=sc;XO.fps=f;return;}}XO.scale=.25;XO.fps=15;}
+function xSeg(el,opts,val,on){el.innerHTML='';opts.forEach(([k,l])=>el.append(h('button',{type:'button','aria-pressed':String(k===val),onclick:()=>{if(busy)return;on(k);saveXO();openExport(xKind,true);}},l)));}
+function xEstimate(){const gif=xFormat==='gif',e=$('xEst');if(xKind==='game'){e.hidden=true;return;}e.hidden=false;
+  if(gif){const[w,h]=dimsAt(XO.gscale);e.innerHTML=`<b>${w}×${h}</b>, ${XO.gfps} frames a second, ${XO.gcol} colors. A GIF's size depends on how much moves; still scenes stay small. Fewer colors and less smoothness make it smaller.`;return;}
+  const x=xPlan();let t=`${XO.q==='target'?'Aims for':'Up to about'} <b>${mbs(XO.q==='target'?Math.min(x.est,(+XO.target||8)*MB):x.est)}</b> · ${x.w}×${x.h}, ${x.fps} frames a second, ${Math.round(x.d)}s${x.ab?`, sound at ${Math.round(x.ab/1000)} kbps`:''}.`;
+  if(x.bpp<.012)t+=' At this size the picture may look blocky: a smaller picture size or less smoothness will look cleaner.';
+  else if(XO.q!=='target')t+=' Still scenes usually come out smaller than this.';e.innerHTML=t;}
+function openExport(kind,keep){xKind=kind||'video';if(MODE==='watch')pause();if(!keep)xResult=null;PL=plan();
   const fm=[];if(pickMime('mp4'))fm.push(['mp4','MP4']);if(pickMime('webm'))fm.push(['webm','WebM']);fm.push(['gif','GIF']);if(!fm.some(f=>f[0]===xFormat))xFormat=fm[0][0];
   const game=xKind==='game';$('xTitle').textContent=game?'Playable file':'Export video';
-  const xf=$('xfmt');xf.innerHTML='';if(!game)fm.forEach(([k,l])=>xf.append(h('button',{type:'button','aria-pressed':String(k===xFormat),onclick:()=>{if(!busy){xFormat=k;openExport('video');}}},l)));
-  $('xfmtF').hidden=game;const gif=xFormat==='gif';$('xsizeF').hidden=game||gif;$('xsoundL').hidden=game||gif;
-  const xs=$('xsize');xs.innerHTML='';[['best','Full size'],['half','Half size']].forEach(([k,l])=>xs.append(h('button',{type:'button','aria-pressed':String(k===xQual),onclick:()=>{if(!busy){xQual=k;openExport('video');}}},l)));
+  const xf=$('xfmt');xf.innerHTML='';if(!game)fm.forEach(([k,l])=>xf.append(h('button',{type:'button','aria-pressed':String(k===xFormat),onclick:()=>{if(!busy){xFormat=k;openExport('video',true);}}},l)));
+  const gif=xFormat==='gif';$('xfmtF').hidden=game;$('xsizeF').hidden=game;$('xqF').hidden=game||gif;$('xfpsF').hidden=game;$('xcolF').hidden=game||!gif;$('xsoundL').hidden=game||gif;$('xtargetR').hidden=game||gif||XO.q!=='target';
+  const dl=sc=>{const[w,h]=dimsAt(sc);return`${w}×${h}`;};
+  if(gif){xSeg($('xsize'),[[.5,'Half · '+dl(.5)],[1/3,'Third · '+dl(1/3)],[.25,'Quarter · '+dl(.25)]],XO.gscale,v=>XO.gscale=v);xSeg($('xfps'),[[12,'Smooth (12)'],[8,'Less (8)'],[5,'Choppy (5)']],XO.gfps,v=>XO.gfps=v);xSeg($('xcol'),[[256,'256'],[128,'128'],[64,'64'],[32,'32']],XO.gcol,v=>XO.gcol=v);}
+  else{xSeg($('xsize'),[[1,'Full · '+dl(1)],[2/3,'Large · '+dl(2/3)],[.5,'Medium · '+dl(.5)],[1/3,'Small · '+dl(1/3)]],XO.scale,v=>XO.scale=v);xSeg($('xq'),XQ,XO.q,v=>XO.q=v);xSeg($('xfps'),[[30,'Smooth (30)'],[24,'Film (24)'],[15,'Light (15)']],XO.fps,v=>XO.fps=v);}
+  $('xtarget').value=XO.target;$('xab').value=String(XO.abps);xEstimate();
   const forks=PL.segs.filter(s=>s.kind==='choice'&&s.g.choice<0).length;
   $('xHelp').textContent=game?'One HTML file with the whole story, its pictures, GIFs and videos inside. Open it in any browser, on any device, and tap through it; choices work. Share it however you like.':
-    gif?'Loops on its own and works anywhere pictures do. No sound, and made at half size.':`${xFormat==='mp4'?'Plays almost everywhere, including iPhone and social apps.':'Small and sharp. Plays in Chrome, Firefox and on Android.'} It records the video path in real time, about ${PL.dur.toFixed(0)} seconds${forks?`, taking the marked option at ${forks} choice${forks>1?'s':''}`:''}. Keep this tab in front while it records.`;
-  ['xProg','xVid','xImg','xSave','xDl'].forEach(id=>$(id).hidden=true);$('xStart').disabled=false;$('xStart').textContent=game?'Make the file':'Start';$('xStatus').textContent='';$('xmodal').hidden=false;$('xStart').focus();}
+    gif?'Loops on its own and works anywhere pictures do. No sound.':`${xFormat==='mp4'?'Plays almost everywhere, including iPhone and social apps.':'Small and sharp. Plays in Chrome, Firefox and on Android.'} It records the video path in real time, about ${PL.dur.toFixed(0)} seconds${forks?`, taking the marked option at ${forks} choice${forks>1?'s':''}`:''}. Keep this tab in front while it records.`;
+  if(!keep||!xResult){['xProg','xVid','xImg','xSave','xDl'].forEach(id=>$(id).hidden=true);$('xStart').textContent=game?'Make the file':'Start';$('xStatus').textContent='';}
+  $('xStart').disabled=false;if($('xmodal').hidden){$('xmodal').hidden=false;$('xStart').focus();}}
+$('xtarget').oninput=e=>{const v=+e.target.value;if(v>0){XO.target=v;XO.corr=1;saveXO();xEstimate();}};
+$('xab').onchange=e=>{XO.abps=+e.target.value;saveXO();xEstimate();};
+$('xsound').onchange=()=>xEstimate();
+$('xauto').onclick=()=>{autoFit();saveXO();openExport(xKind,true);toast('Picked the size and smoothness that look cleanest at that file size.');};
 $('exportBtn').onclick=()=>openExport('video');$('gameBtn').onclick=()=>openExport('game');
 $('xClose').onclick=()=>{if(!busy){$('xmodal').hidden=true;drawNow();}};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!busy)$('xmodal').hidden=true;});
@@ -1567,10 +1604,17 @@ const xprog=f=>{$('xBar').style.width=Math.round(f*100)+'%';};
 $('xStart').onclick=async()=>{busy=true;if(MODE==='watch')pause();$('xStart').disabled=true;$('xClose').disabled=true;['xVid','xImg','xDl','xSave'].forEach(id=>$(id).hidden=true);const wasMode=MODE;
   try{if(xKind==='game'){$('xStatus').textContent='Putting the file together…';xResult=new Blob([await playableHtml()],{type:'text/html'});$('xStatus').textContent=`Done. ${mbs(xResult.size)}.`;}
     else{MODE='watch';$('xProg').hidden=false;xprog(0);$('xStatus').textContent=xFormat==='gif'?'Building the GIF…':'Recording… keep this tab in front.';
-      if(xFormat==='gif'){xResult=await makeGif(xprog);$('xImg').src=URL.createObjectURL(xResult);$('xImg').hidden=false;}
+      if(xFormat==='gif'){xResult=await makeGif(xprog,{scale:XO.gscale,fps:XO.gfps,colors:XO.gcol});$('xImg').src=URL.createObjectURL(xResult);$('xImg').hidden=false;}
       else{const snd=$('xsound').checked,mime=pickMime(xFormat,snd)||pickMime(xFormat);if(!mime)throw new Error('This browser can’t record video');
-        xResult=await recordVideo(mime,xprog,{scale:xQual==='half'?.5:1,vbps:xQual==='half'?4e6:8e6,withSound:snd});$('xVid').src=URL.createObjectURL(xResult);$('xVid').hidden=false;}
-      $('xStatus').textContent=`Done. ${mbs(xResult.size)}.`;}
+        const x=xPlan(),small=XO.q!=='best'&&XO.q!=='balanced',m2=pickMime(xFormat,snd,small)||mime;
+        xResult=await recordVideo(m2,xprog,{scale:XO.scale,w:x.w,h:x.h,fps:x.fps,vbps:x.vb,abps:x.ab||128000,withSound:snd});$('xVid').src=URL.createObjectURL(xResult);$('xVid').hidden=false;}
+      let msg=`Done. ${mbs(xResult.size)}.`;
+      if(xFormat==='gif')xResult&&(msg+=xResult.size>15*MB?' That’s a big GIF: a smaller size, fewer colors or less smoothness will shrink it.':'');
+      else if(XO.q==='target'){const tg=(+XO.target||8)*MB;
+        /* the recorder doesn't always land on the size it's asked for: learn from this try for the next one */
+        if(xResult.size>tg){XO.corr=clamp(XO.corr*tg/xResult.size*.92,.1,1);msg+=` A little over ${mbs(tg)}. Press Make it again and it will aim lower.`;}
+        else{msg+=` Under ${mbs(tg)}.`;if(xResult.size<tg*.6&&XO.corr<1)XO.corr=Math.min(1,XO.corr*1.25);}saveXO();}
+      $('xStatus').textContent=msg;}
     $('xDl').hidden=!canSave();$('xSave').hidden=false;
     $('xSave').textContent=xKind==='game'?(canSave()?'Save puts the file on your device.':'Right-click and choose Save.'):canSave()?'Save puts it on your device. In the Claude app on a phone, it opens the share sheet so you can save it to Photos.':'Right-click it and choose Save, or press and hold it on a phone.';
     $('xStart').textContent='Make it again';}

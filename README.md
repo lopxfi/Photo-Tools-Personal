@@ -303,6 +303,10 @@ Write a branching story and play it, export it, or hand it to someone as a file 
   - Backgrounds: when, and how long the transition takes. Pictures: when, and how long they take to come in and go out. Effects: when, and how long. Sounds and music: when.
   - **Back to automatic** clears it. Time on screen is used when the story plays by itself (Watch, the video); when you tap through, a line waits for your tap. Pauses, delays and in/out times work everywhere, including the playable file.
 - **Video:** MP4, WebM or GIF of the video path.
+  - **File size:** picture size (full down to 640 × 360), how much detail it keeps (Best look, Balanced, Small, Smallest), smoothness (30, 24 or 15 frames a second) and sound quality, with an estimate of the size before you start.
+  - **Aim for a size:** type a size in MB and it records to fit. **Pick size and smoothness for me** chooses the picture size and frame rate that look cleanest at that size. If a recording lands a little over, **Make it again** aims lower.
+  - **GIF:** half, a third or a quarter size, 12, 8 or 5 frames a second, and 256 down to 32 colors.
+  - Your choices are remembered for next time.
 - **Playable file:** one HTML file with the whole story and its pictures, GIFs, videos and sounds inside. It opens in any browser on any device, with working choices, a restart button and full screen.
 - **Projects** save as files with the pictures, GIFs, videos and sounds included; work is also kept in the browser.
 
