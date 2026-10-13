@@ -358,7 +358,7 @@ const HAIRC=['#2B1A12','#5A3A22','#A86A2E','#E9C46A','#1C1B22','#8E2F2F','#B9BEC
 const THEMES={glass:'Glass',classic:'Classic',paper:'Paper',minimal:'Minimal',neon:'Neon',grail:'Grail',ruin:'Ruin',retro:'Retro',letter:'Letter'};
 const THEME_HELP={glass:'A soft translucent box.',classic:'A solid box with the name on a tab.',paper:'Warm paper with a brown frame.',minimal:'No box, just text over a shadow.',neon:'Glowing edges.',grail:'Dark blue with a double gold frame and the name inside, the way the Holy Grail War era novels looked.',ruin:'Text fills the screen over a dark veil and stays until the page is full, each speaker in their own color, like the island mysteries. Best with the Elegant or Serif lettering.',retro:'A chunky box with pixel lettering, like a 90s computer novel.',letter:'Cream paper and a typewriter face, as if someone wrote it down.'};
 const CPS={slow:18,normal:32,fast:55};
-const SIZES={'16:9':[1920,1080],'9:16':[1080,1920]};
+const SIZES={'16:9':[1920,1080],'4:3':[1440,1080],'21:9':[2520,1080],'1:1':[1080,1080],'4:5':[1080,1350],'9:16':[1080,1920]};
 /* the sample story */
 function SAMPLE(){const a='c_'+rkey(),b='c_'+rkey(),s1='s_'+rkey(),s2='s_'+rkey(),s3='s_'+rkey(),s4='s_'+rkey();
   return{title:'The Last Train',author:'',size:'16:9',theme:'glass',accent:'#7C5CFF',font:'round',speed:'normal',clicks:true,titleScreen:true,reveal:'type',trans:'fade',sfxStyle:'classic',sfxMap:{},sounds:[],credits:'',
@@ -522,8 +522,13 @@ function drawFigure(ch,expr,x,bottom,h,now){const L=ch.look||{},skin=SKINC[L.ski
 /* the art for a character's expression at this moment: your picture, GIF frame or video frame (falling back to the first expression), otherwise the drawn figure */
 function charArt(ch,expr,now){const ok=e=>e&&IMGS[e.img];const ex=(ch.exprs||[]).find(e=>e.id===expr&&ok(e))||(ch.exprs||[]).find(ok);if(!ex)return null;let s=srcAt(IMGS[ex.img],now||0);if(ex.key)s=keyedSrc(ex,s)||s;return s;}
 /* ---------- layout and the text box themes ---------- */
-function lay(){const wd=W>H;return wd?{wd,box:{x:W*.08,y:H*.70,w:W*.84,h:H*.26},fs:42,lh:58,name:38,charH:H*.92,feet:H,figB:H+40,pos:{left:W*.24,center:W*.5,right:W*.76},choiceW:W*.5}
-  :{wd,box:{x:W*.05,y:H*.73,w:W*.9,h:H*.21},fs:40,lh:56,name:36,charH:H*.52,feet:H*.8,figB:H*.79,pos:{left:W*.3,center:W*.5,right:W*.7},choiceW:W*.84};}
+function lay(){const r=W/H,wd=r>=1.2;
+  /* cinema (21:9): keep the text box and people nearer the middle so lines stay easy to read */
+  if(r>=2)return{wd,box:{x:W*.17,y:H*.70,w:W*.66,h:H*.26},fs:42,lh:58,name:38,charH:H*.92,feet:H,figB:H+40,pos:{left:W*.3,center:W*.5,right:W*.7},choiceW:H*.9};
+  if(wd)return{wd,box:{x:W*.08,y:H*.70,w:W*.84,h:H*.26},fs:42,lh:58,name:38,charH:H*.92,feet:H,figB:H+40,pos:{left:W*.24,center:W*.5,right:W*.76},choiceW:Math.min(W*.66,H*.9)};
+  /* square and 4:5: people stand on the bottom edge like widescreen, a slightly taller box */
+  if(r>=.75)return{wd,box:{x:W*.05,y:H*.71,w:W*.9,h:H*.25},fs:40,lh:56,name:36,charH:H*.84,feet:H,figB:H+40,pos:{left:W*.23,center:W*.5,right:W*.77},choiceW:W*.8};
+  return{wd,box:{x:W*.05,y:H*.73,w:W*.9,h:H*.21},fs:40,lh:56,name:36,charH:H*.52,feet:H*.8,figB:H*.79,pos:{left:W*.3,center:W*.5,right:W*.7},choiceW:W*.84};}
 const fontOf=()=>P.font||'round';
 function themeC(){const a=isHex(P.accent)?P.accent:'#7C5CFF';switch(P.theme){
   case'classic':return{box:'#1D2140',edge:a,text:'#FFFFFF',name:a,nameFg:'#FFFFFF',dim:'#B9BDD6',r:6,alpha:.96,border:4};
@@ -934,7 +939,7 @@ function placesPane(p){const grid=h('div',{class:'bgs'});
 function lookPane(p){
   p.append(sec('Story',textF('lk-title','Title',P.title,v=>{P.title=v;save();drawNow();}),textF('lk-author','By (optional)',P.author,v=>{P.author=v;save();drawNow();}),checkF('lk-ts','Start on a title screen',P.titleScreen!==false,v=>{P.titleScreen=v;changed();})));
   const THEME_FONT={grail:'elegant',ruin:'elegant',retro:'pixel',letter:'typewriter',paper:'serif',neon:'round',glass:'round',classic:'round',minimal:'sys'};
-  p.append(sec('Screen',segB('lk-size','Shape',[['16:9','Widescreen'],['9:16','Tall (phone)']],P.size||'16:9',v=>{P.size=v;fitCanvas();changed();}),
+  p.append(sec('Screen',segB('lk-size','Shape',[['16:9','Widescreen 16:9'],['4:3','Classic 4:3'],['21:9','Cinema 21:9'],['1:1','Square 1:1'],['4:5','Post 4:5'],['9:16','Tall 9:16 (phone)']],P.size||'16:9',v=>{P.size=v;fitCanvas();changed();}),
     segB('lk-theme','Text box',Object.entries(THEMES),P.theme||'glass',v=>{P.theme=v;if(THEME_FONT[v])P.font=THEME_FONT[v];loadFonts();changed();}),h('p',{class:'help'},THEME_HELP[P.theme||'glass']||''),colorF('lk-acc','Accent color',P.accent,v=>{P.accent=v;save();drawNow();}),
     segB('lk-font','Lettering',FONTS,P.font||'round',v=>{P.font=v;loadFonts();changed();})));
   p.append(sec('Motion',segB('lk-reveal','Text comes in',REVEALS,P.reveal||'type',v=>{P.reveal=v;changed();}),

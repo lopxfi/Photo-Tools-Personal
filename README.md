@@ -283,7 +283,7 @@ Write a branching story and play it, export it, or hand it to someone as a file 
 - **Scene changes:** crossfade, cut, through black, through white, wipe, slide, iris, dissolve, blinds or pixelate, for the whole story or one scene.
 
 ### Look
-- Widescreen or tall; nine text-box styles (Glass, Classic, Paper, Minimal, Neon, Grail, Ruin with full-screen text pages, Retro, Letter); accent color; ten letterings; text speed; how lines appear (typewriter, fade in, word by word, rise up, scroll up, bounce in, or all at once); a title screen and credits.
+- Six screen shapes: widescreen 16:9, classic 4:3, cinema 21:9, square 1:1, post 4:5 and tall 9:16 (phone); nine text-box styles (Glass, Classic, Paper, Minimal, Neon, Grail, Ruin with full-screen text pages, Retro, Letter); accent color; ten letterings; text speed; how lines appear (typewriter, fade in, word by word, rise up, scroll up, bounce in, or all at once); a title screen and credits.
 
 ### Sounds
 - Little sounds made in the page for text, taps, choices, scene changes, cards and effects, in Classic, Soft or Retro style, or none.
