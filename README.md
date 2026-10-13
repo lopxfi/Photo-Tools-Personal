@@ -380,6 +380,18 @@ Removes everything from a photo or video except the picture and sound themselves
 
 Puts words on a picture: a caption, a line of dialogue, a speech bubble or a title. Open a picture (or drop or paste one), or start on a blank canvas in a color or see-through.
 
+### Speakers and scripts
+- **Speakers:** give a character a look once (font, colors, bubble, outline, which way the tail points), then pick them under **Speaker** for any text. **+ New speaker from this text** saves the look you made. If you change one of their bubbles, **Update Mina everywhere** puts that look on every bubble she says, on every picture (or **Back to Mina's look**). Rename or remove them under Manage speakers; they're kept in the browser.
+- **Paste a script:** one line per bubble. `MINA: You came.` goes to Mina; a line with no name is a caption; `---` moves on to the next picture. New names become new speakers (each with their own border color), long lines are wrapped, and the lines are laid out top to bottom with speakers on alternating sides, without overlapping. Start on this picture or the first, keep or replace the text that's there, and keep bubbles off faces. Extra sections add copies of the last picture for you to swap.
+
+### Styling single words
+- Select words in the text box, then **B**, **I**, **A+** (bigger), **A−** (smaller), **Color** or **Clear**. Ctrl+B and Ctrl+I work too, and with nothing selected they style the word the cursor is in. In the text box styled words show as `[b]…[/b]`, `[i]…[/i]`, `[big]…[/big]`, `[small]…[/small]` and `[c=#FF3355]…[/c]`; you can type those too. Works on curved text, with outlines, shadow, glow and 3D.
+
+### Placement
+- **Snap to guides:** while dragging, text snaps to the middle, the safe margin and the edges and centers of other text, with a line showing what it snapped to.
+- **Keep inside a safe margin:** text can't be dragged off the edge.
+- **Move text off faces** (this picture, or every picture): an on-device face finder looks for faces and moves any text covering one to the nearest free spot. Bubble tails keep pointing where they did. The first time it gets the face finder (about 14 MB), then it works offline in the app.
+
 ### A set of pictures
 - **Several pictures in one project**, each with its own text: **+ Add pictures** in the strip under the picture (or add several at once, or drop them). Each new picture starts with a text in the current look, ready to type. Tap a picture in the strip to work on it.
 - **Copy text between pictures:** pick a text, then **Copy this text to…** every other picture or one of them (it keeps its place and look), or copy all the text on a picture to all the others. Ctrl+C a text, switch pictures, Ctrl+V works too.

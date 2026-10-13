@@ -99,6 +99,22 @@ input[type=color]{width:40px;height:32px;border:1px solid var(--line);border-rad
 .chk input{accent-color:var(--accent);width:16px;height:16px;flex:none}
 .help{font-size:12px;color:var(--muted);margin:0}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.wordbar{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.spkrow{display:flex;flex-direction:column;gap:6px}.spkrow:empty{display:none}
+#smodal .sheet{width:min(620px,100%)}#sText{font:14px/1.45 ui-monospace,"SF Mono",Menlo,monospace;min-height:180px}
+.sinfo{margin:0;font-size:13px;padding:8px 10px;border-radius:8px;background:var(--soft)}.sinfo:empty{display:none}
+.sinfo b{font-weight:600}
+.spkrow .row select{flex:1;width:auto}
+.sdot{width:14px;height:14px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
+.spkdiff{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px;border-radius:8px;background:var(--soft);font-size:12px}
+.spkdiff span{flex:1 1 100%}.spkdiff button{padding:6px 10px;font-size:12px}
+.spkman summary{cursor:pointer;font-size:12px;color:var(--muted)}
+.spkman ul{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:5px}
+.spkman li{display:flex;align-items:center;gap:6px}.spkman li input{flex:1;padding:5px 8px;font-size:13px}.spkman li button{padding:4px 8px;font-size:12px}
+.wordbar .rv{font-size:12px;margin-right:2px}
+.wordbar button{padding:5px 9px;font-size:13px;min-width:32px;justify-content:center}
+.wordbar sup{font-size:9px}
+.wdot{width:12px;height:12px;border-radius:50%;background:conic-gradient(#f44,#fd3,#4c4,#3cf,#66f,#f4f,#f44);display:inline-block}
 .fhead{font:600 13px/1.2 var(--f-display);margin:4px 0 -4px;padding-top:12px;border-top:1px solid var(--line);display:flex;align-items:center;gap:8px}
 .fhead .chk{font:400 13px/1 var(--f-body);margin-left:auto}
 .swatch{width:26px;height:26px;padding:0;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
@@ -249,6 +265,7 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
     </div>
     <div class="tools">
       <button type="button" id="addText" class="primary">+ Text</button>
+      <button type="button" id="scriptBtn" title="Paste dialogue, one line per bubble">Paste a script</button>
       <button type="button" id="dupText">Duplicate</button>
       <button type="button" id="delText">Delete</button>
       <button type="button" id="upText" title="Bring forward" aria-label="Bring forward">▲</button>
@@ -269,6 +286,16 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
     <div class="field">
       <label for="txt">Text <span class="rv">a new line for each line</span></label>
       <textarea id="txt" rows="3" autocomplete="off" spellcheck="true"></textarea>
+      <div class="wordbar" role="group" aria-label="Style the selected words">
+        <span class="rv">Selected words:</span>
+        <button type="button" data-w="b" title="Bold (Ctrl+B)" aria-label="Bold"><b>B</b></button>
+        <button type="button" data-w="i" title="Italic (Ctrl+I)" aria-label="Italic"><i>I</i></button>
+        <button type="button" data-w="big" title="Bigger">A<sup>+</sup></button>
+        <button type="button" data-w="small" title="Smaller">A<sup>−</sup></button>
+        <button type="button" data-w="c" id="wColor" title="A color for these words"><span class="wdot"></span>Color</button>
+        <button type="button" data-w="clear" title="Take the styling off the selected words (or all, if none are selected)">Clear</button>
+      </div>
+      <div class="spkrow" id="spkRow"></div>
     </div>
     <h4 class="fhead">Looks</h4>
     <div class="field"><div class="looks" id="looks"></div><div class="row"><button type="button" id="saveLook">Save this look</button></div><p class="help">A look changes the font, colors, effects and box. Your words and where they are stay the same.</p></div>
@@ -294,6 +321,20 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
   </section>
 </main>
 
+<div class="modal" id="smodal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sTitle">
+    <h3 id="sTitle">Paste a script <span class="spacer"></span><button type="button" id="sClose">Cancel</button></h3>
+    <p class="help">One line per bubble. Start a line with a name and a colon for who says it. A line without a name is a caption. A line with <b>---</b> moves on to the next picture.</p>
+    <textarea id="sText" rows="10" spellcheck="true" placeholder="MINA: You came.&#10;REN: I said I would.&#10;---&#10;The next morning…&#10;MINA: You’re buying breakfast."></textarea>
+    <div class="grid2">
+      <div class="field" id="sWhereF"></div>
+      <div class="field" id="sKeepF"></div>
+    </div>
+    <label class="chk"><input type="checkbox" id="sFaces" checked> Keep bubbles off faces</label>
+    <p class="sinfo" id="sInfo"></p>
+    <div class="row"><button type="button" id="sGo" class="primary">Add the lines</button></div>
+  </div>
+</div>
 <div class="modal" id="fmodal" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="fTitle">
     <h3 id="fTitle">Pick a font <span class="spacer"></span><button type="button" id="fClose">Done</button></h3>
@@ -356,8 +397,8 @@ function useColor(c){c=normHex(c);if(!c)return;putList(RKEY,[c,...recentColors()
 const PALETTE=['#000000','#3A3A3A','#7A7A7A','#BDBDBD','#FFFFFF','#FFF3D6','#7A1F1F','#C1121F','#FF4D4D','#FF8A80','#FF7A1A','#FFB347','#FFD43B','#FFF176','#2FBF71','#7CFF6B','#1B5E20','#00A3A3','#3EE6FF','#3E8BFF','#1E2A78','#5B3DF5','#9C88FF','#C2368C','#FF4D8D','#FFC1E0','#6D4C41','#D7B899'];
 /* ---------- the color picker: a color square and a hue strip, a hex code, an eyedropper, your colors, recent colors and a palette ---------- */
 let CP=null;
-function openPicker(btn,label,val,on){closePicker(true);const start=normHex(val)||'#FFFFFF';let[hh,ss,vv]=hexToHsv(start);let cur=start,editing=false;
-  const el=h('div',{class:'cpick',role:'dialog','aria-label':label+' color'});CP={el,btn,on,start,get:()=>cur};
+function openPicker(btn,label,val,on,onClose){closePicker(true);const start=normHex(val)||'#FFFFFF';let[hh,ss,vv]=hexToHsv(start);let cur=start,editing=false;
+  const el=h('div',{class:'cpick',role:'dialog','aria-label':label+' color'});CP={el,btn,on,start,get:()=>cur,onClose};
   const sv=h('div',{class:'cp-sv',tabindex:'0','aria-label':'Shade: left and right for how strong, up and down for how bright'}),svK=h('span',{class:'cp-knob'});sv.append(svK);
   const hue=h('div',{class:'cp-hue',tabindex:'0','aria-label':'Hue'}),hueK=h('span',{class:'cp-knob'});hue.append(hueK);
   const prev=h('span',{class:'cp-prev',title:'New color (left) and the color before (right)'}),hex=h('input',{type:'text',class:'cp-hex',value:start,'aria-label':'Hex code',spellcheck:'false',autocomplete:'off'});
@@ -396,7 +437,7 @@ function openPicker(btn,label,val,on){closePicker(true);const start=normHex(val)
   function place(){if(isPhone())return;const r=btn.getBoundingClientRect(),w=el.offsetWidth,hgt=el.offsetHeight;let x=r.left,y=r.bottom+6;if(x+w>innerWidth-8)x=innerWidth-8-w;if(y+hgt>innerHeight-8)y=Math.max(8,r.top-6-hgt);el.style.left=Math.max(8,x)+'px';el.style.top=y+'px';}
   CP.place=place;}
 /* close: remember the color as recent and redraw the settings so your colors show */
-function closePicker(quiet){if(!CP)return;const c=CP.get();if(c!==CP.start)useColor(c);CP.el.remove();PICKFN=null;cv.classList.remove('picking');CP=null;if(!quiet)refreshQuick();}
+function closePicker(quiet){if(!CP)return;const c=CP.get(),oc=CP.onClose;if(c!==CP.start)useColor(c);CP.el.remove();if(oc&&!quiet)setTimeout(()=>oc(c),0);PICKFN=null;cv.classList.remove('picking');CP=null;if(!quiet)refreshQuick();}
 function refreshQuick(){if(typeof renderPanel==='function'){renderPanel();}}
 let PICKFN=null;
 /* taking a color from the picture: what you see there, without the handles */
@@ -491,7 +532,7 @@ const DEFTEXT=()=>({id:'t_'+rkey(),text:'Your text here',font:'bangers',size:.09
   o1:{on:true,w:.09,color:'#000000'},o2:{on:false,w:.08,color:'#FFFFFF'},
   shadow:{on:false,color:'#000000',blur:.15,dist:.06,ang:45,op:.6},glow:{on:false,color:'#FF4DD8',size:.35},
   depth:{on:false,size:.12,ang:45,color:'#7A1FA2'},curve:0,
-  box:{kind:'none',color:'#FFFFFF',op:1,pad:.35,bw:0,bc:'#000000',tail:true,tx:.32,ty:.78}});
+  box:{kind:'none',color:'#FFFFFF',op:1,pad:.35,bw:0,bc:'#000000',tail:true,tx:.32,ty:.78},who:null});
 let S={bg:{kind:'sample',color:'#1B1A23',w:1080,h:1080},texts:[],sel:null,fmt:'png',q:.92,maxSide:0};
 let VIEW=null;const IW=()=>VIEW?VIEW.w:cv.width,IH=()=>VIEW?VIEW.h:cv.height;
 const selT=()=>S.texts.find(t=>t.id===S.sel)||null;
@@ -504,21 +545,34 @@ function drawBackground(c,w,hh,forSave){if(S.bg.kind==='img'&&IMG){c.drawImage(I
 /* ---------- laying out one piece of text: lines, or letters along a curve ---------- */
 const fontStr=(T,px)=>`${T.italic?'italic ':''}${T.bold?700:400} ${Math.max(1,px)}px ${fontCss(T.font)}`;
 const setSpacing=(c,px)=>{if('letterSpacing' in c)c.letterSpacing=px+'px';};
-function layout(c,T){const sz=T.size*IH(),lh=sz*T.lineH,sp=T.spacing*sz/100,raw=((T.upper?T.text.toUpperCase():T.text)||' ').replace(/\r/g,''),lines=raw.split('\n');
-  c.font=fontStr(T,sz);const native='letterSpacing' in c;setSpacing(c,native?sp:0);
-  const wOf=s=>c.measureText(s).width+(native?0:Math.max(0,[...s].length-1)*sp);
-  const widths=lines.map(wOf),W=Math.max(sz*.3,...widths),Ht=lh*lines.length,items=[];
-  if(!T.curve){lines.forEach((l,j)=>{const x=T.align==='left'?-W/2:T.align==='right'?W/2-widths[j]:-widths[j]/2;items.push({s:l,x,y:-Ht/2+lh*(j+.5),r:0,w:widths[j],line:true});});
-    return{sz,lh,W,Ht,items,bb:{x:-W/2,y:-Ht/2,w:W,h:Ht},lines,widths};}
+/* ---------- styling single words: [b]bold[/b], [i]italic[/i], [big]bigger[/big], [small]smaller[/small], [c=#FF0000]a color[/c] ---------- */
+const TAG_RE=/\[(\/?)(b|i|big|small|c)(?:=(#[0-9a-fA-F]{6}))?\]/g;
+const plainText=t=>String(t||'').replace(TAG_RE,'');
+/* the text split into lines of runs, each run with its own bold, italic, size and color */
+function parseRuns(text,upper){const out=[[]];let b=0,it=0,z=[],col=[],last=0,m;const st=()=>({b:b>0,i:it>0,z:z.reduce((a,v)=>a*v,1),c:col.length?col[col.length-1]:null});
+  const push=str=>{if(!str)return;if(upper)str=str.toUpperCase();const parts=str.split('\n');parts.forEach((pt,k)=>{if(k)out.push([]);if(pt){const L=out[out.length-1],s0=st(),prev=L[L.length-1];
+      if(prev&&prev.b===s0.b&&prev.i===s0.i&&prev.z===s0.z&&prev.c===s0.c)prev.s+=pt;else L.push({s:pt,...s0});}});};
+  TAG_RE.lastIndex=0;while((m=TAG_RE.exec(text))){push(text.slice(last,m.index));last=TAG_RE.lastIndex;const close=!!m[1],k=m[2];
+    if(k==='b')b+=close?-1:1;else if(k==='i')it+=close?-1:1;else if(k==='big'){if(close)z.pop();else z.push(1.35);}else if(k==='small'){if(close)z.pop();else z.push(.72);}else if(k==='c'){if(close)col.pop();else if(m[3])col.push(m[3].toUpperCase());}b=Math.max(0,b);it=Math.max(0,it);}
+  push(text.slice(last));return out;}
+const runFont=(T,r,px)=>`${T.italic||r.i?'italic ':''}${T.bold||r.b?700:400} ${Math.max(1,px*r.z)}px ${fontCss(T.font)}`;
+function layout(c,T){const sz=T.size*IH(),lh0=sz*T.lineH,sp=T.spacing*sz/100,raw=((T.text||' ').replace(/\r/g,'')||' '),lines=parseRuns(raw,T.upper);if(!lines.some(l=>l.length))lines[0]=[{s:' ',b:false,i:false,z:1,c:null}];
+  const native='letterSpacing' in c;
+  /* each line's runs and widths; a line with bigger words is a little taller */
+  const meas=lines.map(L=>{let w=0,zmax=1;const rs=L.map((r,k)=>{c.font=runFont(T,r,sz);setSpacing(c,native?sp:0);const rw=c.measureText(r.s).width+(native?0:Math.max(0,[...r.s].length-1)*sp);zmax=Math.max(zmax,r.z);const o={...r,w:rw,font:c.font};w+=rw+(k?(native?0:sp):0);return o;});return{rs,w,lh:lh0*Math.max(1,zmax)};});
+  const widths=meas.map(m=>m.w),W=Math.max(sz*.3,...widths),Ht=meas.reduce((a,m)=>a+m.lh,0),items=[],lineBoxes=[];
+  if(!T.curve){let y=-Ht/2;meas.forEach((m,j)=>{const cy=y+m.lh/2;let x=T.align==='left'?-W/2:T.align==='right'?W/2-m.w:-m.w/2;lineBoxes.push({x,y:cy,w:m.w,h:m.lh,txt:m.rs.map(r=>r.s).join('')});
+      m.rs.forEach((r,k)=>{if(k&&!native)x+=sp;items.push({s:r.s,x,y:cy,r:0,w:r.w,font:r.font,col:r.c,line:true});x+=r.w;});y+=m.lh;});
+    return{sz,lh:lh0,W,Ht,items,lineBoxes,bb:{x:-W/2,y:-Ht/2,w:W,h:Ht},widths};}
   /* along an arc: the widest line bends through up to about 200° */
   setSpacing(c,0);const k=T.curve/100,A=Math.max(.02,Math.abs(k))*Math.PI*1.1,R=W/A,up=k>0;let mnx=1e9,mxx=-1e9,mny=1e9,mxy=-1e9;
-  lines.forEach((l,j)=>{const cs=[...l],cw=cs.map(ch=>c.measureText(ch).width),tot=cw.reduce((a,b)=>a+b,0)+Math.max(0,cs.length-1)*sp;
-    const y0=-Ht/2+lh*(j+.5),Rj=Math.max(sz,R+(up?(j-(lines.length-1)/2)*lh:-(j-(lines.length-1)/2)*lh));let s=T.align==='left'?-W/2:T.align==='right'?W/2-tot:-tot/2;
-    cs.forEach((ch,i)=>{const mid=s+cw[i]/2,th=mid/Rj,x=Rj*Math.sin(th),dy=Rj*(1-Math.cos(th)),y=up?y0+dy:y0-dy;items.push({s:ch,x,y,r:up?th:-th,w:cw[i],ch:true});s+=cw[i]+sp;
-      mnx=Math.min(mnx,x-cw[i]/2);mxx=Math.max(mxx,x+cw[i]/2);mny=Math.min(mny,y-sz*.6);mxy=Math.max(mxy,y+sz*.6);});});
+  meas.forEach((m,j)=>{const cs=[];m.rs.forEach(r=>{c.font=r.font;[...r.s].forEach(ch=>cs.push({ch,w:c.measureText(ch).width,font:r.font,col:r.c,z:r.z}));});const tot=cs.reduce((a,x)=>a+x.w,0)+Math.max(0,cs.length-1)*sp;
+    const y0=-Ht/2+lh0*(j+.5),Rj=Math.max(sz,R+(up?(j-(meas.length-1)/2)*lh0:-(j-(meas.length-1)/2)*lh0));let s=T.align==='left'?-W/2:T.align==='right'?W/2-tot:-tot/2;
+    cs.forEach(g=>{const mid=s+g.w/2,th=mid/Rj,x=Rj*Math.sin(th),dy=Rj*(1-Math.cos(th)),y=up?y0+dy:y0-dy;items.push({s:g.ch,x,y,r:up?th:-th,w:g.w,ch:true,font:g.font,col:g.col});s+=g.w+sp;
+      mnx=Math.min(mnx,x-g.w/2);mxx=Math.max(mxx,x+g.w/2);mny=Math.min(mny,y-sz*.6*g.z);mxy=Math.max(mxy,y+sz*.6*g.z);});});
   if(!items.length){mnx=-sz/2;mxx=sz/2;mny=-sz/2;mxy=sz/2;}
   /* keep the text centered on its spot */
-  const cy=(mny+mxy)/2;items.forEach(it=>it.y-=cy);return{sz,lh,W:mxx-mnx,Ht:mxy-mny,items,bb:{x:mnx,y:mny-cy,w:mxx-mnx,h:mxy-mny},lines,widths};}
+  const cy=(mny+mxy)/2;items.forEach(it=>it.y-=cy);return{sz,lh:lh0,W:mxx-mnx,Ht:mxy-mny,items,lineBoxes:[],bb:{x:mnx,y:mny-cy,w:mxx-mnx,h:mxy-mny},widths};}
 /* the box or bubble around the text, in the text's own turned space */
 function boxRect(T,L){const p=T.box.pad*L.sz;return{x:L.bb.x-p,y:L.bb.y-p*.7,w:L.bb.w+p*2,h:L.bb.h+p*1.4};}
 function tailLocal(T){const dx=T.box.tx*IW()-T.x*IW(),dy=T.box.ty*IH()-T.y*IH(),a=-T.rot*Math.PI/180;return{x:dx*Math.cos(a)-dy*Math.sin(a),y:dx*Math.sin(a)+dy*Math.cos(a)};}
@@ -534,7 +588,7 @@ function boxShape(c,T,L){const B=T.box,R=boxRect(T,L),k=B.kind,tip=hasTail(T)?ta
   if(k==='box')c.rect(R.x,R.y,R.w,R.h);
   else if(k==='round')rrPath(c,R.x,R.y,R.w,R.h,Math.min(R.w,R.h)*.22);
   else if(k==='pill')rrPath(c,R.x,R.y,R.w,R.h,R.h/2);
-  else if(k==='lines'){const p=B.pad*L.sz*.6;L.items.forEach(it=>{if(!it.line||!it.s.trim())return;rrPath(c,it.x-p,it.y-L.lh/2+L.lh*.04,it.w+p*2,L.lh*.92,L.lh*.18);});}
+  else if(k==='lines'){const p=B.pad*L.sz*.6;L.lineBoxes.forEach(lb=>{if(!lb.txt.trim())return;rrPath(c,lb.x-p,lb.y-lb.h/2+lb.h*.04,lb.w+p*2,lb.h*.92,lb.h*.18);});}
   else if(k==='speech'){rrPath(c,R.x,R.y,R.w,R.h,Math.min(R.w,R.h)*.42);if(tip)tailPath(c,R,tip);}
   else if(k==='oval'){c.ellipse(R.x+R.w/2,R.y+R.h/2,R.w/2*1.18,R.h/2*1.32,0,0,Math.PI*2);c.closePath();if(tip)tailPath(c,R,tip,.3);}
   else if(k==='thought'){const cx=R.x+R.w/2,cy=R.y+R.h/2,rx=R.w/2*1.12,ry=R.h/2*1.2,n=Math.max(8,Math.round((rx+ry)/(L.sz*.55)));
@@ -551,29 +605,84 @@ function drawBar(c,T,L){const B=T.box,p=B.pad*L.sz,hh=L.bb.h+p*1.4;c.save();c.gl
 /* the fill: one color, a blend of two, or none at all (just the outline) */
 function fillStyleFor(c,T,L){if(T.fill!=='gradient')return T.color;const a=T.gAngle*Math.PI/180,r=Math.hypot(L.bb.w,L.bb.h)/2,cx=L.bb.x+L.bb.w/2,cy=L.bb.y+L.bb.h/2;
   const g=c.createLinearGradient(cx-Math.cos(a)*r,cy-Math.sin(a)*r,cx+Math.cos(a)*r,cy+Math.sin(a)*r);g.addColorStop(0,T.color);g.addColorStop(1,T.color2);return g;}
-function eachGlyph(c,L,fn){L.items.forEach(it=>{if(it.ch){c.save();c.translate(it.x,it.y);c.rotate(it.r);c.textAlign='center';fn(it.s,0,0);c.restore();}else{c.textAlign='left';fn(it.s,it.x,it.y);}});}
+/* each run (or each letter on a curve) in its own font */
+function eachGlyph(c,L,fn){L.items.forEach(it=>{if(it.font)c.font=it.font;if(it.ch){c.save();c.translate(it.x,it.y);c.rotate(it.r);c.textAlign='center';fn(it.s,0,0,it);c.restore();}else{c.textAlign='left';fn(it.s,it.x,it.y,it);}});}
 /* one piece of text, with everything on it, at its place on the picture */
 function drawText(c,T){const L=layout(c,T);c.save();c.globalAlpha=T.opacity;if(T.box.kind==='bar')drawBar(c,T,L);
   c.translate(T.x*IW(),T.y*IH());c.rotate(T.rot*Math.PI/180);drawBox(c,T,L);
   c.font=fontStr(T,L.sz);c.textBaseline='middle';c.lineJoin='round';c.miterLimit=2;setSpacing(c,L.items.some(i=>i.ch)?0:T.spacing*L.sz/100);
   const o1=T.o1.on?T.o1.w*L.sz:0,o2=T.o2.on?T.o2.w*L.sz:0,fillOn=T.fill!=='none';
   const strokes=(col1,col2)=>{if(o2){c.lineWidth=(o1+o2)*2;c.strokeStyle=col2||T.o2.color;eachGlyph(c,L,(s,x,y)=>c.strokeText(s,x,y));}if(o1){c.lineWidth=o1*2;c.strokeStyle=col1||T.o1.color;eachGlyph(c,L,(s,x,y)=>c.strokeText(s,x,y));}};
-  const body=(col)=>{if(fillOn||col){c.fillStyle=col||fillStyleFor(c,T,L);eachGlyph(c,L,(s,x,y)=>c.fillText(s,x,y));}};
+  /* a word with its own color keeps it; everything else takes the text's fill */
+  const body=(col)=>{const base=fillOn?fillStyleFor(c,T,L):null;eachGlyph(c,L,(s,x,y,it)=>{const f=col||it.col||base;if(!f)return;c.fillStyle=f;c.fillText(s,x,y);});};
   /* 3D: copies of the letters stepping back */
   if(T.depth.on&&T.depth.size>0){const d=T.depth.size*L.sz,a=T.depth.ang*Math.PI/180,n=Math.min(60,Math.ceil(d)),ux=Math.cos(a),uy=Math.sin(a);
-    for(let i=n;i>=1;i--){c.save();c.translate(ux*d*i/n,uy*d*i/n);const col=i===n?shade(T.depth.color,-.35):T.depth.color;strokes(col,col);if(!o1&&!o2)body(col);else{c.fillStyle=col;eachGlyph(c,L,(s,x,y)=>c.fillText(s,x,y));}c.restore();}}
+    for(let i=n;i>=1;i--){c.save();c.translate(ux*d*i/n,uy*d*i/n);const col=i===n?shade(T.depth.color,-.35):T.depth.color;strokes(col,col);body(col);c.restore();}}
   /* glow: soft light all around */
   if(T.glow.on&&T.glow.size>0){c.save();c.shadowColor=T.glow.color;c.shadowBlur=T.glow.size*L.sz;for(let k=0;k<2;k++){strokes(T.glow.color,T.glow.color);body(T.glow.color);}c.restore();}
   /* shadow: the whole thing, outline and all, casts one shadow */
   if(T.shadow.on){c.save();const a=T.shadow.ang*Math.PI/180,d=T.shadow.dist*L.sz;c.shadowColor=rgba(T.shadow.color,T.shadow.op);c.shadowBlur=T.shadow.blur*L.sz;c.shadowOffsetX=Math.cos(a)*d;c.shadowOffsetY=Math.sin(a)*d;
-    strokes();if(fillOn)body();else if(!o1&&!o2)body(T.color);c.restore();}
+    strokes();if(fillOn||L.items.some(i=>i.col))body();else if(!o1&&!o2)body(T.color);c.restore();}
   strokes();body();c.restore();return L;}
 function shade(hx,amt){const[r,g,b]=hexRGB(hx),f=v=>Math.round(clamp(amt<0?v*(1+amt):v+(255-v)*amt,0,255)).toString(16).padStart(2,'0');return'#'+f(r)+f(g)+f(b);}
 
 /* ================= drawing the stage, with handles on the selected text ================= */
 let SHOWUI=true;
 function render(){const w=IW(),hh=IH();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,w,hh);drawBackground(ctx,w,hh);
-  S.texts.forEach(T=>{T._L=drawText(ctx,T);});if(SHOWUI)drawHandles();}
+  S.texts.forEach(T=>{T._L=drawText(ctx,T);});if(SHOWUI){drawHandles();drawGuides();}}
+/* ================= smart placement: guides, a safe margin, and keeping text off faces ================= */
+const PLACE=(()=>{const d={snap:true,safe:true,margin:.04};try{return{...d,...JSON.parse(localStorage.getItem('cm-place')||'{}')};}catch(e){return d;}})();
+const savePlace=()=>{try{localStorage.setItem('cm-place',JSON.stringify(PLACE));}catch(e){}};
+let GUIDES=[],FACESHOW=0;
+/* a text's outline on the picture, level with the edges (turned text takes the space its corners need) */
+function aabbOf(T){const H=handlesOf(T),a=T.rot*Math.PI/180,co=Math.cos(a),si=Math.sin(a),cx=T.x*IW(),cy=T.y*IH();let l=1e9,r=-1e9,t=1e9,b=-1e9;
+  [[H.R.x,H.R.y],[H.R.x+H.R.w,H.R.y],[H.R.x,H.R.y+H.R.h],[H.R.x+H.R.w,H.R.y+H.R.h]].forEach(([x,y])=>{const X=cx+x*co-y*si,Y=cy+x*si+y*co;l=Math.min(l,X);r=Math.max(r,X);t=Math.min(t,Y);b=Math.max(b,Y);});return{l,r,t,b,cx,cy};}
+/* snap the moving text's center or edges to the middle, the safe margin and the other text */
+function snapMove(T,others){GUIDES=[];const A=aabbOf(T),W=IW(),HH=IH(),m=PLACE.margin,th=7*uiScale();
+  if(PLACE.snap){const xs=[[W/2,'c'],...(PLACE.safe?[[m*W,'e'],[W-m*W,'e']]:[])],ys=[[HH/2,'c'],...(PLACE.safe?[[m*HH,'e'],[HH-m*HH,'e']]:[])];
+    others.forEach(o=>{const B=aabbOf(o);xs.push([B.l,'o'],[B.cx,'o'],[B.r,'o']);ys.push([B.t,'o'],[B.cy,'o'],[B.b,'o']);});
+    const best=(cands,mine)=>{let bd=th,res=null;cands.forEach(([v,k])=>mine.forEach(([mv,off])=>{const d=Math.abs(v-mv);if(d<bd){bd=d;res={v,shift:v-mv,k};}}));return res;};
+    const bx=best(xs,[[A.l],[A.cx],[A.r]].map(([v])=>[v])),by=best(ys,[[A.t],[A.cy],[A.b]].map(([v])=>[v]));
+    if(bx){T.x+=bx.shift/W;GUIDES.push({x:bx.v,k:bx.k});}if(by){T.y+=by.shift/HH;GUIDES.push({y:by.v,k:by.k});}}
+  if(PLACE.safe){const B=aabbOf(T),w=B.r-B.l,h=B.b-B.t;let dx=0,dy=0;
+    if(w<=W*(1-2*m)){if(B.l<m*W)dx=m*W-B.l;else if(B.r>W-m*W)dx=W-m*W-B.r;}if(h<=HH*(1-2*m)){if(B.t<m*HH)dy=m*HH-B.t;else if(B.b>HH-m*HH)dy=HH-m*HH-B.b;}
+    if(dx||dy){T.x+=dx/W;T.y+=dy/HH;}}}
+function drawGuides(){const now=performance.now(),u=uiScale();ctx.save();
+  if(DR&&DR.mode==='move'){if(PLACE.safe){const m=PLACE.margin;ctx.setLineDash([6*u,6*u]);ctx.lineWidth=1.2*u;ctx.strokeStyle='rgba(255,255,255,.55)';ctx.strokeRect(m*IW(),m*IH(),IW()*(1-2*m),IH()*(1-2*m));ctx.setLineDash([]);}
+    GUIDES.forEach(g=>{ctx.strokeStyle=g.k==='o'?'#FF4DD8':'#3EE6FF';ctx.lineWidth=1.6*u;ctx.beginPath();if(g.x!=null){ctx.moveTo(g.x,0);ctx.lineTo(g.x,IH());}else{ctx.moveTo(0,g.y);ctx.lineTo(IW(),g.y);}ctx.stroke();});}
+  /* the faces that were found, for a moment */
+  const pg=PAGES[CUR];if(now<FACESHOW&&pg&&pg.faces){ctx.strokeStyle='#FFD43B';ctx.lineWidth=3*u;ctx.setLineDash([10*u,7*u]);pg.faces.forEach(f=>{ctx.beginPath();ctx.ellipse(f.x+f.w/2,f.y+f.h/2,f.w/2,f.h/2,0,0,Math.PI*2);ctx.stroke();});ctx.setLineDash([]);requestAnimationFrame(()=>render());}
+  ctx.restore();}
+/* ---------- the face finder: Google's MediaPipe, on this device, from this site's vendor folder (kept for offline use after the first time) ---------- */
+const FACE_DIR='vendor/mediapipe/',FACE={det:null,pend:null};
+const faceUrl=q=>new URL(FACE_DIR+q,document.baseURI).href;
+async function faceGet(q){const r=await fetch(faceUrl(q));
+  if(!r.ok&&/\.tflite$/.test(q)){/* inside Claude the model sits next to it as text */const r2=await fetch(faceUrl(q+'.txt')).catch(()=>null);if(r2&&r2.ok){const t=(await r2.text()).replace(/\s+/g,''),bs=atob(t),out=new Uint8Array(bs.length);for(let i=0;i<bs.length;i++)out[i]=bs.charCodeAt(i);return out;}}
+  if(!r.ok)throw new Error(`a file didn’t download (${r.status})`);return new Uint8Array(await r.arrayBuffer());}
+function faceModel(){if(FACE.det)return Promise.resolve(FACE.det);
+  if(!FACE.pend)FACE.pend=(async()=>{let mp;try{mp=await import(faceUrl('vision_bundle.mjs'));}catch(e){throw new Error('the face finder didn’t load');}
+    const simd=await mp.FilesetResolver.isSimdSupported(),w='wasm/vision_wasm_'+(simd?'':'nosimd_')+'internal',bin=await faceGet(w+'.wasm');
+    const fs={wasmLoaderPath:faceUrl(w+'.js'),wasmBinaryPath:URL.createObjectURL(new Blob([bin],{type:'application/wasm'}))},buf=await faceGet('models/blaze_face_full_range.tflite');
+    FACE.det=await mp.FaceDetector.createFromOptions(fs,{baseOptions:{modelAssetBuffer:buf,delegate:'CPU'},runningMode:'IMAGE',minDetectionConfidence:.45,minSuppressionThreshold:.3});return FACE.det;})().catch(e=>{FACE.pend=null;throw e;});
+  return FACE.pend;}
+/* faces in a picture, as boxes on it (a little bigger than the face, to leave room for hair and chin) */
+async function facesOf(pg){if(!pg||pg.bg.kind!=='img'||!pg.img)return[];if(pg.faces&&pg.facesOf===pg.blob)return pg.faces;
+  const det=await faceModel(),W0=pg.bg.w,H0=pg.bg.h,k=Math.min(1,1024/Math.max(W0,H0)),c=document.createElement('canvas');c.width=Math.round(W0*k);c.height=Math.round(H0*k);c.getContext('2d').drawImage(pg.img,0,0,c.width,c.height);
+  let r;try{r=det.detect(c);}catch(e){r=null;}
+  pg.faces=(r&&r.detections||[]).map(d=>{const b=d.boundingBox,x=b.originX/k,y=b.originY/k,w=b.width/k,h=b.height/k;return{x:x-w*.18,y:y-h*.35,w:w*1.36,h:h*1.5};});pg.facesOf=pg.blob;return pg.faces;}
+/* move each text that covers a face to the nearest free spot; a bubble's tail stays pointing where it did */
+function clearOfFaces(texts,faces,all){if(!faces.length)return 0;const W=IW(),HH=IH(),m=PLACE.margin,ov=(a,b)=>Math.max(0,Math.min(a.r,b.x+b.w)-Math.max(a.l,b.x))*Math.max(0,Math.min(a.b,b.y+b.h)-Math.max(a.t,b.y));
+  let moved=0;texts.forEach(T=>{const A=aabbOf(T),area=(A.r-A.l)*(A.b-A.t);const hits=f=>ov(A,f);if(!faces.some(f=>hits(f)>area*.04))return;
+    const w=A.r-A.l,h=A.b-A.t,ox=A.cx,oy=A.cy,others=(all||[]).filter(o=>o!==T).map(aabbOf);let best=null;
+    for(let gy=m*HH+h/2;gy<=HH-m*HH-h/2+1;gy+=HH*.025)for(let gx=m*W+w/2;gx<=W-m*W-w/2+1;gx+=W*.025){const B={l:gx-w/2,r:gx+w/2,t:gy-h/2,b:gy+h/2};
+      const fo=faces.reduce((a,f)=>a+ov(B,f),0),to=others.reduce((a,o)=>a+ov(B,{x:o.l,y:o.t,w:o.r-o.l,h:o.b-o.t}),0),score=fo*40+to*10+Math.hypot(gx-ox,(gy-oy)*1.3);if(!best||score<best.s)best={s:score,x:gx,y:gy};}
+    if(best){T.x=best.x/W;T.y=best.y/HH;moved++;}});return moved;}
+async function avoidFaces(which){if(busy)return;busy=true;say('Looking for faces…');stash();const keep=CUR;let moved=0,found=0;
+  try{const idx=which==='all'?PAGES.map((_,i)=>i):[CUR];for(const i of idx){const pg=PAGES[i];if(pg.bg.kind!=='img')continue;const faces=await facesOf(pg);found+=faces.length;
+      VIEW={w:pg.bg.w,h:pg.bg.h};try{moved+=clearOfFaces(pg.texts,faces,pg.texts);}finally{VIEW=null;}if(i!==CUR)pg.hist=null;}
+    showPage(keep,true,true);commit();renderAll();renderStrip();FACESHOW=performance.now()+2500;render();
+    say('');toast(found?(moved?`Moved ${moved} text${moved>1?'s':''} off ${found===1?'a face':'faces'}.`:`Found ${found} face${found>1?'s':''}; no text was on ${found>1?'them':'it'}.`):'No faces found on '+(which==='all'?'these pictures.':'this picture.'));}
+  catch(err){say('');toast('The face finder isn’t available here: '+(err&&err.message||err)+'.');}finally{busy=false;}}
 const uiScale=()=>cv.width/Math.max(1,cv.getBoundingClientRect().width||cv.width);
 function handlesOf(T){const L=T._L||layout(ctx,T),R=T.box.kind!=='none'&&T.box.kind!=='bar'&&T.box.kind!=='lines'?boxRect(T,L):{x:L.bb.x-L.sz*.08,y:L.bb.y-L.sz*.05,w:L.bb.w+L.sz*.16,h:L.bb.h+L.sz*.1};
   if(T.box.kind==='oval'||T.box.kind==='thought'||T.box.kind==='shout'){const f=T.box.kind==='shout'?1.3:1.2;R.x-=R.w*(f-1)/2;R.y-=R.h*(f-1)/2;R.w*=f;R.h*=f*1.05;}
@@ -601,13 +710,13 @@ cv.addEventListener('pointerdown',e=>{const p=toCanvas(e),T=selT();
   DR.moved=false;cv.setPointerCapture(e.pointerId);e.preventDefault();render();});
 cv.addEventListener('pointermove',e=>{const p=toCanvas(e);if(!DR){const T=selT();let cur='default';if(T){const H=handlesOf(T),q=toLocal(T,p),near=(a,r)=>a&&Math.hypot(q.x-a.x,q.y-a.y)<r*H.u;cur=near(H.tail,18)?'crosshair':near(H.rot,20)?'grab':near(H.corner,20)?'nwse-resize':'';}if(!cur||cur==='default')cur=hitText(p)?'move':'default';cv.style.cursor=cur;return;}
   const T=DR.T;DR.moved=true;
-  if(DR.mode==='move'){let nx=DR.x0+(p.x-DR.p0.x)/IW(),ny=DR.y0+(p.y-DR.p0.y)/IH();const sn=6*uiScale();if(Math.abs(nx-.5)*IW()<sn)nx=.5;if(Math.abs(ny-.5)*IH()<sn)ny=.5;
-    T.x=clamp(nx,-.2,1.2);T.y=clamp(ny,-.2,1.2);T.box.tx=clamp(DR.tx0+(T.x-DR.x0),.02,.98);T.box.ty=clamp(DR.ty0+(T.y-DR.y0),.02,.98);}
+  if(DR.mode==='move'){T.x=clamp(DR.x0+(p.x-DR.p0.x)/IW(),-.2,1.2);T.y=clamp(DR.y0+(p.y-DR.p0.y)/IH(),-.2,1.2);snapMove(T,S.texts.filter(o=>o!==T));
+    T.box.tx=clamp(DR.tx0+(T.x-DR.x0),.02,.98);T.box.ty=clamp(DR.ty0+(T.y-DR.y0),.02,.98);}
   else if(DR.mode==='rot'){let a=Math.atan2(p.y-T.y*IH(),p.x-T.x*IW())*180/Math.PI+90;a=((a+180)%360+360)%360-180;for(const s of[-180,-90,-45,0,45,90,180])if(Math.abs(a-s)<4)a=s;T.rot=Math.round(a);}
   else if(DR.mode==='size'){const q=toLocal(T,p);T.size=clamp(DR.s0*Math.hypot(q.x,q.y)/DR.d0,.01,.8);}
   else if(DR.mode==='tail'){T.box.tx=clamp(p.x/IW(),.02,.98);T.box.ty=clamp(p.y/IH(),.02,.98);}
   render();syncPlace();});
-['pointerup','pointercancel'].forEach(ev=>cv.addEventListener(ev,()=>{if(!DR)return;const m=DR.moved;DR=null;if(m){commit();}}));
+['pointerup','pointercancel'].forEach(ev=>cv.addEventListener(ev,()=>{if(!DR)return;const m=DR.moved;DR=null;GUIDES=[];if(m){commit();}render();}));
 cv.addEventListener('dblclick',e=>{if(hitText(toCanvas(e)))focusText();});
 function focusText(){const t=$('txt');if(isPhone()){const sec=t.closest('.fsec');}t.focus();t.select();t.scrollIntoView({block:'nearest',behavior:'smooth'});}
 document.addEventListener('keydown',e=>{const tag=(e.target&&e.target.tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tag)||!$('fmodal').hidden)return;
@@ -644,7 +753,7 @@ function writeState(){if(!restored)return Promise.resolve();stash();
   return DB.tx('readwrite',s=>s.put({v:2,S:{fmt:S.fmt,q:S.q,maxSide:S.maxSide},cur:CUR,pages:PAGES.map(pg=>({id:pg.id,bg:pg.bg,blob:pg.bg.kind==='img'?pg.blob:null,name:pg.name,texts:cleanTexts(pg.texts),sel:pg.sel}))},'current'));}
 function save(){clearTimeout(sT);sT=setTimeout(writeState,500);}
 let LOOKS_MINE=[];
-async function restore(){try{const m=await DB.tx('readonly',s=>s.get('looks'));if(Array.isArray(m))LOOKS_MINE=m;
+async function restore(){try{const m=await DB.tx('readonly',s=>s.get('looks'));if(Array.isArray(m))LOOKS_MINE=m;const sk=await DB.tx('readonly',s=>s.get('speakers'));if(Array.isArray(sk))SPK=sk;
   const st=await DB.tx('readonly',s=>s.get('current'));ST0=(st&&st.cur)|0;
   if(st&&Array.isArray(st.pages)){S={...S,...(st.S||{})};for(const q of st.pages){const pg=newPage({id:q.id,bg:q.bg,name:q.name||'',texts:(q.texts||[]).map(x=>mergeDeep(DEFTEXT(),x)),sel:q.sel});
       if(q.blob&&q.bg&&q.bg.kind==='img'){const im=await loadImg(q.blob);if(im){pg.img=im;pg.blob=q.blob;}else pg.bg={...pg.bg,kind:'sample'};}PAGES.push(pg);}}
@@ -656,6 +765,62 @@ let ST0=0;const st0=()=>ST0;
 async function loadImg(blob){const im=new Image();im.src=URL.createObjectURL(blob);try{await im.decode();return im;}catch(e){return null;}}
 function mergeDeep(a,b){for(const k in b){if(b[k]&&typeof b[k]==='object'&&!Array.isArray(b[k])&&a[k]&&typeof a[k]==='object')a[k]=mergeDeep({...a[k]},b[k]);else a[k]=b[k];}return a;}
 
+/* ================= paste a script: one line per bubble, NAME: for who says it, --- for the next picture ================= */
+function parseScript(txt){const pages=[[]];String(txt||'').replace(/\r/g,'').split('\n').forEach(raw=>{const l=raw.trim();if(!l)return;
+    if(/^-{3,}$/.test(l)||/^={3,}$/.test(l)){pages.push([]);return;}
+    const m=l.match(/^([^:\[\]]{1,30}?)\s*:\s*(.+)$/);
+    /* a name is a few words, not a whole sentence that happens to have a colon in it */
+    if(m&&m[1].trim().split(/\s+/).length<=3&&!/^https?$/i.test(m[1].trim()))pages[pages.length-1].push({who:m[1].trim(),text:m[2].trim()});
+    else pages[pages.length-1].push({who:null,text:l.replace(/^\((.*)\)$/,'$1')});});
+  while(pages.length>1&&!pages[pages.length-1].length)pages.pop();return pages;}
+const niceName=n=>n.length>1&&n===n.toUpperCase()?n.charAt(0)+n.slice(1).toLowerCase():n;
+/* a speaker made from the script: a speech bubble with their own border color, tails taking turns left and right */
+function autoSpeaker(name){const k=SPK.length,base=LOOKS.find(l=>l.name==='Speech').o,T=mergeDeep(DEFTEXT(),JSON.parse(JSON.stringify(base)));T.box.bc=SPK_COLORS[k%SPK_COLORS.length];T.box.bw=.07;T.x=.5;T.y=.5;T.size=.1;T.box.tx=.5+(k%2?.08:-.08);T.box.ty=.5+.2;return newSpeaker(niceName(name),T);}
+/* break a long line so it fits a width (in pixels on the picture) */
+function wrapTo(T,maxW){const c=ctx;c.font=fontStr(T,T.size*IH());const words=T.text.split(/ +/),out=[];let line='';
+  words.forEach(w=>{const t=line?line+' '+w:w;if(line&&c.measureText(plainText(T.upper?t.toUpperCase():t)).width>maxW){out.push(line);line=w;}else line=t;});if(line)out.push(line);T.text=out.join('\n');}
+/* lay out one picture's lines top to bottom in reading order; speakers take sides, captions go across */
+function placeLines(items){const W=IW(),HH=IH(),m=PLACE.margin+.01,order=[];items.forEach(it=>{if(it.T.who&&!order.includes(it.T.who))order.push(it.T.who);});
+  let scale=1;for(let tries=0;tries<8;tries++){let y=m*HH;const sizes=[];
+    items.forEach(it=>{const T=it.T;T.size=it.base*scale;T.text=it.raw;T.rot=0;wrapTo(T,(T.who?.46:.86)*W);T.x=.5;T.y=.5;T._L=null;const A=aabbOf(T);sizes.push({w:A.r-A.l,h:A.b-A.t});});
+    const tailRoom=HH*.045,gap=HH*.022,total=sizes.reduce((a,z,i)=>a+z.h+(hasTail(items[i].T)?tailRoom:0)+gap,0)-gap;
+    if(total>HH*(1-2*m)&&scale>.4){scale*=.86;continue;}
+    items.forEach((it,i)=>{const T=it.T,z=sizes[i],side=T.who?(order.indexOf(T.who)%2?1:-1):0;
+      const cx=side<0?m*W+z.w/2:side>0?W-m*W-z.w/2:W/2;T.x=cx/W;T.y=(y+z.h/2)/HH;y+=z.h+(hasTail(T)?tailRoom:0)+gap;
+      if(hasTail(T)){T.box.tx=clamp((cx+side*z.w*.18)/W,.02,.98);T.box.ty=clamp((T.y*HH+z.h/2+tailRoom*.9)/HH,.02,.98);}});
+    /* center the whole block when there's room to spare */
+    const spare=HH*(1-2*m)-total;if(spare>HH*.2)items.forEach(it=>{it.T.y+=0;});break;}}
+function scriptOpts(){return{where:SOPT.where,keep:SOPT.keep,faces:$('sFaces').checked};}
+const SOPT={where:'here',keep:'keep'};
+function renderScriptOpts(){$('sWhereF').innerHTML='';$('sKeepF').innerHTML='';
+  $('sWhereF').append(segF('swhere','Start on',[['here',`This picture (${CUR+1})`],['first','The first picture']],SOPT.where,v=>{SOPT.where=v;renderScriptOpts();}));
+  $('sKeepF').append(segF('skeep','Text already there',[['keep','Keep it'],['replace','Replace it']],SOPT.keep,v=>{SOPT.keep=v;renderScriptOpts();}));scriptInfo();}
+function scriptInfo(){const pages=parseScript($('sText').value),lines=pages.reduce((a,p)=>a+p.length,0),el=$('sInfo');if(!lines){el.textContent='';$('sGo').disabled=true;return;}$('sGo').disabled=false;
+  const names=[...new Set(pages.flat().filter(x=>x.who).map(x=>niceName(x.who)))],fresh=names.filter(n=>!spkByName(n)),caps=pages.flat().filter(x=>!x.who).length,start=SOPT.where==='first'?0:CUR,extra=Math.max(0,start+pages.length-PAGES.length);
+  el.innerHTML='';el.append(h('b',{},`${lines} line${lines>1?'s':''} on ${pages.length} picture${pages.length>1?'s':''}`),names.length?` · ${names.join(', ')}`:'',caps?` · ${caps} caption${caps>1?'s':''}`:'',
+    fresh.length?h('span',{},` · new speaker${fresh.length>1?'s':''}: ${fresh.join(', ')}`):'',extra?h('span',{},` · ${extra} more picture${extra>1?'s':''} will be added (copies of the last one, so you can swap them)`):'');}
+$('scriptBtn').onclick=()=>{$('smodal').hidden=false;renderScriptOpts();setTimeout(()=>$('sText').focus(),30);};
+$('sClose').onclick=()=>{$('smodal').hidden=true;};
+$('smodal').addEventListener('click',e=>{if(e.target===$('smodal'))$('smodal').hidden=true;});
+$('sText').oninput=scriptInfo;
+$('sGo').onclick=async()=>{const pages=parseScript($('sText').value);if(!pages.flat().length)return;const o=scriptOpts();$('sGo').disabled=true;$('sGo').textContent='Adding…';
+  try{await applyScript(pages,o);$('smodal').hidden=true;}finally{$('sGo').disabled=false;$('sGo').textContent='Add the lines';}};
+async function applyScript(pages,o){stash();const start=o.where==='first'?0:CUR;let made=0,added=0,newSp=0,faceNote='';
+  /* more sections than pictures: copies of the last picture to swap later */
+  while(PAGES.length<start+pages.length){const last=PAGES[PAGES.length-1];PAGES.push(newPage({bg:{...last.bg},img:last.img,blob:last.blob,name:last.name}));made++;}
+  const capLook=LOOKS.find(l=>l.name==='Comic caption').o;
+  for(let k=0;k<pages.length;k++){const pg=PAGES[start+k];VIEW={w:pg.bg.w||1080,h:pg.bg.h||1080};
+    try{if(o.keep==='replace')pg.texts=[];const base=clamp(.042*Math.max(1,(pg.bg.w||1080)/(pg.bg.h||1080)),.025,.08),items=[];
+      for(const line of pages[k]){const T=DEFTEXT();T.text=line.text;
+        if(line.who){let sp=spkByName(line.who)||spkByName(niceName(line.who));if(!sp){sp=autoSpeaker(line.who);newSp++;}dressAs(T,sp);}
+        else{Object.assign(T,mergeDeep(DEFTEXT(),JSON.parse(JSON.stringify(capLook))),{id:T.id,text:line.text});}
+        needFont(T.font);items.push({T,raw:line.text,base});}
+      try{await Promise.race([Promise.all(items.map(it=>document.fonts.load(fontStr(it.T,40),plainText(it.raw)||'A'))),new Promise(r=>setTimeout(r,1500))]);}catch(e){}
+      placeLines(items);items.forEach(it=>{it.T._L=null;pg.texts.push(it.T);});added+=items.length;pg.sel=items.length?items[0].T.id:pg.sel;pg.hist=null;
+      if(o.faces&&pg.bg.kind==='img'){try{const faces=await facesOf(pg);clearOfFaces(items.map(i=>i.T),faces,pg.texts);}catch(e){faceNote=' (The face finder isn’t available here, so check faces yourself.)';}}}
+    finally{VIEW=null;}}
+  showPage(start,true,true);HIST=[snap()];HI=0;syncUndo();renderAll();renderStrip();save();
+  toast(`Added ${added} line${added>1?'s':''} on ${pages.length} picture${pages.length>1?'s':''}${newSp?`, with ${newSp} new speaker${newSp>1?'s':''}`:''}${made?`, and ${made} more picture${made>1?'s':''} to swap`:''}.${faceNote}`);}
 /* ================= the picture: open, blank, or see-through ================= */
 function setCanvasSize(w,hh){cv.width=Math.max(16,Math.round(w));cv.height=Math.max(16,Math.round(hh));}
 async function setImage(blob,name,quiet){const url=URL.createObjectURL(blob),im=new Image();im.src=url;try{await im.decode();}catch(e){toast('That picture couldn’t be opened.');return false;}
@@ -701,7 +866,7 @@ $('addText').onclick=()=>addText();$('delText').onclick=delText;
 $('dupText').onclick=()=>{const T=selT();if(!T)return;const c=JSON.parse(JSON.stringify(T));delete c._L;c.id='t_'+rkey();c.x=clamp(T.x+.03,0,1);c.y=clamp(T.y+.03,0,1);c.box.tx+=.03;c.box.ty+=.03;S.texts.push(c);S.sel=c.id;commit();renderPanel();render();};
 $('upText').onclick=()=>{const i=S.texts.findIndex(t=>t.id===S.sel);if(i<0||i===S.texts.length-1)return;[S.texts[i],S.texts[i+1]]=[S.texts[i+1],S.texts[i]];commit();render();};
 $('downText').onclick=()=>{const i=S.texts.findIndex(t=>t.id===S.sel);if(i<=0)return;[S.texts[i],S.texts[i-1]]=[S.texts[i-1],S.texts[i]];commit();render();};
-function renderLayers(){const L=$('layers');L.innerHTML='';S.texts.slice().reverse().forEach(T=>L.append(h('button',{type:'button','aria-pressed':String(T.id===S.sel),style:`font-family:${fontCss(T.font)}`,onclick:()=>{S.sel=T.id;renderPanel();render();}},(T.text||'…').split('\n')[0].slice(0,40)||'…')));
+function renderLayers(){const L=$('layers');L.innerHTML='';S.texts.slice().reverse().forEach(T=>L.append(h('button',{type:'button','aria-pressed':String(T.id===S.sel),style:`font-family:${fontCss(T.font)}`,onclick:()=>{S.sel=T.id;renderPanel();render();}},plainText(T.text||'…').split('\n')[0].slice(0,40)||'…')));
   ['dupText','delText','upText','downText'].forEach(id=>$(id).disabled=!selT());if(restored)renderCopy();}
 
 /* ================= looks: whole styles in one tap ================= */
@@ -729,10 +894,47 @@ const LOOKS=[
   LOOK('Wedding',{font:'greatvibes',upper:false,bold:false,italic:false,fill:'solid',color:'#FFFFFF',o1:{on:false},o2:{on:false},shadow:{on:true,color:'#000000',blur:.25,dist:.03,ang:90,op:.5},glow:{on:false},depth:{on:false},curve:0,box:{kind:'none'},lineH:1.15,spacing:0}),
   LOOK('Typewriter',{font:'elite',upper:false,bold:false,italic:false,fill:'solid',color:'#1A1A1A',o1:{on:false},o2:{on:false},shadow:{on:false},glow:{on:false},depth:{on:false},curve:0,box:{kind:'box',color:'#F4EBD6',op:.95,pad:.45,bw:.02,bc:'#8B7355'},lineH:1.25,spacing:0})];
 /* a look leaves your words, place, turn and size alone */
-function applyLook(o){const T=selT();if(!T)return;const keep={id:T.id,text:T.text,x:T.x,y:T.y,rot:T.rot,size:T.size,box:{...T.box}};const base=DEFTEXT();
-  const n=mergeDeep(mergeDeep(base,JSON.parse(JSON.stringify(stripLook(T)))),JSON.parse(JSON.stringify(o)));Object.assign(T,n,{id:keep.id,text:keep.text,x:keep.x,y:keep.y,rot:keep.rot,size:keep.size});
+function applyLook(o){const T=selT();if(!T)return;const keep={id:T.id,text:T.text,x:T.x,y:T.y,rot:T.rot,size:T.size,box:{...T.box},who:T.who};const base=DEFTEXT();
+  const n=mergeDeep(mergeDeep(base,JSON.parse(JSON.stringify(stripLook(T)))),JSON.parse(JSON.stringify(o)));Object.assign(T,n,{id:keep.id,text:keep.text,x:keep.x,y:keep.y,rot:keep.rot,size:keep.size,who:keep.who});
   T.box={...T.box,tx:keep.box.tx,ty:keep.box.ty};fixTail(T);needFont(T.font);commit();renderPanel();render();}
-const stripLook=T=>{const o={...T};['id','text','x','y','rot','size','_L'].forEach(k=>delete o[k]);return o;};
+const stripLook=T=>{const o={...T};['id','text','x','y','rot','size','_L','who'].forEach(k=>delete o[k]);return o;};
+/* ================= speakers: a character's look, kept once and used on every bubble they say ================= */
+let SPK=[];
+const spkById=id=>SPK.find(x=>x.id===id)||null;
+const spkByName=n=>SPK.find(x=>x.name.trim().toLowerCase()===String(n).trim().toLowerCase())||null;
+const saveSpk=()=>DB.tx('readwrite',s=>s.put(SPK,'speakers'));
+/* a speaker's look: everything but the words, the place, the size and the tail's exact spot */
+function speakerLook(T){const o=JSON.parse(JSON.stringify(stripLook(T)));if(o.box){delete o.box.tx;delete o.box.ty;}return o;}
+const lookSig=o=>JSON.stringify(o,Object.keys(flatKeys(o)).sort());
+function flatKeys(o,pre,acc){acc=acc||{};for(const k in o){const v=o[k];if(v&&typeof v==='object'&&!Array.isArray(v))flatKeys(v,(pre||'')+k+'.',acc);else acc[(pre||'')+k]=1;acc[k]=1;}return acc;}
+const fullLook=o=>speakerLook(mergeDeep(DEFTEXT(),JSON.parse(JSON.stringify(o))));
+const sameLook=(T,sp)=>lookSig(fullLook(speakerLook(T)))===lookSig(fullLook(sp.o));
+/* the tail's direction, in the text's own size, so it points the same way on any picture */
+const tailOf=T=>({dx:(T.box.tx-T.x)/Math.max(.01,T.size),dy:(T.box.ty-T.y)/Math.max(.01,T.size)});
+/* dress one text as a speaker: their look and tail; the words, place and size stay */
+function dressAs(T,sp,keepTail){const keep={id:T.id,text:T.text,x:T.x,y:T.y,rot:T.rot,size:T.size,tx:T.box.tx,ty:T.box.ty};
+  const n=mergeDeep(DEFTEXT(),JSON.parse(JSON.stringify(sp.o)));Object.assign(T,n,{id:keep.id,text:keep.text,x:keep.x,y:keep.y,rot:keep.rot,size:keep.size,who:sp.id});
+  if(keepTail){T.box.tx=keep.tx;T.box.ty=keep.ty;}else if(sp.tail){T.box.tx=clamp(T.x+sp.tail.dx*T.size,.02,.98);T.box.ty=clamp(T.y+sp.tail.dy*T.size,.02,.98);}fixTail(T);needFont(T.font);}
+const SPK_COLORS=['#E5484D','#3E63DD','#30A46C','#F76B15','#8E4EC6','#D6409F','#0090FF','#C9A227'];
+function newSpeaker(name,T){const n=SPK.length,sp={id:'sp_'+rkey(),name:String(name||'Speaker '+(n+1)).trim().slice(0,30),o:speakerLook(T),tail:tailOf(T),dot:T.box.kind!=='none'?(T.box.bw>0?T.box.bc:T.color):T.color};SPK.push(sp);saveSpk();return sp;}
+/* every bubble a speaker says, on every picture, takes their new look */
+function updateSpeakerEverywhere(sp,T){sp.o=speakerLook(T);sp.tail=tailOf(T);sp.dot=T.box.kind!=='none'?(T.box.bw>0?T.box.bc:T.color):T.color;saveSpk();stash();let n=0;
+  PAGES.forEach((pg,i)=>pg.texts.forEach(x=>{if(x.who===sp.id&&x!==T){dressAs(x,sp,true);n++;}if(i!==CUR)pg.hist=null;}));S.texts=PAGES[CUR].texts;commit();renderAll();renderStrip();return n;}
+function renderSpeakerRow(){const el=$('spkRow');if(!el)return;el.innerHTML='';const T=selT();if(!T)return;const sp=spkById(T.who);if(T.who&&!sp)T.who=null;
+  const sel=h('select',{id:'spkSel','aria-label':'Who says this'},h('option',{value:''},'No speaker'),...SPK.map(x=>h('option',{value:x.id,selected:x.id===T.who},x.name)),h('option',{value:'__new'},'+ New speaker from this text…'));
+  sel.onchange=()=>{const v=sel.value;const T=selT();if(!T)return;
+    if(v==='__new'){const name=(prompt('Who says this? Their name:','')||'').trim();if(!name){renderSpeakerRow();return;}const ex=spkByName(name);if(ex){dressAs(T,ex);commit();renderPanel();render();toast(`${ex.name} already exists, so this text now uses their look.`);return;}
+      const n=newSpeaker(name,T);T.who=n.id;commit();renderPanel();toast(`${n.name} saved. Pick ${n.name} on any text to give it this look.`);return;}
+    if(!v){T.who=null;commit();renderPanel();return;}dressAs(T,spkById(v));commit();renderPanel();render();};
+  el.append(h('span',{class:'flabel'},'Speaker'),h('div',{class:'row'},sp?h('span',{class:'sdot',style:`background:${sp.dot||'#888'}`}):null,sel));
+  if(sp&&!sameLook(T,sp)){el.append(h('div',{class:'spkdiff'},h('span',{},`This looks different from ${sp.name}’s saved look.`),
+    h('button',{type:'button',class:'primary',id:'spkUpdate',onclick:()=>{const n=updateSpeakerEverywhere(sp,selT());toast(`${sp.name}’s look updated${n?` on ${n} other bubble${n>1?'s':''}`:''}.`);}},`Update ${sp.name} everywhere`),
+    h('button',{type:'button',id:'spkReset',onclick:()=>{dressAs(selT(),sp,true);commit();renderPanel();render();}},`Back to ${sp.name}’s look`)));}
+  if(SPK.length){const d=h('details',{class:'spkman'},h('summary',{},`Manage speakers (${SPK.length})`));
+    const ul=h('ul',{},...SPK.map(x=>{const uses=PAGES.reduce((a,pg)=>a+pg.texts.filter(t=>t.who===x.id).length,0)+(PAGES[CUR]?0:0);
+      return h('li',{},h('span',{class:'sdot',style:`background:${x.dot||'#888'}`}),h('input',{type:'text',value:x.name,'aria-label':'Speaker name',onchange:e=>{const nm=e.target.value.trim();if(nm){x.name=nm.slice(0,30);saveSpk();renderSpeakerRow();}}}),h('span',{class:'rv'},`${uses} line${uses===1?'':'s'}`),
+        h('button',{type:'button','aria-label':'Remove '+x.name,onclick:()=>{if(!confirm(`Remove ${x.name}? Their bubbles keep how they look.`))return;SPK=SPK.filter(y=>y!==x);stash();PAGES.forEach(pg=>pg.texts.forEach(t=>{if(t.who===x.id)t.who=null;}));saveSpk();save();renderSpeakerRow();}},'✕'));}));
+    d.append(ul);el.append(d);}}
 const lookPreview=(o,w,hh)=>{const c=document.createElement('canvas');c.width=w;c.height=hh;const g=c.getContext('2d'),T=mergeDeep(DEFTEXT(),JSON.parse(JSON.stringify(o)));T.text=o.upper?'Wow':'Wow!';T.size=.4;T.x=.5;T.y=.5;T.box.tx=.18;T.box.ty=1.05;
   VIEW={w,h:hh};try{drawText(g,T);}catch(e){}VIEW=null;return c;};
 /* a bubble's tail starts somewhere sensible: below the text, or above it near the bottom of the picture */
@@ -747,7 +949,7 @@ $('saveLook').onclick=()=>{const T=selT();if(!T)return;const name=(prompt('Name 
 let paneT=null;
 const ch=(fn,fin)=>(v,done)=>{const T=selT();if(!T)return;fn(T,v);render();if(done!==false){commit();if(fin)renderPanel();}else commitSoon();};
 function renderAll(){renderPanel();renderLayers();renderLooks();render();}
-function renderPanel(){const T=selT();$('txt').value=T?T.text:'';$('txt').disabled=!T;setTimeout(updateSums,0);
+function renderPanel(){const T=selT();$('txt').value=T?T.text:'';$('txt').disabled=!T;setTimeout(updateSums,0);renderSpeakerRow();
   const none=h('p',{class:'help'},'Tap some text on the picture, or press + Text.');
   ['fontF','colorF','outF','shadowF','depthF','boxF','placeF'].forEach(id=>{const el=$(id);el.innerHTML='';if(!T)el.append(none.cloneNode(true));});
   renderPic();renderSave();renderLayers();if(paneT!==S.sel){paneT=S.sel;renderLooks();}if(!T){render();return;}needFont(T.font);
@@ -793,12 +995,27 @@ function renderPanel(){const T=selT();$('txt').value=T?T.text:'';$('txt').disabl
   /* size, place and turn */
   $('placeF').append(h('div',{class:'grid2'},rangeF('px','Across',0,1,.001,clamp(T.x,0,1),v=>pct(v),ch((T,v)=>{const d=v-T.x;T.x=v;T.box.tx+=d;})),rangeF('py','Up and down',0,1,.001,clamp(T.y,0,1),v=>pct(v),ch((T,v)=>{const d=v-T.y;T.y=v;T.box.ty+=d;}))),
     rangeF('rot','Turn',-180,180,1,T.rot,deg,ch((T,v)=>T.rot=v)),
+    h('div',{class:'row'},checkF('psnap','Snap to guides',PLACE.snap,v=>{PLACE.snap=v;savePlace();}),checkF('psafe','Keep inside a safe margin',PLACE.safe,v=>{PLACE.safe=v;savePlace();})),
+    h('div',{class:'row'},h('button',{type:'button',id:'faceThis',onclick:()=>avoidFaces('one')},'Move text off faces'),PAGES.length>1?h('button',{type:'button',id:'faceAll',onclick:()=>avoidFaces('all')},'…on every picture'):null),
+    h('p',{class:'help'},'Finds faces on this device (the first time it gets the face finder, about 14 MB) and moves any text covering one. Bubble tails keep pointing where they did.'),
     h('div',{class:'row'},h('button',{type:'button',onclick:()=>moveTo(.5,null)},'Center across'),h('button',{type:'button',onclick:()=>moveTo(null,.5)},'Center up and down'),h('button',{type:'button',onclick:()=>moveTo(null,.12)},'Top'),h('button',{type:'button',onclick:()=>moveTo(null,.88)},'Bottom'),h('button',{type:'button',onclick:()=>ch((T)=>T.rot=0,true)()},'Straighten')));
   render();}
 function moveTo(x,y){const T=selT();if(!T)return;if(x!=null){T.box.tx=clamp(T.box.tx+x-T.x,0,1);T.x=x;}if(y!=null){T.box.ty=clamp(T.box.ty+y-T.y,0,1);T.y=y;}fixTail(T);commit();renderPanel();}
 function syncPlace(){const T=selT();if(!T)return;const set=(id,v,txt)=>{const i=$(id);if(!i)return;i.value=v;const o=i.parentElement.querySelector('output');if(o&&txt)o.textContent=txt;};
   set('px',T.x,pct(T.x));set('py',T.y,pct(T.y));set('rot',T.rot,deg(T.rot));set('sz',T.size,Math.round(T.size*IH())+' px');}
 $('txt').oninput=()=>{const T=selT();if(!T)return;T.text=$('txt').value;render();commitSoon();renderLayers();};
+/* ---------- the word buttons: wrap the selected words in a style ---------- */
+let WSEL=null;
+function wrapWords(kind,color){const ta=$('txt'),T=selT();if(!T)return;const sel=WSEL||{a:ta.selectionStart,b:ta.selectionEnd};WSEL=null;let{a,b}=sel,v=ta.value;
+  if(kind==='clear'){if(a===b){T.text=plainText(v);}else{T.text=v.slice(0,a)+plainText(v.slice(a,b))+v.slice(b);}ta.value=T.text;commit();render();renderLayers();toast(a===b?'Styling taken off all the words.':'Styling taken off those words.');return;}
+  if(a===b){/* nothing selected: the word the cursor is in */const before=v.slice(0,a).match(/[^\s\[\]]*$/)[0].length,after=v.slice(a).match(/^[^\s\[\]]*/)[0].length;a-=before;b+=after;if(a===b){toast('Select some words in the text first.');ta.focus();return;}}
+  const open=kind==='c'?`[c=${color}]`:`[${kind}]`,close=kind==='c'?'[/c]':`[/${kind}]`;T.text=v.slice(0,a)+open+v.slice(a,b)+close+v.slice(b);ta.value=T.text;
+  commit();render();renderLayers();ta.focus();ta.setSelectionRange(a+open.length,b+open.length);}
+document.querySelectorAll('.wordbar button[data-w]').forEach(btn=>{btn.onmousedown=e=>e.preventDefault();btn.onclick=()=>{const k=btn.dataset.w,ta=$('txt');
+  if(k==='c'){WSEL={a:ta.selectionStart,b:ta.selectionEnd};if(WSEL.a===WSEL.b){toast('Select some words in the text first.');WSEL=null;ta.focus();return;}
+    const T=selT();openPicker(btn,'Color for these words',T?T.color:'#FF4D4D',()=>{},c=>{if(WSEL)wrapWords('c',c);});return;}
+  wrapWords(k);};});
+$('txt').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&(e.key==='b'||e.key==='i')){e.preventDefault();wrapWords(e.key);}});
 /* what each closed section has in it */
 function updateSums(){const T=selT();if(!T){['Font','Color','Outline','Shadow and glow','3D and curve','Box and bubble','Size, place and turn'].forEach(n=>setSum(n,''));}
   else{const BK={none:'',box:'box',round:'rounded box',pill:'pill',lines:'each line',speech:'speech bubble',oval:'round bubble',thought:'thought',shout:'shout',tag:'tag',bar:'strip across'};
@@ -823,7 +1040,7 @@ $('fClose').onclick=()=>{$('fmodal').hidden=true;renderPanel();};
 $('fmodal').addEventListener('click',e=>{if(e.target===$('fmodal')){$('fmodal').hidden=true;renderPanel();}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('fmodal').hidden){$('fmodal').hidden=true;renderPanel();}});
 $('fSearch').oninput=()=>renderFonts();
-function renderFonts(){const T=selT(),q=$('fSearch').value.trim().toLowerCase(),sample=(T&&T.text.split('\n')[0].slice(0,24))||'Hello there';
+function renderFonts(){const T=selT(),q=$('fSearch').value.trim().toLowerCase(),sample=(T&&plainText(T.text).split('\n')[0].slice(0,24))||'Hello there';
   $('fCats').innerHTML='';FONT_KINDS.forEach(([k,l])=>$('fCats').append(h('button',{type:'button','aria-pressed':String(k===FCAT),onclick:()=>{FCAT=k;renderFonts();}},l)));
   const list=$('fList');list.innerHTML='';const match=f=>!q||f.name.toLowerCase().includes(q);
   let all=FCAT==='fav'?favFonts().filter(match):FCAT==='recent'?recentFonts().filter(match):Object.values(FONTS).filter(f=>(FCAT==='all'||f.kind===FCAT)&&match(f));
@@ -924,7 +1141,7 @@ function thumbOf(pg){const W0=pg.bg.w||1080,H0=pg.bg.h||1080,k=Math.min(240/W0,1
 let stripT=0;const renderStripSoon=()=>{clearTimeout(stripT);stripT=setTimeout(renderStrip,300);};
 function renderStrip(){const el=$('strip');if(!el)return;stash();el.innerHTML='';
   PAGES.forEach((pg,i)=>el.append(h('div',{class:'pg',role:'button',tabindex:'0','aria-current':String(i===CUR),'aria-label':`Picture ${i+1}${pg.name?': '+pg.name:''}`,title:pg.name||`Picture ${i+1}`,onclick:()=>{if(i!==CUR)showPage(i);},onkeydown:e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showPage(i);}}},
-    thumbOf(pg),h('b',{},String(i+1)),h('span',{},(pg.texts[0]&&pg.texts[0].text.split('\n')[0])||pg.name||'No text'))));
+    thumbOf(pg),h('b',{},String(i+1)),h('span',{},(pg.texts[0]&&plainText(pg.texts[0].text).split('\n')[0])||pg.name||'No text'))));
   const add=h('input',{type:'file',id:'stripAdd',accept:'image/*',multiple:true});add.onchange=()=>{const fs=[...add.files];add.value='';if(fs.length)addPictures(fs);};
   el.append(h('label',{class:'btn addpg',for:'stripAdd',title:'Add pictures to this project'},'+ Add pictures',add));
   el.append(h('div',{class:'pgacts'},h('button',{type:'button',id:'pgDup',title:'A copy of this picture with its text',onclick:()=>{stash();const pg=PAGES[CUR],c=newPage({bg:{...pg.bg},img:pg.img,blob:pg.blob,name:pg.name,texts:cleanTexts(pg.texts).map(t=>({...t,id:'t_'+rkey()}))});c.sel=c.texts.length?c.texts[c.texts.length-1].id:null;PAGES.splice(CUR+1,0,c);showPage(CUR+1);}},'Duplicate'),
