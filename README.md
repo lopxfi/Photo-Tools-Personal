@@ -18,7 +18,7 @@ A small set of personal browser tools for dressing up photos, making short video
 | [Chat Reel](#chat-reel) | Turns a text conversation into a video, timing every message on a timeline. Group chats, reactions, replies, voice notes and unsent messages, in iPhone, Android, DM, WhatsApp-style, Discord-style or lock-screen looks, or as a sci-fi transmission screen, a retro game cutscene, a video call, a social post with comments, or bubbles over your own video. |
 | [Metadata Scrubber](#metadata-scrubber) | Strips prompts, location and hidden data out of photos and videos and saves clean copies under random names, optionally under a size limit. |
 | [Watermark](#watermark) | Puts your name or logo on one photo or a whole batch, with ready-made looks (corner signature, label, stamp, proof band, tiled) or your own saved watermarks. |
-| [Background Remover](#background-remover) | Takes the background out of photos (people, animals, everyday things, or anything on a plain background), with a touch-up brush, and saves them see-through, on a color or on a blur, optionally with a sticker outline. |
+| [Background Remover](#background-remover) | Takes the background out of photos and videos: people, animals, everyday things, a plain background or green screen, or any color you pick like a chroma key. Touch-up brush for photos, and see-through, color, blurred or picture backgrounds. |
 | [Video Layers](#video-layers) | Puts pictures, videos, text, music and your voice together and exports a new video or GIF. Automatic background removal, green screen, motion paths with keyframes and one-tap layouts. |
 | [Delivery Reel](#delivery-reel) | Plays out an order from a made-up delivery app, from placed to delivered, and ends on the delivered screen. A courier chat on the way and a doorstep photo or video that opens full screen. |
 | [Visual Novel](#visual-novel) | Scenes with characters, expressions and choices that branch. Play it in the page, export a video of a path, or save a playable file anyone can open. |
@@ -366,28 +366,31 @@ For videos, add your logo or text as a layer in [Video Layers](#video-layers).
 
 ## Background Remover
 
-Takes the background out of your photos. Add one photo or a whole batch; each one is done on your device, one after another.
+Takes the background out of photos and videos. Add one file or a whole batch; each one is done on your device, one after another.
 
 ### What to keep
 - **People:** faces, bodies and hair.
 - **People and animals:** also cats, dogs, horses, birds and farm animals.
 - **Anything it knows:** also cars, bikes, furniture, plants, bottles and screens.
-- **Plain background:** no AI, just color. Anything on one even color (a logo, a drawing, a product on white) comes out clean, including small text. Tick **Also remove it inside shapes** to clear the holes in letters and gaps too. This choice works inside Claude as well.
+- **Plain background or green screen:** no AI, just color, found by itself. On a photo, anything on one even color (a logo, a drawing, a product on white) comes out clean, including small text; tick **Also remove it inside shapes** to clear the holes in letters and gaps too. On a video, the screen color is found from the edges and keyed out of every frame, like a green screen.
+- **Remove a color:** like a chroma key in a video editor. Pick the color (green, blue, white, black, any color, or tap it in the picture with **Pick from the picture**) and it turns see-through wherever it shows up. **How much to remove**, **Soft edge** and **Clean up colored edges** (takes the green or blue tint off hair and edges).
 
-On a plain wall or studio paper, the AI choices also check the background's color, so the edge follows the real outline and the light or dark rim around it is taken out.
+On a plain wall or studio paper, the AI choices also check the background's color, so the edge follows the real outline and the light or dark rim around it is taken out. "Plain background" and "Remove a color" work inside Claude too.
 
 ### Edges and touch-ups
-- **Tighter or looser** and **Soft edge** sliders.
+- **Tighter or looser** (AI choices) and **Soft edge** sliders, and **Steadier edges** for videos so the outline doesn't flicker.
 - **Remove small leftover bits and fill pinholes** (on by default).
-- **Touch-up brush:** Erase takes more away, Keep brings parts back. Removed parts show faintly while you paint. Undo or clear the strokes; each photo keeps its own.
-- **Hold to see the original** to compare.
+- **Touch-up brush (photos):** Erase takes more away, Keep brings parts back. Removed parts show faintly while you paint. Undo or clear the strokes; each photo keeps its own.
+- **Hold to see the original** to compare. Videos have play and a bar to move through them.
 
 ### Background and saving
-- **Behind it:** see-through, a color, or a blurred copy of the photo.
-- **Sticker outline** in any color and width, and **Crop to what's kept** with your own space around it.
-- **Save as** PNG or WebP (see-through) or JPG, with an optional size limit, random names or your names with `-nobg`. Save one, all, or a ZIP, or share from your phone. Saved copies have none of the original's hidden data.
+- **Behind it:** see-through, a color, a blurred copy of the photo or video, or **a picture** of your own.
+- **Sticker outline** in any color and width, and for photos **Crop to what's kept** with your own space around it.
+- **Photos** save as PNG or WebP (see-through) or JPG, with an optional size limit.
+- **Videos** save as MP4 or WebM, at their own size or 1280 or 720, with their sound. A see-through video is saved as WebM, which keeps the see-through parts (it plays in Chrome and on Android, and editors that take WebM can lay it over other clips). Saving does every frame first for the AI choices, then the video plays through once while it records, so keep the tab in front.
+- **Names:** random, or your names with `-nobg`. Save one, all, or a ZIP, or share from your phone. Saved copies have none of the original's hidden data.
 
-The AI is the same on-device background remover Video Layers uses (Google's MediaPipe, in `vendor/mediapipe/`). It downloads about 14 MB the first time and is kept for next time, including offline. For videos, use **Remove background** in [Video Layers](#video-layers).
+The AI is the same on-device background remover Video Layers uses (Google's MediaPipe, in `vendor/mediapipe/`). It downloads about 14 MB the first time and is kept for next time, including offline. Video Layers keeps its own **Remove background** and **Green screen** for layers inside a bigger edit.
 
 ---
 

@@ -114,6 +114,8 @@ canvas#cv.brush{cursor:crosshair}
 .under{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .under .help{flex:1;min-width:200px}
 .under .warn{color:var(--warn)}
+#seek{flex:1;min-width:120px;accent-color:var(--accent)}
+#vtime{flex:none;min-width:0;font-variant-numeric:tabular-nums}
 .photos{grid-area:photos;display:flex;flex-direction:column;gap:12px}
 .phead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .plist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
@@ -156,7 +158,7 @@ canvas#cv.brush{cursor:crosshair}
 <header class="top">
   <h1 class="brand">Background <span>Remover</span></h1>
   <nav class="switch" aria-label="Switch tool"><a href="photo-frame-studio.html">Frame Studio</a><a href="photo-splitter.html">Splitter</a><a href="chat-reel.html">Chat Reel</a><a href="metadata-scrubber.html">Scrubber</a><a href="watermark.html">Watermark</a><a href="background-remover.html" aria-current="page">BG Remover</a><a href="video-layers.html">Video</a><a href="delivery-reel.html">Delivery</a><a href="visual-novel.html">Novel</a><a href="motion-comic.html">Comic</a></nav>
-  <p>Take the background out of your photos, one at a time or a whole batch.</p>
+  <p>Take the background out of your photos and videos, one at a time or a whole batch.</p>
 </header>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -178,10 +180,13 @@ canvas#cv.brush{cursor:crosshair}
       <canvas id="cv" width="1100" height="700" aria-label="The selected photo with its background removed"></canvas>
       <div class="ring" id="ring" hidden></div>
       <div class="busy" id="busy" hidden></div>
-      <label class="btn primary cta" id="cta" for="pick2">Choose your photos<input type="file" id="pick2" accept="image/*" multiple></label>
+      <label class="btn primary cta" id="cta" for="pick2">Choose photos or videos<input type="file" id="pick2" accept="image/*,video/*" multiple></label>
     </div>
     <div class="under">
       <p class="help" id="hint"></p>
+      <button type="button" id="playBtn" hidden>▶ Play</button>
+      <input type="range" id="seek" min="0" max="1000" step="1" value="0" aria-label="Where in the video" hidden>
+      <span class="help" id="vtime" hidden></span>
       <button type="button" id="origBtn" hidden>Hold to see the original</button>
     </div>
   </section>
@@ -189,7 +194,7 @@ canvas#cv.brush{cursor:crosshair}
   <section class="card photos" aria-label="Your photos">
     <div class="phead">
       <h2 class="label" id="pCount">Your photos</h2>
-      <label class="btn" for="pick">Add photos<input type="file" id="pick" accept="image/*" multiple></label>
+      <label class="btn" for="pick">Add photos or videos<input type="file" id="pick" accept="image/*,video/*" multiple></label>
       <button type="button" id="clearAll" hidden>Remove all</button>
       <span class="spacer"></span>
       <button type="button" id="shareBtn" hidden>Share</button>
@@ -197,7 +202,7 @@ canvas#cv.brush{cursor:crosshair}
       <button type="button" id="saveZip">Save as ZIP</button>
     </div>
     <ul class="plist" id="plist"></ul>
-    <p class="empty" id="empty">Add photos, drop them here, or paste them. Each one is done on this device; nothing is uploaded.</p>
+    <p class="empty" id="empty">Add photos or videos, drop them here, or paste them. Each one is done on this device; nothing is uploaded.</p>
     <p class="help" id="saveHelp"></p>
     <p class="status" id="status" role="status"></p>
   </section>
@@ -239,14 +244,17 @@ const MODES=[
   ['people','People','Faces, bodies, hair'],
   ['animals','People and animals','Also cats, dogs, horses, birds and farm animals'],
   ['things','Anything it knows','Also cars, bikes, furniture, plants, bottles, screens'],
-  ['color','Plain background','Any subject on one color: logos, drawings, products']];
+  ['color','Plain background or green screen','Logos, drawings, products on one color, or a video’s green screen, found by itself'],
+  ['key','Remove a color','Pick any color, like a chroma key. It goes wherever it shows up']];
 const DEF=()=>({v:1,what:'people',fit:0,edge:.3,specks:true,tol:.35,holes:false,
   bg:'none',bgColor:'#FFFFFF',blur:.5,outline:false,outlineColor:'#FFFFFF',outlineSize:1.5,crop:false,pad:4,
-  brush:'off',brushSize:4,fmt:'png',q:.92,maxSide:0,names:'random'});
+  brush:'off',brushSize:4,fmt:'png',q:.92,maxSide:0,names:'random',
+  steady:.5,spill:.5,pick:'#00B140',vfmt:'mp4',vmax:1280});
 let S=DEF();
 let PHOTOS=[];      /* {id, blob, name, w, h, thumb, strokes, ai:{key, a, w, h}, mask:{sig, w, h, a, pl}, st} */
 let SEL=-1;
 let CUR=null;       /* the selected photo, decoded: {id, img} */
+let BGPIC=null;     /* your own picture to put behind: {blob, img} */
 const WR=1280;      /* the size the cut is worked out at; the saved photo uses its full size */
 
 /* ================= the background remover: AI models that find people, animals and things ================= */
@@ -292,11 +300,13 @@ function cutMsg(){
 function cutStatus(){showBusy();}
 /* the upright or wide people model, plus the bigger model for animals and things */
 function modelsFor(what,w,h){const pm=w/h>1.15?'selfie_segmenter_landscape':'selfie_segmenter';return what==='people'?[pm]:[pm,'deeplab_v3'];}
+/* the AI choices; “Plain background” and “Remove a color” work by color alone */
+const isAI=()=>S.what!=='color'&&S.what!=='key';
 const ANIMALS=['cat','dog','horse','sheep','cow','bird'];
 /* how sure the models are, 0 to 1, that each spot belongs to what you keep, at the working size */
-function runAI(what,src,w,h){
+function runAI(what,src,w,h,inSize){
   const ns=modelsFor(what,w,h),out=new Float32Array(w*h);
-  const k=512/Math.max(w,h),iw=Math.max(8,Math.round(w*k)),ih=Math.max(8,Math.round(h*k));
+  const k=(inSize||512)/Math.max(w,h),iw=Math.max(8,Math.round(w*k)),ih=Math.max(8,Math.round(h*k));
   const ic=document.createElement('canvas');ic.width=iw;ic.height=ih;ic.getContext('2d').drawImage(src,0,0,iw,ih);
   for(const n of ns)CUT.segs[n].segment(ic,r=>{const ms=r.confidenceMasks||[];if(!ms.length)return;
     let idx=[0];if(n==='deeplab_v3'){const lab=CUT.labels;idx=what==='animals'?ANIMALS.map(x=>lab.indexOf(x)).filter(i=>i>0):lab.map((_,i)=>i).filter(i=>i>0&&!/^(background|diningtable|dining table)$/.test(lab[i]));}/* a table is what things sit on, not the subject */
@@ -434,7 +444,7 @@ function applyStrokes(a,p,w,h){const L=strokeLayer(p,w,h);if(!L)return;
 async function decode(blob){try{return await createImageBitmap(blob);}catch(e){}
   return await new Promise(res=>{const i=new Image(),u=URL.createObjectURL(blob);i.onload=()=>res(i);i.onerror=()=>{URL.revokeObjectURL(u);res(null);};i.src=u;});}
 const closeImg=im=>{try{im&&im.close&&im.close();}catch(e){}};
-const cutSig=()=>JSON.stringify([S.what,S.fit,S.edge,S.specks,S.what==='color'?[S.tol,S.holes]:0]);
+const cutSig=()=>JSON.stringify([S.what,S.fit,S.edge,S.specks,S.what==='color'?[S.tol,S.holes]:S.what==='key'?[S.tol,S.pick]:0]);
 let WORK=null;/* the selected photo at the working size: {id, w, h, d} */
 async function workOf(p){if(WORK&&WORK.id===p.id)return WORK;
   const img=await decode(p.blob);if(!img)throw new Error('it couldn’t be opened');
@@ -445,13 +455,14 @@ async function workOf(p){if(WORK&&WORK.id===p.id)return WORK;
 async function autoCut(p,W){const sig=cutSig();if(p.auto&&p.auto.sig===sig)return p.auto;
   const{w,h,d}=W,n=w*h;let a,pl=null,note='';
   if(S.what==='color'){const r=colorCut(d,w,h);a=r.a;pl=r.pl;if(r.share<.4)note='mixed';}
+  else if(S.what==='key'){const dd=new Uint8ClampedArray(d);chroma(dd,keyParams(null));a=new Float32Array(n);for(let i=0;i<n;i++)a[i]=dd[i*4+3]/255;}
   else{
     if(!await cutEnsure(modelsFor(S.what,w,h)))throw Object.assign(new Error('ai'),{ai:true});
     const key=S.what+':'+w+'x'+h;if(!p.ai||p.ai.key!==key){const f=runAI(S.what,W.c,w,h),u8=new Uint8Array(n);for(let i=0;i<n;i++)u8[i]=f[i]*255+.5;p.ai={key,a:u8};}
     const ai=new Float32Array(n);for(let i=0;i<n;i++)ai[i]=p.ai.a[i]/255;
     const pr=plainCut(ai,d,w,h);
     if(pr){a=pr.a;pl=pr.pl;}else a=shapeEdge(followEdges(ai,d,w,h),n);}
-  if(S.specks)dropSpecks(a,w,h,S.what==='color');
+  if(S.specks)dropSpecks(a,w,h,!isAI());
   let sum=0;for(let i=0;i<n;i++)sum+=a[i];if(sum<n*.003)note='none';
   p.auto={sig,a,pl,note,w,h};return p.auto;}
 async function cutOf(p){
@@ -471,46 +482,230 @@ function unmix(g,w,h,pl){let im;try{im=g.getImageData(0,0,w,h);}catch(e){return;
   for(let y=0,i=0;y<h;y++){const fy=y/h;for(let x=0;x<w;x++,i+=4){const a=d[i+3];if(a===0||a>=250)continue;const fx=x/w,al=Math.max(a/255,.08);
     for(let ch=0;ch<3;ch++){const B=atP(pl[ch],fx,fy),v=B+(d[i+ch]-B)/al;d[i+ch]=v<0?0:v>255?255:v;}}}
   g.putImageData(im,0,0);}
-/* the photo at W×H with its background gone, plus the outline, new background and crop you picked.
-   opts: ghost (show what's removed, faintly), noCrop */
-function compose(img,mask,W,H,opts){opts=opts||{};
+/* the subject at W×H with its background gone, plus the outline, new background and crop you picked.
+   opts: ghost (show what's removed, faintly), noCrop, preview, video. src is the original (for a blurred background) */
+function compose(img,mask,W,H,opts){
   const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
   g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(img,0,0,W,H);
   g.globalCompositeOperation='destination-in';g.drawImage(mask.c,0,0,W,H);g.globalCompositeOperation='source-over';
   if(mask.pl&&W*H<=36e6)unmix(g,W,H,mask.pl);
+  if(S.what==='key'&&S.spill>0&&W*H<=36e6){try{const im=g.getImageData(0,0,W,H);chroma(im.data,keyParams(null),true);g.putImageData(im,0,0);}catch(e){}}
+  return finish(c,img,W,H,opts,mask.box);}
+function drawCover(g,img,W,H){const s=Math.max(W/img.width,H/img.height),w=img.width*s,h=img.height*s;g.drawImage(img,(W-w)/2,(H-h)/2,w,h);}
+function finish(c,src,W,H,opts,box){opts=opts||{};const g=c.getContext('2d');
   const u=Math.min(W,H)/100;let ow=0;
   if(S.outline){ow=Math.max(1,S.outlineSize*u);
     const s=document.createElement('canvas');s.width=W;s.height=H;const sg=s.getContext('2d');sg.drawImage(c,0,0);sg.globalCompositeOperation='source-in';sg.fillStyle=S.outlineColor;sg.fillRect(0,0,W,H);
     const o=document.createElement('canvas');o.width=W;o.height=H;const og=o.getContext('2d'),steps=Math.max(12,Math.min(48,Math.round(ow*2)));
     for(let r=ow;r>0;r-=Math.max(1,ow/3))for(let k=0;k<steps;k++){const t=k/steps*Math.PI*2;og.drawImage(s,Math.cos(t)*r,Math.sin(t)*r);}
     og.drawImage(s,0,0);og.drawImage(c,0,0);g.clearRect(0,0,W,H);g.drawImage(o,0,0);s.width=o.width=0;}
-  if(opts.ghost){g.globalCompositeOperation='destination-over';g.globalAlpha=.28;g.drawImage(img,0,0,W,H);g.globalAlpha=1;}
-  else if(S.bg==='color'||S.bg==='blur'||(S.fmt==='jpg'&&!opts.preview)){g.globalCompositeOperation='destination-over';
+  const pic=S.bg==='pic'&&BGPIC&&BGPIC.img;
+  if(opts.ghost){g.globalCompositeOperation='destination-over';g.globalAlpha=.28;g.drawImage(src,0,0,W,H);g.globalAlpha=1;}
+  else if(S.bg==='color'||S.bg==='blur'||pic||(S.fmt==='jpg'&&!opts.preview&&!opts.video)){g.globalCompositeOperation='destination-over';
     if(S.bg==='blur'){const r=Math.max(1,S.blur*.035*Math.max(W,H)),pd=r*2;
-      if(HAS_FILTER){g.filter=`blur(${r.toFixed(1)}px)`;g.drawImage(img,-pd,-pd,W+pd*2,H+pd*2);g.filter='none';}
-      else{const t=document.createElement('canvas'),tw=Math.max(4,Math.round(72-60*S.blur));t.width=tw;t.height=Math.max(4,Math.round(tw*H/W));const tg=t.getContext('2d');tg.drawImage(img,0,0,t.width,t.height);g.drawImage(t,0,0,W,H);}}
+      if(HAS_FILTER){g.filter=`blur(${r.toFixed(1)}px)`;g.drawImage(src,-pd,-pd,W+pd*2,H+pd*2);g.filter='none';}
+      else{const t=document.createElement('canvas'),tw=Math.max(4,Math.round(72-60*S.blur));t.width=tw;t.height=Math.max(4,Math.round(tw*H/W));const tg=t.getContext('2d');tg.drawImage(src,0,0,t.width,t.height);g.drawImage(t,0,0,W,H);}}
+    else if(pic)drawCover(g,pic,W,H);
     else{g.fillStyle=S.bg==='color'?S.bgColor:'#FFFFFF';g.fillRect(0,0,W,H);}}
   g.globalCompositeOperation='source-over';
-  if(S.crop&&!opts.noCrop&&mask.box){const pad=S.pad*u+ow,[a,b,cc,dd]=mask.box;
+  if(S.crop&&!opts.noCrop&&box){const pad=S.pad*u+ow,[a,b,cc,dd]=box;
     const x0=Math.max(0,Math.floor(a*W-pad)),y0=Math.max(0,Math.floor(b*H-pad)),x1=Math.min(W,Math.ceil(cc*W+pad)),y1=Math.min(H,Math.ceil(dd*H+pad));
     if(x1-x0>2&&y1-y0>2&&(x1-x0<W||y1-y0<H)){const k=document.createElement('canvas');k.width=x1-x0;k.height=y1-y0;k.getContext('2d').drawImage(c,-x0,-y0);c.width=0;return k;}}
   return c;}
+
+/* ================= videos ================= */
+/* Videos are done frame by frame. The preview works out each frame as it plays. Saving first works out every frame
+   (for the AI choices), then plays the video through once while it records, so it takes about as long as the video. */
+const isVid=f=>/^video\//.test(f.type)||/\.(mp4|mov|m4v|webm|mkv|3gp)$/i.test(f.name||'');
+const isMedia=f=>isImg(f)||isVid(f);
+const isVideo=p=>!!p&&p.kind==='video';
+function waitEvt(el,ev,ms=8000){return new Promise(res=>{let done=false;const f=()=>{if(done)return;done=true;el.removeEventListener(ev,f);res(true);};el.addEventListener(ev,f);setTimeout(()=>{if(!done){done=true;el.removeEventListener(ev,f);res(false);}},ms);});}
+const VG=480,VM=256,VMAX_FR=1800;/* the AI's answer is worked out at 256 pixels, its edge at 480; up to 1,800 frames are kept */
+const fmtT=s=>{s=Math.max(0,Math.round(s||0));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+const vSig=()=>JSON.stringify([S.what,S.fit,S.edge,S.specks,isAI()?0:[S.tol,S.spill,S.what==='key'?S.pick:0]]);
+/* ---- green screen: knock out one color ---- */
+function hexRgb(hex){const n=parseInt(String(hex).slice(1),16)||0;return[n>>16&255,n>>8&255,n&255];}
+const toHex=a=>'#'+a.map(v=>clamp(Math.round(v),0,255).toString(16).padStart(2,'0')).join('').toUpperCase();
+const cbOf=(r,g,b)=>-.168736*r-.331264*g+.5*b,crOf=(r,g,b)=>.5*r-.418688*g-.081312*b;
+/* how far each pixel's color is from the screen color, on hue and saturation only, so shadows on the screen still go */
+function chroma(d,k,spillOnly){
+  const[kr,kg,kb]=hexRgb(k.color),kcb=cbOf(kr,kg,kb),kcr=crOf(kr,kg,kb),kl=Math.max(22,Math.hypot(kcb,kcr));
+  const t0=k.tol,t1=k.tol+Math.max(.02,k.soft),sp=k.spill,near=t1+.35,dom=kg>=kr&&kg>=kb?1:kb>=kr?2:0;
+  for(let i=0;i<d.length;i+=4){const r=d[i],g=d[i+1],b=d[i+2],nd=Math.hypot(cbOf(r,g,b)-kcb,crOf(r,g,b)-kcr)/kl;
+    if(nd<=t0){if(!spillOnly)d[i+3]=0;continue;}
+    if(sp>0&&nd<near){const f=sp*(nd<t1?1:1-(nd-t1)/(near-t1));
+      if(dom===1){const m=Math.max(r,b);if(g>m)d[i+1]=g-(g-m)*f;}else if(dom===2){const m=Math.max(r,g);if(b>m)d[i+2]=b-(b-m)*f;}else{const m=Math.max(g,b);if(r>m)d[i]=r-(r-m)*f;}}
+    if(nd<t1&&!spillOnly){const a=(nd-t0)/(t1-t0);d[i+3]=d[i+3]*a*a*(3-2*a);}}}
+function keyParams(item){return{color:S.what==='key'?S.pick:(item&&item.key)||'#00B140',tol:.06+S.tol*.5,soft:.04+S.edge*.3,spill:S.spill};}
+/* guess the screen color from the edges of a frame: the most common strong color there */
+function guessKey(c){const N=64,t=document.createElement('canvas');t.width=t.height=N;const g=t.getContext('2d',{willReadFrequently:true});g.drawImage(c,0,0,N,N);
+  const d=g.getImageData(0,0,N,N).data,fam={g:[0,0,0,0],b:[0,0,0,0],o:[0,0,0,0]};let n=0;
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){if(x>4&&x<N-5&&y>4&&y<N-5)continue;const i=(y*N+x)*4,r=d[i],gg=d[i+1],bb=d[i+2];n++;
+    const f=gg>r+25&&gg>bb+15?fam.g:bb>r+25&&bb>gg+10?fam.b:fam.o;f[0]+=r;f[1]+=gg;f[2]+=bb;f[3]++;}
+  const best=fam.g[3]>=fam.b[3]?fam.g:fam.b;if(best[3]>=n*.12)return toHex([best[0]/best[3],best[1]/best[3],best[2]/best[3]]);
+  const o=fam.o;return o[3]?toHex([o[0]/o[3],o[1]/o[3],o[2]/o[3]]):'#00B140';}
+/* ---- one frame ---- */
+/* the subject of one frame (src: a playing video, or a canvas holding a frame) cut out at W×H.
+   ai: the AI's answer for this frame, if it was worked out ahead of time */
+const VGC=document.createElement('canvas'),VGG=VGC.getContext('2d',{willReadFrequently:true});
+function frameCut(item,src,W,H,ai){
+  const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d',{willReadFrequently:!isAI()});
+  g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';g.drawImage(src,0,0,W,H);
+  if(!isAI()){let im;try{im=g.getImageData(0,0,W,H);}catch(e){return c;}chroma(im.data,keyParams(item));g.putImageData(im,0,0);return c;}
+  const k=Math.min(1,VG/Math.max(item.w,item.h)),gw=Math.max(8,Math.round(item.w*k)),gh=Math.max(8,Math.round(item.h*k)),n=gw*gh;
+  if(VGC.width!==gw||VGC.height!==gh){VGC.width=gw;VGC.height=gh;}
+  VGG.drawImage(src,0,0,gw,gh);const d=VGG.getImageData(0,0,gw,gh).data;
+  const p=ai?upsample(ai.a,ai.w,ai.h,gw,gh):runAI(S.what,VGC,gw,gh,256);
+  const a=shapeEdge(followEdges(p,d,gw,gh),n);if(S.specks)dropSpecks(a,gw,gh,false);
+  const mc=document.createElement('canvas');mc.width=gw;mc.height=gh;const mg=mc.getContext('2d'),mi=mg.createImageData(gw,gh);
+  for(let i=0;i<n;i++)mi.data[i*4+3]=a[i]*255;mg.putImageData(mi,0,0);
+  g.globalCompositeOperation='destination-in';g.drawImage(mc,0,0,W,H);g.globalCompositeOperation='source-over';mc.width=0;
+  return c;}
+const aiReady=item=>!isAI()||modelsFor(S.what,item.w,item.h).every(n=>CUT.segs[n]);
+/* ---- adding a video ---- */
+async function addVideo(blob,name,quiet){
+  const url=URL.createObjectURL(blob),v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src=url;
+  const ok=await waitEvt(v,'loadeddata',15000);
+  if(!ok||!v.videoWidth){URL.revokeObjectURL(url);if(!quiet)toast(`${name||'That video'} couldn’t be opened here. Try an MP4.`);return null;}
+  let dur=v.duration;
+  if(!isFinite(dur)||!dur){v.currentTime=1e7;await waitEvt(v,'seeked',5000);dur=v.currentTime||1;}
+  v.currentTime=Math.min(.2,dur/3);await waitEvt(v,'seeked',4000);
+  const W=v.videoWidth,H=v.videoHeight,k=Math.min(1,320/Math.max(W,H)),t=document.createElement('canvas');t.width=Math.max(1,Math.round(W*k));t.height=Math.max(1,Math.round(H*k));t.getContext('2d').drawImage(v,0,0,t.width,t.height);
+  const gk=Math.min(1,VG/Math.max(W,H)),po=document.createElement('canvas');po.width=Math.max(8,Math.round(W*gk));po.height=Math.max(8,Math.round(H*gk));po.getContext('2d').drawImage(v,0,0,po.width,po.height);
+  v.removeAttribute('src');try{v.load();}catch(e){}
+  const p={id:nextId++,kind:'video',blob,url,name:name||'video',w:W,h:H,dur,thumb:t,poster:po,key:guessKey(po),strokes:[],st:'waiting',tres:null,tsig:''};
+  PHOTOS.push(p);return p;}
+/* the small copy in the list shows the first frame with its background gone */
+async function videoThumb(item){const sig=vSig();if(item.tres&&item.tsig===sig)return;
+  if(!aiReady(item)&&!await cutEnsure(modelsFor(S.what,item.w,item.h))){item.st='failed';lastErr='ai';return;}
+  item.tres=frameCut(item,item.poster,item.thumb.width,item.thumb.height,null);item.tsig=sig;item.st='done';}
+/* ---- the preview player ---- */
+let PL=null;
+function player(item){if(PL&&PL.id===item.id)return PL.v;
+  stopPlayer();const v=document.createElement('video');v.playsInline=true;v.preload='auto';v.loop=true;v.src=item.url;
+  v.addEventListener('loadeddata',()=>render());v.addEventListener('seeked',()=>{if(v.paused)render();});
+  v.addEventListener('play',()=>{syncTransport();loopPreview();});v.addEventListener('pause',()=>{syncTransport();render();});
+  v.addEventListener('timeupdate',syncTransport);
+  PL={id:item.id,v};syncTransport();return v;}
+function stopPlayer(){if(PL){const v=PL.v;PL=null;try{v.pause();}catch(e){}v.removeAttribute('src');try{v.load();}catch(e){}}syncTransport();}
+let looping=false;
+function loopPreview(){if(looping)return;looping=true;const step=()=>{if(!PL||PL.v.paused){looping=false;return;}drawVideoPreview();requestAnimationFrame(step);};requestAnimationFrame(step);}
+let seeking=false;
+function syncTransport(){const p=curPhoto(),on=isVideo(p)&&!!PL;['playBtn','seek','vtime'].forEach(id=>$(id).hidden=!on);if(!on)return;
+  const v=PL.v,d=p.dur||v.duration||1;$('playBtn').textContent=v.paused?'▶ Play':'❚❚ Pause';$('playBtn').setAttribute('aria-label',v.paused?'Play':'Pause');
+  if(!seeking)$('seek').value=String(Math.round((v.currentTime||0)/d*1000));$('vtime').textContent=`${fmtT(v.currentTime)} / ${fmtT(d)}`;}
+$('playBtn').onclick=()=>{if(!PL)return;const v=PL.v;if(v.paused){v.play().catch(()=>{v.muted=true;v.play().catch(()=>{});});}else v.pause();};
+$('seek').addEventListener('input',()=>{const p=curPhoto();if(!PL||!p)return;seeking=true;PL.v.currentTime=(+$('seek').value/1000)*(p.dur||1);});
+$('seek').addEventListener('change',()=>{seeking=false;});
+async function showVideo(item,tok){
+  const v=player(item);if(v.readyState<2){showBusy();return;}
+  if(!aiReady(item)&&item.st!=='failed'){showBusy();const ok=await cutEnsure(modelsFor(S.what,item.w,item.h));if(tok!==renderTok)return;if(!ok){item.st='failed';lastErr='ai';}}
+  drawVideoPreview();showBusy();drawThumb(item);renderListMeta();}
+function drawVideoPreview(){const item=curPhoto();if(!isVideo(item)||!PL)return;const v=PL.v;if(v.readyState<2)return;
+  const k=Math.min(1,960/Math.max(item.w,item.h)),W=Math.max(2,Math.round(item.w*k)),H=Math.max(2,Math.round(item.h*k));
+  let out;
+  if(showOrig||picking||!aiReady(item)||item.st==='failed'){out=document.createElement('canvas');out.width=W;out.height=H;out.getContext('2d').drawImage(v,0,0,W,H);}
+  else{try{out=finish(frameCut(item,v,W,H,null),v,W,H,{preview:true,noCrop:true,video:true},null);}catch(e){console.warn(e);return;}}
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}ctx.clearRect(0,0,W,H);ctx.drawImage(out,0,0);out.width=0;}
+/* ---- saving a video ---- */
+function pickMime(kind){if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream)return null;
+  const c=kind==='mp4'?['video/mp4;codecs=avc1,mp4a.40.2','video/mp4']:['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
+  return c.find(m=>{try{return MediaRecorder.isTypeSupported(m);}catch(e){return false;}})||null;}
+/* the AI's answer for every frame, worked out ahead of time so the recording plays smoothly */
+async function aiFrames(item,onProg){
+  if(!await cutEnsure(modelsFor(S.what,item.w,item.h)))throw Object.assign(new Error('ai'),{ai:true});
+  const fps=Math.min(30,VMAX_FR/Math.max(.1,item.dur)),count=Math.max(1,Math.floor(item.dur*fps)+1);
+  const k=Math.min(1,VM/Math.max(item.w,item.h)),mw=Math.max(8,Math.round(item.w*k)),mh=Math.max(8,Math.round(item.h*k));
+  const c=document.createElement('canvas');c.width=mw;c.height=mh;const g=c.getContext('2d');
+  const v=document.createElement('video');v.muted=true;v.playsInline=true;v.preload='auto';v.src=item.url;await waitEvt(v,'loadeddata',10000);
+  const frames=new Array(count);
+  try{for(let f=0;f<count;f++){const t=Math.min(f/fps,Math.max(0,item.dur-.03));
+      if(Math.abs(v.currentTime-t)>1e-4){v.currentTime=t;await waitEvt(v,'seeked',4000);}
+      g.drawImage(v,0,0,mw,mh);const a=runAI(S.what,c,mw,mh,256),u=new Uint8Array(mw*mh);for(let i=0;i<u.length;i++)u[i]=a[i]*255+.5;frames[f]=u;
+      if(f%4===0){onProg(f/count);await new Promise(r=>setTimeout(r,0));}}}
+  finally{v.removeAttribute('src');try{v.load();}catch(e){}}
+  return{fps,mw,mh,frames};}
+/* this frame's answer, blended with its neighbours so the outline doesn't flicker */
+function aiAt(pre,t){const f=clamp(Math.round(t*pre.fps),0,pre.frames.length-1),n=pre.mw*pre.mh,out=new Float32Array(n);let ws=0;
+  for(let dd=-2;dd<=2;dd++){const fr=pre.frames[f+dd];if(!fr)continue;const w=dd?Math.pow(S.steady*.9,Math.abs(dd)):1;if(w<.01)continue;ws+=w;for(let i=0;i<n;i++)out[i]+=fr[i]*w;}
+  const k=1/(ws*255);for(let i=0;i<n;i++)out[i]*=k;return{a:out,w:pre.mw,h:pre.mh};}
+async function renderVideo(item,onProg,say){
+  const see=S.bg==='none'||(S.bg==='pic'&&!BGPIC),fmt=see?'webm':S.vfmt,mime=pickMime(fmt)||(see?null:pickMime(fmt==='mp4'?'webm':'mp4'));
+  if(!mime)throw new Error(see?'see-through videos need WebM, which this browser can’t make. Pick a color or a picture behind it':'this browser can’t save videos. Try Chrome');
+  if(PL)PL.v.pause();
+  let pre=null;
+  if(isAI()){say('Finding the subject in every frame…');pre=await aiFrames(item,f=>onProg(f*.5));}
+  const cap=S.vmax||1920,k=Math.min(1,cap/Math.max(item.w,item.h)),W=Math.max(2,Math.round(item.w*k/2)*2),H=Math.max(2,Math.round(item.h*k/2)*2);
+  const oc=document.createElement('canvas');oc.width=W;oc.height=H;const og=oc.getContext('2d');
+  const v=document.createElement('video');v.playsInline=true;v.preload='auto';v.src=item.url;await waitEvt(v,'loadeddata',10000);
+  let AC=null,dest=null;try{AC=new(window.AudioContext||window.webkitAudioContext)();const s=AC.createMediaElementSource(v);dest=AC.createMediaStreamDestination();s.connect(dest);}catch(e){AC=null;dest=null;v.muted=true;}
+  const draw=()=>{const res=finish(frameCut(item,v,W,H,pre?aiAt(pre,v.currentTime):null),v,W,H,{noCrop:true,video:true},null);og.clearRect(0,0,W,H);og.drawImage(res,0,0);res.width=0;};
+  v.currentTime=0;await waitEvt(v,'seeked',3000);draw();
+  const tracks=[...oc.captureStream(30).getVideoTracks()];if(dest)tracks.push(...dest.stream.getAudioTracks());
+  const rec=new MediaRecorder(new MediaStream(tracks),{mimeType:mime,videoBitsPerSecond:S.vmax&&S.vmax<=720?4e6:9e6,audioBitsPerSecond:128000}),chunks=[];
+  rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};const stopped=new Promise(r=>rec.onstop=r);
+  say('Recording… keep this tab in front. It takes as long as the video.');
+  if(AC)try{await AC.resume();}catch(e){}
+  rec.start(250);const t0=performance.now(),ended=waitEvt(v,'ended',(item.dur+30)*1000);
+  try{await v.play();}catch(e){v.muted=true;await v.play();}
+  let raf=0;const base=pre?.5:0,span=1-base;
+  const step=()=>{draw();onProg(base+span*Math.min(1,v.currentTime/item.dur));if(!v.ended)raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);
+  await ended;cancelAnimationFrame(raf);draw();await new Promise(r=>setTimeout(r,200));
+  rec.stop();await stopped;tracks.forEach(t=>t.stop());if(AC)try{await AC.close();}catch(e){}
+  v.removeAttribute('src');try{v.load();}catch(e){}
+  const ms=performance.now()-t0,webm=/webm/.test(mime);let blob=new Blob(chunks,{type:mime.split(';')[0]});
+  if(webm)blob=await fixWebmDuration(blob,ms);
+  blob=webm?await cleanWebm(blob):await cleanMp4(blob);
+  return{blob,ext:webm?'webm':'mp4'};}
+
+/* video files: blank the names and dates the browser writes in */
+const ebmlLen=b=>{let l=1,m=0x80;while(l<=8&&!(b&m)){m>>=1;l++;}return l;};
+async function cleanWebm(blob){try{const buf=new Uint8Array(await blob.arrayBuffer());let p=-1;
+  for(let i=0;i<Math.min(buf.length-4,65536);i++)if(buf[i]===0x15&&buf[i+1]===0x49&&buf[i+2]===0xA9&&buf[i+3]===0x66){p=i;break;}
+  if(p<0)return blob;const sl=ebmlLen(buf[p+4]);let size=buf[p+4]&(0xFF>>sl);for(let i=1;i<sl;i++)size=size*256+buf[p+4+i];
+  let q=p+4+sl,changed=false;const end=Math.min(buf.length,q+size);
+  while(q<end){const il=ebmlLen(buf[q]);if(il>4)break;let id=0;for(let i=0;i<il;i++)id=id*256+buf[q+i];
+    const zl=ebmlLen(buf[q+il]);if(zl>8)break;let n=buf[q+il]&(0xFF>>zl);for(let i=1;i<zl;i++)n=n*256+buf[q+il+i];const tot=il+zl+n;
+    if((id===0x4D80||id===0x5741)&&il===2&&n+1<Math.pow(2,7*zl)-1){buf[q]=0xEC;let v=n+1;for(let i=zl-1;i>=0;i--){buf[q+1+i]=v&255;v=Math.floor(v/256);}buf[q+1]|=(0x80>>(zl-1));buf.fill(0,q+1+zl,q+tot);changed=true;}
+    q+=tot;}
+  return changed?new Blob([buf],{type:blob.type}):blob;}catch(e){return blob;}}
+async function cleanMp4(blob){try{const buf=new Uint8Array(await blob.arrayBuffer()),dv=new DataView(buf.buffer);let changed=false;
+  const T=i=>String.fromCharCode(buf[i],buf[i+1],buf[i+2],buf[i+3]);
+  const walk=(s,e)=>{let p=s;while(p+8<=e){let n=dv.getUint32(p),h=8;const t=T(p+4);if(n===1){n=Number(dv.getBigUint64(p+8));h=16;}else if(n===0)n=e-p;if(n<h||p+n>e)break;
+    if(t==='udta'||t==='meta'||t==='uuid'){buf.set([0x66,0x72,0x65,0x65],p+4);buf.fill(0,p+h,p+n);changed=true;}
+    else if(t==='mvhd'||t==='tkhd'||t==='mdhd'){buf.fill(0,p+h+4,p+h+(buf[p+h]===1?20:12));changed=true;}
+    else if(t==='hdlr'&&p+h+24<p+n){buf.fill(0,p+h+24,p+n);changed=true;}
+    else if(t==='stsd'){let q=p+h+8;const cnt=dv.getUint32(p+h+4);for(let k=0;k<cnt&&q+8<=p+n;k++){const en=dv.getUint32(q),et=T(q+4);if(en<8)break;
+      if(['avc1','avc3','hvc1','hev1','vp09','av01','mp4v'].includes(et)&&en>=82){buf.fill(0,q+50,q+82);changed=true;}q+=en;}}/* the encoder's name inside the video track */
+    else if(['moov','trak','mdia','minf','stbl'].includes(t))walk(p+h,p+n);
+    p+=n;}};
+  walk(0,buf.length);return changed?new Blob([buf],{type:blob.type}):blob;}catch(e){return blob;}}
+async function fixWebmDuration(blob,ms){
+  try{const buf=new Uint8Array(await blob.arrayBuffer());let p=-1;
+    for(let i=0;i<Math.min(buf.length-4,16384);i++)if(buf[i]===0x15&&buf[i+1]===0x49&&buf[i+2]===0xA9&&buf[i+3]===0x66){p=i;break;}
+    if(p<0)return blob;const b0=buf[p+4];let len=1,mask=0x80;while(len<=8&&!(b0&mask)){mask>>=1;len++;}let size=b0&(mask-1);for(let i=1;i<len;i++)size=size*256+buf[p+4+i];
+    const cs=p+4+len,ce=cs+size,content=buf.subarray(cs,ce);for(let i=0;i<content.length-2;i++)if(content[i]===0x44&&content[i+1]===0x89&&(content[i+2]===0x88||content[i+2]===0x84))return blob;
+    const dur=new Uint8Array(11);dur[0]=0x44;dur[1]=0x89;dur[2]=0x88;new DataView(dur.buffer).setFloat64(3,ms);const sv=new Uint8Array(8);sv[0]=0x01;let v=content.length+11;for(let i=7;i>=1;i--){sv[i]=v&255;v=Math.floor(v/256);}
+    return new Blob([buf.subarray(0,p+4),sv,content,dur,buf.subarray(ce)],{type:blob.type});}catch(e){return blob;}
+}
 
 /* ================= preview ================= */
 const curPhoto=()=>SEL>=0?PHOTOS[SEL]:null;
 let showOrig=false,renderTok=0,lastErr='';
 function showBusy(){const b=$('busy'),p=curPhoto(),m=cutMsg();
-  const t=CUT.st==='loading'?m:(p&&(p.st==='working'||p.st==='waiting')&&!p.mask)?'Taking out the background…':'';
+  const t=CUT.st==='loading'?m:(p&&!isVideo(p)&&(p.st==='working'||p.st==='waiting')&&!p.mask)?'Taking out the background…':(isVideo(p)&&PL&&PL.v.readyState<2)?'Opening the video…':'';
   b.textContent=t;b.hidden=!t;hint();}
 async function render(){const tok=++renderTok,p=curPhoto();
+  if(!isVideo(p)&&PL)stopPlayer();
   if(!p){drawSample();hint();return;}
+  if(isVideo(p))return showVideo(p,tok);
   if(!CUR||CUR.id!==p.id){const img=await decode(p.blob);if(tok!==renderTok||curPhoto()!==p){closeImg(img);return;}const old=CUR;CUR={id:p.id,img};closeImg(old&&old.img);}
   if(!p.mask||p.mask.sig.indexOf(cutSig())!==0){if(p.st!=='failed')p.st='working';showBusy();}
   let mask=null;try{mask=await cutOf(p);lastErr='';}catch(e){p.st='failed';lastErr=e&&e.ai?'ai':String(e&&e.message||e);}
   if(tok!==renderTok)return;
   const img=CUR.img,k=Math.min(1,1400/Math.max(img.width,img.height)),W=Math.max(1,Math.round(img.width*k)),H=Math.max(1,Math.round(img.height*k));
   let out;
-  if(showOrig||!mask){out=document.createElement('canvas');out.width=W;out.height=H;out.getContext('2d').drawImage(img,0,0,W,H);}
+  if(showOrig||picking||!mask){out=document.createElement('canvas');out.width=W;out.height=H;out.getContext('2d').drawImage(img,0,0,W,H);}
   else out=compose(img,mask,W,H,{preview:true,ghost:S.brush!=='off',noCrop:S.brush!=='off'});
   if(cv.width!==out.width||cv.height!==out.height){cv.width=out.width;cv.height=out.height;}
   ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(out,0,0);out.width=0;
@@ -520,26 +715,40 @@ let PV=null;
 function drawSample(){const c=SAMPLE;if(cv.width!==c.width||cv.height!==c.height){cv.width=c.width;cv.height=c.height;}ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(c,0,0);}
 function hint(){const p=curPhoto(),el=$('hint');el.classList.remove('warn');let t='';
   if(!p)t='This is how a cut-out looks. Add your photos to start.';
-  else if(p.st==='failed'){el.classList.add('warn');t=lastErr==='ai'?cutMsg():`This photo didn’t work: ${lastErr}.`;}
-  else if(p.mask&&p.mask.note==='none')t=S.what==='color'?'Nothing was left. Lower “How close a color counts”.':S.what==='people'?'No people found. Try “Anything it knows” or “Plain background”.':'Nothing found. Try “Plain background”, or bring parts back with the Keep brush.';
+  else if(p.st==='failed'){el.classList.add('warn');t=lastErr==='ai'?cutMsg():`This ${isVideo(p)?'video':'photo'} didn’t work: ${lastErr}.`;}
+  else if(picking)t='Tap the color you want to remove in the picture. Press Escape to stop.';
+  else if(isVideo(p))t=S.what==='key'?'Everything close to the color you picked turns see-through, frame by frame. Raise “How much to remove” until it’s gone; lower it if the subject fades.':S.what==='color'?'The screen color is picked up from the edges. If some of it stays, raise “How much to remove”; if the person fades, lower it.':'Press play to check it. Saving does every frame first, then records the video once, so it takes a little longer than the video.';
+  else if(p.mask&&p.mask.note==='none')t=S.what==='key'?'Nothing was left. Lower “How much to remove”, or pick another color.':S.what==='color'?'Nothing was left. Lower “How close a color counts”.':S.what==='people'?'No people found. Try “Anything it knows” or “Plain background”.':'Nothing found. Try “Plain background”, or bring parts back with the Keep brush.';
   else if(p.mask&&p.mask.note==='mixed'&&S.what==='color')t='The edges of this photo aren’t one color, so “Plain background” may miss. The AI choices may do better.';
+  else if(S.what==='key'&&S.brush==='off')t='Everything close to the color you picked is see-through. Raise “How much to remove” until it’s gone; lower it if parts of the subject go too.';
   else if(S.brush!=='off')t=S.brush==='erase'?'Paint over anything that should go. The faint parts are already removed.':'Paint over anything that should stay. The faint parts are removed until you paint them back.';
   else t='Not quite right? Use the Touch up brush, or try another choice under What to keep.';
-  el.textContent=t;$('origBtn').hidden=!p||!p.mask;}
+  el.textContent=t;$('origBtn').hidden=!p||!(p.mask||isVideo(p));}
 const SAMPLE=(()=>{const c=document.createElement('canvas');c.width=1200;c.height=800;const g=c.getContext('2d');
   g.fillStyle='#5B3DF5';g.beginPath();g.arc(600,330,140,0,Math.PI*2);g.fill();
   g.beginPath();g.moveTo(380,800);g.bezierCurveTo(380,560,480,480,600,480);g.bezierCurveTo(720,480,820,560,820,800);g.fill();
   return c;})();
 
+/* ================= picking the color to remove from the picture ================= */
+let picking=false;
+function setPicking(on){picking=on;cv.style.cursor=on?'crosshair':'';renderOpts();render();}
+function sampleAt(e){const p=curPhoto(),q=cpt(e);if(!p)return;const src=isVideo(p)?(PL&&PL.v):(CUR&&CUR.id===p.id?CUR.img:null);if(!src)return;
+  const sw=isVideo(p)?p.w:src.width,sh=isVideo(p)?p.h:src.height,x=q.x*sw,y=q.y*sh,r=Math.max(2,Math.min(sw,sh)*.004);
+  const t=document.createElement('canvas');t.width=t.height=5;const g=t.getContext('2d',{willReadFrequently:true});
+  try{g.drawImage(src,x-r,y-r,r*2,r*2,0,0,5,5);}catch(err){return;}const d=g.getImageData(0,0,5,5).data;let R=0,G=0,B=0,n=0;
+  for(let i=0;i<d.length;i+=4)if(d[i+3]>0){R+=d[i];G+=d[i+1];B+=d[i+2];n++;}if(!n)return;
+  S.pick=toHex([R/n,G/n,B/n]);picking=false;cv.style.cursor='';changed({panel:true,now:true});toast(`Removing ${S.pick}. Adjust “How much to remove” if you need to.`);}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&picking)setPicking(false);});
+
 /* ================= the touch-up brush ================= */
 let stroke=null;
 function cpt(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height,r};}
-function ringAt(e){const ring=$('ring'),p=curPhoto();if(S.brush==='off'||!p||!PV){ring.hidden=true;return;}
+function ringAt(e){const ring=$('ring'),p=curPhoto();if(S.brush==='off'||!p||!PV||isVideo(p)){ring.hidden=true;return;}
   const q=cpt(e),wr=$('drop').getBoundingClientRect(),d=S.brushSize*Math.min(q.r.width,q.r.height)/100*2;
   ring.style.width=ring.style.height=d+'px';ring.style.left=(e.clientX-wr.left)+'px';ring.style.top=(e.clientY-wr.top)+'px';ring.hidden=false;}
 let strokeRaf=0;
 function strokeRender(){if(strokeRaf)return;strokeRaf=requestAnimationFrame(()=>{strokeRaf=0;const p=curPhoto();if(p){p.strokeRev=(p.strokeRev||0)+1;render();}});}
-cv.addEventListener('pointerdown',e=>{const p=curPhoto();if(S.brush==='off'||!p||!p.mask)return;cv.setPointerCapture(e.pointerId);const q=cpt(e);
+cv.addEventListener('pointerdown',e=>{if(picking){sampleAt(e);e.preventDefault();return;}const p=curPhoto();if(S.brush==='off'||!p||!p.mask||isVideo(p))return;cv.setPointerCapture(e.pointerId);const q=cpt(e);
   stroke={m:S.brush==='erase'?'erase':'keep',r:S.brushSize,pts:[[q.x,q.y]]};p.strokes.push(stroke);strokeRender();e.preventDefault();});
 cv.addEventListener('pointermove',e=>{ringAt(e);if(!stroke)return;const q=cpt(e),l=stroke.pts[stroke.pts.length-1];if(Math.hypot(q.x-l[0],q.y-l[1])<.002)return;stroke.pts.push([+q.x.toFixed(4),+q.y.toFixed(4)]);strokeRender();});
 const endStroke=()=>{if(!stroke)return;stroke=null;save();renderOpts();};
@@ -557,37 +766,63 @@ function renderOpts(){
   const wf=$('whatF');wf.innerHTML='';const g=h('div',{class:'modes',role:'group','aria-labelledby':'what-l'});
   MODES.forEach(([k,l,s])=>g.append(h('button',{type:'button','aria-pressed':String(S.what===k),onclick:()=>{S.what=k;changed({panel:true,now:true});}},l,h('small',{},s))));
   wf.append(h('span',{class:'flabel',id:'what-l'},'What to keep'),g);
-  if(S.what==='color'){wf.append(rangeF('o-tol','How close a color counts',0,1,.01,S.tol,v=>v<.25?'Very close':v<.6?'Close':'Loose',v=>set('tol',v)),
-    h('label',{class:'chk'},h('input',{type:'checkbox',checked:S.holes,onchange:e=>set('holes',e.target.checked)}),'Also remove it inside shapes (holes in letters, gaps)'));}
-  else wf.append(h('p',{class:'help'},CUT.st==='ready'||CUT.st==='loading'?'The AI runs on this device.':'The AI runs on this device. The first time, it downloads about 14 MB, then it’s kept.'));
+  const cur=curPhoto(),vid=isVideo(cur),anyVid=PHOTOS.some(isVideo),anyPhoto=PHOTOS.some(p=>!isVideo(p));
+  if(S.what==='color'){
+    wf.append(rangeF('o-tol',vid?'How much to remove':'How close a color counts',0,1,.01,S.tol,v=>v<.25?(vid?'A little':'Very close'):v<.6?(vid?'Some':'Close'):(vid?'A lot':'Loose'),v=>set('tol',v)));
+    if(!vid)wf.append(h('label',{class:'chk'},h('input',{type:'checkbox',checked:S.holes,onchange:e=>set('holes',e.target.checked)}),'Also remove it inside shapes (holes in letters, gaps)'));
+    if(anyVid)wf.append(rangeF('o-spill','Clean up colored edges (videos)',0,1,.05,S.spill,v=>v?Math.round(v*100)+'%':'Off',v=>set('spill',v)),
+      h('p',{class:'help'},'For a video, the screen color is found from the edges of the first frame and turns see-through in every frame, like a green screen. To choose the color yourself, use “Remove a color”.'));}
+  else if(S.what==='key'){const ci=h('input',{type:'color',id:'o-pick',value:S.pick.toLowerCase(),'aria-label':'Color to remove'});ci.oninput=()=>set('pick',ci.value.toUpperCase());
+    wf.append(h('div',{class:'field'},h('span',{class:'flabel'},'Color to remove',h('span',{class:'rv'},S.pick)),
+        h('div',{class:'row'},ci,...[['#00B140','Green'],['#0047BB','Blue'],['#FFFFFF','White'],['#000000','Black']].map(([k,l])=>h('button',{type:'button',class:'swatch',style:`background:${k}`,title:l,'aria-label':'Use '+l,onclick:()=>set('pick',k,true)})),
+          h('button',{type:'button','aria-pressed':String(picking),onclick:()=>setPicking(!picking)},picking?'Stop picking':'🎯 Pick from the picture'))),
+      rangeF('o-tol','How much to remove',0,1,.01,S.tol,v=>v<.25?'A little':v<.6?'Some':'A lot',v=>set('tol',v)),
+      rangeF('o-spill','Clean up colored edges',0,1,.05,S.spill,v=>v?Math.round(v*100)+'%':'Off',v=>set('spill',v)),
+      h('p',{class:'help'},'Everything close to this color turns see-through, wherever it is, like a chroma key. Raise “How much to remove” until it’s gone, then lower it if parts of the subject go too. “Clean up colored edges” takes the leftover tint off hair and edges.'));}
+  if(isAI())wf.append(h('p',{class:'help'},CUT.st==='ready'||CUT.st==='loading'?'The AI runs on this device.':'The AI runs on this device. The first time, it downloads about 14 MB, then it’s kept.'));
   const ef=$('edgeF');ef.innerHTML='';
-  ef.append(...[rangeF('o-fit','Tighter or looser',-1,1,.05,S.fit,v=>Math.abs(v)<.03?'Middle':v<0?'Tighter':'Looser',v=>set('fit',v)),
+  ef.append(...[!isAI()?null:rangeF('o-fit','Tighter or looser',-1,1,.05,S.fit,v=>Math.abs(v)<.03?'Middle':v<0?'Tighter':'Looser',v=>set('fit',v)),
     rangeF('o-edge','Soft edge',0,1,.05,S.edge,v=>v<.15?'Sharp':v<.5?'A little soft':'Soft',v=>set('edge',v)),
     h('label',{class:'chk'},h('input',{type:'checkbox',checked:S.specks,onchange:e=>set('specks',e.target.checked)}),'Remove small leftover bits and fill pinholes'),
-    S.what==='color'?h('p',{class:'help'},'With a plain background, only specks a few pixels big are removed, so small text and dots stay.'):null].filter(Boolean));
+    !isAI()&&!vid?h('p',{class:'help'},'With a plain background or a removed color, only specks a few pixels big are removed, so small text and dots stay.'):null,
+    anyVid&&isAI()?rangeF('o-st','Steadier edges (videos)',0,1,.05,S.steady,v=>v?Math.round(v*100)+'%':'Off',v=>set('steady',v)):null].filter(Boolean));
   const bf=$('brushF');bf.innerHTML='';const p=curPhoto();
+  if(vid){bf.append(h('p',{class:'help'},'The touch-up brush is for photos. For a video, try “Tighter or looser” or another choice under What to keep.'));}else{
   bf.append(segF('o-br','Brush',[['off','Off'],['erase','Erase'],['keep','Keep']],S.brush,v=>{S.brush=v;changed({panel:true,now:true});}));
   if(S.brush!=='off')bf.append(rangeF('o-bs','Brush size',.5,15,.5,S.brushSize,v=>v+'%',v=>{S.brushSize=v;save();}));
   bf.append(h('div',{class:'row'},h('button',{type:'button',disabled:!(p&&p.strokes.length),onclick:()=>{if(!p)return;p.strokes.pop();p.strokeRev=(p.strokeRev||0)+1;save();renderOpts();render();}},'Undo stroke'),
     h('button',{type:'button',disabled:!(p&&p.strokes.length),onclick:()=>{if(!p)return;p.strokes=[];p.strokeRev=(p.strokeRev||0)+1;save();renderOpts();render();}},'Clear touch-ups')),
-    h('p',{class:'help'},'Touch-ups belong to the photo you’re on. Erase takes more away; Keep brings parts back.'));
+    h('p',{class:'help'},'Touch-ups belong to the photo you’re on. Erase takes more away; Keep brings parts back.'));}
   const gf=$('bgF');gf.innerHTML='';
-  gf.append(segF('o-bg','Behind it',[['none','See-through'],['color','A color'],['blur','Blurred photo']],S.bg,v=>set('bg',v,true)));
+  gf.append(segF('o-bg','Behind it',[['none','See-through'],['color','A color'],['blur',vid?'Blurred video':'Blurred photo'],['pic','A picture']],S.bg,v=>set('bg',v,true)));
+  if(S.bg==='pic')gf.append(h('div',{class:'row'},BGPIC?h('img',{src:BGPIC.url,alt:'Your background picture',style:'width:52px;height:52px;object-fit:cover;border-radius:8px;border:1px solid var(--line)'}):null,
+    h('label',{class:'btn',for:'bgPick'},BGPIC?'Change picture':'Choose a picture',h('input',{type:'file',id:'bgPick',accept:'image/*',onchange:e=>{const f=e.target.files[0];e.target.value='';if(f)setBgPic(f);}}))),
+    h('p',{class:'help'},BGPIC?'It fills the space behind, cropped to fit.':'Until you choose one, the background stays see-through.'));
   if(S.bg==='color')gf.append(colorF('o-bgc','Color',S.bgColor,['#FFFFFF','#000000','#F2F1F6','#5B3DF5','#00B140'],(c,pn)=>set('bgColor',c,pn)));
   if(S.bg==='blur')gf.append(rangeF('o-bl','Blur',.05,1,.05,S.blur,v=>Math.round(v*100)+'%',v=>set('blur',v)));
   gf.append(h('label',{class:'chk'},h('input',{type:'checkbox',checked:S.outline,onchange:e=>set('outline',e.target.checked,true)}),'Sticker outline'));
   if(S.outline)gf.append(colorF('o-oc','Outline color',S.outlineColor,['#FFFFFF','#000000','#5B3DF5'],(c,pn)=>set('outlineColor',c,pn)),
     rangeF('o-os','Outline width',.3,6,.1,S.outlineSize,v=>v+'%',v=>set('outlineSize',v)));
-  gf.append(h('label',{class:'chk'},h('input',{type:'checkbox',checked:S.crop,onchange:e=>set('crop',e.target.checked,true)}),'Crop to what’s kept'));
-  if(S.crop)gf.append(rangeF('o-pad','Space around it',0,20,.5,S.pad,v=>v?v+'%':'None',v=>set('pad',v)));
+  if(!vid)gf.append(h('label',{class:'chk'},h('input',{type:'checkbox',checked:S.crop,onchange:e=>set('crop',e.target.checked,true)}),'Crop to what’s kept (photos)'));
+  if(S.crop&&!vid)gf.append(rangeF('o-pad','Space around it',0,20,.5,S.pad,v=>v?v+'%':'None',v=>set('pad',v)));
   renderOut();}
-function renderOut(){const of=$('outF');of.innerHTML='';
-  of.append(segF('o-fmt','Save as',[['png','PNG'],['webp','WebP'],['jpg','JPG']],S.fmt,v=>set('fmt',v,true)),
+function renderOut(){const of=$('outF');of.innerHTML='';const anyVid=PHOTOS.some(isVideo),anyPhoto=!PHOTOS.length||PHOTOS.some(p=>!isVideo(p));
+  if(anyVid){const fm=[];if(pickMime('mp4'))fm.push(['mp4','MP4']);if(pickMime('webm'))fm.push(['webm','WebM']);
+    if(fm.length&&!fm.some(f=>f[0]===S.vfmt))S.vfmt=fm[0][0];const see=S.bg==='none'||(S.bg==='pic'&&!BGPIC);
+    of.append(fm.length?segF('o-vf','Save videos as',fm,see?'webm':S.vfmt,v=>set('vfmt',v,true)):h('p',{class:'help'},'This browser can’t save videos. Try Chrome on a computer or Android.'),
+      h('p',{class:'help'},see?'A see-through video is saved as WebM, which keeps the see-through parts. It plays in Chrome and on Android, and video editors that take WebM can put it on top of other clips.':S.vfmt==='mp4'?'MP4 plays almost everywhere, including iPhone and social apps.':'WebM is small and full quality. It plays in Chrome, Firefox and on Android.'),
+      segF('o-vm','Video size',[[0,'As it is'],[1280,'1280'],[720,'720']],S.vmax,v=>set('vmax',v,true)),
+      h('p',{class:'help'},'Sound is kept. A video records in real time, so keep this tab in front while it saves.'));}
+  if(anyPhoto)of.append(segF('o-fmt','Save as',[['png','PNG'],['webp','WebP'],['jpg','JPG']],S.fmt,v=>set('fmt',v,true)),
     h('p',{class:'help'},S.fmt==='jpg'?(S.bg==='none'?'JPG can’t be see-through, so the background turns white.':'JPG files are small but can’t be see-through.'):'PNG and WebP keep the see-through background.'));
-  if(S.fmt!=='png')of.append(rangeF('o-q','Quality',.6,1,.01,S.q,v=>Math.round(v*100)+'%',v=>set('q',v)));
-  of.append(segF('o-max','Size',[[0,'As it is'],[3840,'4K'],[2048,'2048'],[1080,'1080']],S.maxSide,v=>set('maxSide',v,true)),
-    segF('o-nm','File names',[['random','Random'],['own','Your names + “-nobg”']],S.names,v=>set('names',v,true)),
+  if(anyPhoto&&S.fmt!=='png')of.append(rangeF('o-q','Quality',.6,1,.01,S.q,v=>Math.round(v*100)+'%',v=>set('q',v)));
+  if(anyPhoto)of.append(segF('o-max','Photo size',[[0,'As it is'],[3840,'4K'],[2048,'2048'],[1080,'1080']],S.maxSide,v=>set('maxSide',v,true)));
+  of.append(segF('o-nm','File names',[['random','Random'],['own','Your names + “-nobg”']],S.names,v=>set('names',v,true)),
     h('p',{class:'help'},'Saved copies have none of the original’s hidden data: no location, camera details or prompts.'));}
+
+/* ================= your own background picture ================= */
+async function setBgPic(blob){const img=await decode(blob);if(!img){toast('That picture couldn’t be opened.');return;}
+  if(BGPIC){closeImg(BGPIC.img);URL.revokeObjectURL(BGPIC.url);}BGPIC={blob,img,url:URL.createObjectURL(blob)};S.bg='pic';changed({panel:true,now:true});}
 
 /* ================= your photos ================= */
 const isImg=f=>/^image\//.test(f.type)||/\.(png|jpe?g|webp|gif|avif|bmp|heic|heif)$/i.test(f.name||'');
@@ -598,30 +833,31 @@ async function addPhoto(blob,name,strokes,quiet){
   t.getContext('2d').drawImage(img,0,0,t.width,t.height);
   const p={id:nextId++,blob,name:name||'photo',w:img.width,h:img.height,thumb:t,strokes:strokes||[],st:'waiting',ai:null,auto:null,mask:null};
   PHOTOS.push(p);closeImg(img);return p;}
-async function addFiles(list){const fs=[...list].filter(isImg);
-  if(!fs.length){if(list.length)toast('Those aren’t pictures. For videos, use Remove background in Video Layers.');return;}
-  say(`Adding ${fs.length} photo${fs.length>1?'s':''}…`);let first=null,n=0;
-  for(const f of fs){const p=await addPhoto(f,f.name);if(p){n++;if(!first)first=p;}}
+async function addFiles(list){const fs=[...list].filter(isMedia);
+  if(!fs.length){if(list.length)toast('Those aren’t photos or videos.');return;}
+  say(`Adding ${fs.length} file${fs.length>1?'s':''}…`);let first=null,n=0;
+  for(const f of fs){const p=isVid(f)&&!isImg(f)?await addVideo(f,f.name):await addPhoto(f,f.name);if(p){n++;if(!first)first=p;}}
   say('');if(first&&SEL<0)SEL=PHOTOS.indexOf(first);
   renderList();renderOpts();save();render();queueAll();
-  if(n>1)toast(`${n} photos added. They’re done one after another.`);}
-function select(i){SEL=i;WORK=null;renderList();renderOpts();render();}
-function removePhoto(i){const p=PHOTOS[i];PHOTOS.splice(i,1);if(CUR&&p&&CUR.id===p.id){closeImg(CUR.img);CUR=null;}
+  if(n>1)toast(`${n} files added. They’re done one after another.`);}
+function select(i){if(PL&&PHOTOS[i]&&PL.id!==PHOTOS[i].id)stopPlayer();SEL=i;WORK=null;renderList();renderOpts();render();}
+function removePhoto(i){const p=PHOTOS[i];PHOTOS.splice(i,1);if(isVideo(p)){if(PL&&PL.id===p.id)stopPlayer();setTimeout(()=>URL.revokeObjectURL(p.url),1000);}if(CUR&&p&&CUR.id===p.id){closeImg(CUR.img);CUR=null;}
   if(SEL>=PHOTOS.length)SEL=PHOTOS.length-1;else if(i<SEL)SEL--;
   WORK=null;renderList();renderOpts();render();save();}
-function stLabel(p){return p.st==='done'?(p.strokes.length?h('em',{},'Touched up'):null):p.st==='none'?h('em',{class:'bad'},'Nothing found'):p.st==='failed'?h('em',{class:'bad'},'Didn’t work'):h('em',{},p.st==='working'?'Working…':'Waiting');}
+function stLabel(p){return p.st==='done'?(isVideo(p)?h('em',{},'▶ '+fmtT(p.dur)):p.strokes.length?h('em',{},'Touched up'):null):p.st==='none'?h('em',{class:'bad'},'Nothing found'):p.st==='failed'?h('em',{class:'bad'},'Didn’t work'):h('em',{},p.st==='working'?'Working…':'Waiting');}
 function renderList(){const ul=$('plist');ul.innerHTML='';
   PHOTOS.forEach((p,i)=>ul.append(h('li',{class:i===SEL?'sel':'',id:'li-'+p.id},
     h('button',{type:'button',class:'pick','aria-label':`Show ${p.name}`,'aria-pressed':String(i===SEL),onclick:()=>select(i)},h('canvas',{id:'th-'+p.id,width:p.thumb.width,height:p.thumb.height,'aria-hidden':'true'})),
     h('div',{class:'pmeta',id:'pm-'+p.id},h('span',{title:p.name},p.name),stLabel(p)),
     h('div',{class:'row'},h('button',{type:'button',onclick:()=>saveOne(i)},'Save'),h('button',{type:'button','aria-label':`Remove ${p.name}`,onclick:()=>removePhoto(i)},'Remove')))));
   const n=PHOTOS.length;$('empty').hidden=!!n;$('clearAll').hidden=n<2;
-  $('pCount').textContent=n?`Your photos (${n})`:'Your photos';$('saveAll').textContent=n>1?`Save all ${n}`:'Save';
+  $('pCount').textContent=n?`Your files (${n})`:'Your photos and videos';$('saveAll').textContent=n>1?`Save all ${n}`:'Save';
   $('saveAll').disabled=$('saveZip').disabled=$('shareBtn').disabled=!n;$('cta').hidden=!!n;
   PHOTOS.forEach(drawThumb);}
 function renderListMeta(){PHOTOS.forEach(p=>{const m=$('pm-'+p.id);if(!m)return;const l=stLabel(p),old=m.querySelector('em');if(old)old.remove();if(l)m.append(l);});}
 /* the small copies show the result too */
 function drawThumb(p){const c=$('th-'+p.id);if(!c)return;const g=c.getContext('2d');g.clearRect(0,0,c.width,c.height);
+  if(isVideo(p)){if(p.tres&&p.st!=='failed'){if(S.bg==='color'){g.fillStyle=S.bgColor;g.fillRect(0,0,c.width,c.height);}g.drawImage(p.tres,0,0);}else{g.globalAlpha=.45;g.drawImage(p.thumb,0,0);g.globalAlpha=1;}return;}
   if(p.mask&&p.st!=='failed'){g.drawImage(p.thumb,0,0);g.globalCompositeOperation='destination-in';g.drawImage(p.mask.c,0,0,c.width,c.height);g.globalCompositeOperation='source-over';
     if(S.bg==='color'){g.globalCompositeOperation='destination-over';g.fillStyle=S.bgColor;g.fillRect(0,0,c.width,c.height);g.globalCompositeOperation='source-over';}}
   else{g.globalAlpha=.45;g.drawImage(p.thumb,0,0);g.globalAlpha=1;}}
@@ -629,7 +865,9 @@ function drawThumb(p){const c=$('th-'+p.id);if(!c)return;const g=c.getContext('2
 let queueBusy=false,queueAgain=false;
 async function queueAll(){if(queueBusy){queueAgain=true;return;}queueBusy=true;
   try{do{queueAgain=false;const sig=cutSig();
-    for(const p of[...PHOTOS]){if(p===curPhoto()||p.st==='failed'&&S.what!=='color')continue;if(p.mask&&p.mask.sig.indexOf(sig)===0)continue;
+    for(const p of[...PHOTOS]){
+      if(isVideo(p)){if(p.tres&&p.tsig===vSig()||p.st==='failed'&&isAI())continue;try{await videoThumb(p);}catch(e){p.st='failed';}drawThumb(p);renderListMeta();if(queueAgain)break;continue;}
+      if(p===curPhoto()||p.st==='failed'&&isAI())continue;if(p.mask&&p.mask.sig.indexOf(sig)===0)continue;
       p.st='working';renderListMeta();await new Promise(r=>setTimeout(r,30));
       try{await cutOf(p);}catch(e){p.st='failed';}
       if(WORK&&WORK.id!==curPhoto()?.id)WORK=null;
@@ -637,14 +875,14 @@ async function queueAll(){if(queueBusy){queueAgain=true;return;}queueBusy=true;
       if(p!==curPhoto())p.auto=null;
       drawThumb(p);renderListMeta();if(queueAgain)break;}
   }while(queueAgain);}finally{queueBusy=false;}}
-$('clearAll').onclick=()=>{if(!confirm(`Remove all ${PHOTOS.length} photos?`))return;PHOTOS=[];closeImg(CUR&&CUR.img);CUR=null;SEL=-1;WORK=null;renderList();renderOpts();render();save();};
+$('clearAll').onclick=()=>{if(!confirm(`Remove all ${PHOTOS.length} files?`))return;stopPlayer();PHOTOS.forEach(p=>{if(isVideo(p))URL.revokeObjectURL(p.url);});PHOTOS=[];closeImg(CUR&&CUR.img);CUR=null;SEL=-1;WORK=null;renderList();renderOpts();render();save();};
 ['pick','pick2'].forEach(id=>$(id).onchange=e=>{const fs=[...e.target.files];e.target.value='';addFiles(fs);});
 const dropEl=$('drop');
 for(const el of[dropEl,document.querySelector('.photos')]){
   ['dragenter','dragover'].forEach(ev=>el.addEventListener(ev,e=>{e.preventDefault();dropEl.classList.add('drop');}));
   ['dragleave','drop'].forEach(ev=>el.addEventListener(ev,e=>{e.preventDefault();dropEl.classList.remove('drop');}));
   el.addEventListener('drop',e=>{if(e.dataTransfer&&e.dataTransfer.files.length)addFiles(e.dataTransfer.files);});}
-document.addEventListener('paste',e=>{const fs=[...(e.clipboardData&&e.clipboardData.files)||[]].filter(isImg);if(fs.length)addFiles(fs);});
+document.addEventListener('paste',e=>{const fs=[...(e.clipboardData&&e.clipboardData.files)||[]].filter(isMedia);if(fs.length)addFiles(fs);});
 
 /* ================= leaving nothing behind in what you save ================= */
 const rndCode=(n=6)=>{const a='abcdefghjkmnpqrstuvwxyz23456789',u=new Uint8Array(n);crypto.getRandomValues(u);return[...u].map(x=>a[x%a.length]).join('');};
@@ -681,18 +919,19 @@ async function saveFile(blob,filename){
 const say=m=>{$('status').textContent=m;};
 let busy=false;
 async function makeFiles(idx){const used=new Set(),out=[];let shrunk=0,skipped=0;SAVECODE=rndCode();
-  for(let k=0;k<idx.length;k++){const p=PHOTOS[idx[k]];say(idx.length>1?`Making photo ${k+1} of ${idx.length}…`:'Making the photo…');
-    let r;try{r=await renderPhoto(p);}catch(e){if(e&&e.ai)throw new Error(topLevel?'the background remover couldn’t start':'the AI part can’t run inside Claude. Try “Plain background”');skipped++;continue;}
+  for(let k=0;k<idx.length;k++){const p=PHOTOS[idx[k]],of=idx.length>1?` (${k+1} of ${idx.length})`:'';say(isVideo(p)?`Getting the video ready${of}…`:`Making the photo${of}…`);
+    let r;try{r=isVideo(p)?await renderVideo(p,f=>say(`Video${of}: ${Math.round(f*100)}%. Keep this tab in front.`),m=>say(m+of)):await renderPhoto(p);}
+    catch(e){if(e&&e.ai)throw new Error(topLevel?'the background remover couldn’t start':'the AI part can’t run inside Claude. Try “Plain background or green screen”');if(isVideo(p)&&idx.length===1)throw e;console.warn(e);skipped++;continue;}
     if(WORK&&WORK.id!==curPhoto()?.id)WORK=null;
     if(r.shrunk)shrunk++;out.push(new File([r.blob],fileName(p,idx[k],r.ext,used),{type:r.blob.type}));}
   if(shrunk)toast(`${shrunk} very large photo${shrunk>1?'s were':' was'} saved a little smaller, the most this browser allows.`);
-  if(skipped)toast(`${skipped} photo${skipped>1?'s':''} couldn’t be done and ${skipped>1?'were':'was'} left out.`);
+  if(skipped)toast(`${skipped} file${skipped>1?'s':''} couldn’t be done and ${skipped>1?'were':'was'} left out.`);
   if(!out.length)throw new Error('nothing could be made');return out;}
 async function run(fn){if(busy)return;busy=true;try{await fn();}catch(err){say('That didn’t work: '+(err&&err.message||err)+'.');}finally{busy=false;}}
 function saveOne(i){run(async()=>{const[f]=await makeFiles([i]);say(await saveFile(f,f.name));});}
 $('saveAll').onclick=()=>run(async()=>{const fs=await makeFiles(PHOTOS.map((_,i)=>i));let last='';
-  for(let i=0;i<fs.length;i++){if(fs.length>1)say(`Saving photo ${i+1} of ${fs.length}…`);last=await saveFile(fs[i],fs[i].name);if(/Not saved|isn’t available|too big/.test(last))break;await new Promise(r=>setTimeout(r,DL?0:350));}
-  say(/Saved/.test(last)?(fs.length>1?`Saved ${fs.length} photos.`:last):last);});
+  for(let i=0;i<fs.length;i++){if(fs.length>1)say(`Saving ${i+1} of ${fs.length}…`);last=await saveFile(fs[i],fs[i].name);if(/Not saved|isn’t available|too big/.test(last))break;await new Promise(r=>setTimeout(r,DL?0:350));}
+  say(/Saved/.test(last)?(fs.length>1?`Saved ${fs.length} files.`:last):last);});
 $('saveZip').onclick=()=>run(async()=>{const fs=await makeFiles(PHOTOS.map((_,i)=>i));say('Putting the ZIP together…');
   const zip=await makeZip(fs.map(f=>({name:f.name,blob:f})));say(await saveFile(zip,`cutouts-${SAVECODE}.zip`));});
 $('shareBtn').onclick=()=>run(async()=>{const fs=await makeFiles(PHOTOS.map((_,i)=>i));say('');try{await navigator.share({files:fs});say('Shared.');}catch(err){say(err&&err.name==='AbortError'?'':'Sharing didn’t work here. Save them instead.');}});
@@ -719,11 +958,12 @@ const DB={db:null,
   async tx(mode,fn){const db=DB.db||await DB.open();if(!db)return null;return new Promise(res=>{try{const t=db.transaction('state',mode),st=t.objectStore('state');const q=fn(st);t.oncomplete=()=>res(q&&'result' in q?q.result:true);t.onerror=t.onabort=()=>res(null);}catch(e){res(null);}});}};
 let restored=false,saveT=0;
 function writeState(){if(!restored)return Promise.resolve();
-  return DB.tx('readwrite',s=>s.put({S,sel:SEL,photos:PHOTOS.map(p=>({blob:p.blob,name:p.name,strokes:p.strokes})),savedAt:Date.now()},'current'));}
+  return DB.tx('readwrite',s=>s.put({S,sel:SEL,bgpic:BGPIC?BGPIC.blob:null,photos:PHOTOS.map(p=>({kind:p.kind||'photo',blob:p.blob,name:p.name,strokes:p.strokes})),savedAt:Date.now()},'current'));}
 function save(){clearTimeout(saveT);saveT=setTimeout(writeState,500);}
 function flushAutosave(){clearTimeout(saveT);return writeState();}
 async function restore(){try{const st=await DB.tx('readonly',s=>s.get('current'));
-  if(st&&st.S){S={...DEF(),...st.S};for(const p of st.photos||[])await addPhoto(p.blob,p.name,p.strokes,true);
+  if(st&&st.S){S={...DEF(),...st.S};if(st.bgpic){const img=await decode(st.bgpic);if(img)BGPIC={blob:st.bgpic,img,url:URL.createObjectURL(st.bgpic)};}
+    for(const p of st.photos||[])p.kind==='video'?await addVideo(p.blob,p.name,true):await addPhoto(p.blob,p.name,p.strokes,true);
     if(PHOTOS.length)SEL=clamp(st.sel|0,0,PHOTOS.length-1);}}catch(e){}
   restored=true;renderOpts();renderList();render();queueAll();}
 
@@ -733,7 +973,7 @@ const HANDOFF={name:'pt-handoff',
   async take(){if(!this.ok()||!/[?&]handoff\b/.test(location.search))return[];const out=[];
     try{const c=await caches.open(this.name);for(const k of await c.keys()){const r=await c.match(k);if(r){const b=await r.blob();out.push(new File([b],decodeURIComponent(r.headers.get('x-name')||'file'),{type:b.type||r.headers.get('content-type')||''}));}await c.delete(k);}}catch(e){}
     try{history.replaceState(null,'',location.pathname+location.hash);}catch(e){}return out;}};
-async function handoffIn(){const fs=(await HANDOFF.take()).filter(isImg);if(fs.length)await addFiles(fs);}
+async function handoffIn(){const fs=(await HANDOFF.take()).filter(isMedia);if(fs.length)await addFiles(fs);}
 
 /* ================= switching tools ================= */
 (function(){
