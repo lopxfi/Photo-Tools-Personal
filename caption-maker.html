@@ -101,7 +101,38 @@ input[type=color]{width:40px;height:32px;border:1px solid var(--line);border-rad
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
 .fhead{font:600 13px/1.2 var(--f-display);margin:4px 0 -4px;padding-top:12px;border-top:1px solid var(--line);display:flex;align-items:center;gap:8px}
 .fhead .chk{font:400 13px/1 var(--f-body);margin-left:auto}
-.swatch{width:26px;height:26px;padding:0;border-radius:50%;flex:none}
+.swatch{width:26px;height:26px;padding:0;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.swatch.on{outline:2px solid var(--accent);outline-offset:2px}
+.cbtn{padding:4px 10px 4px 4px;gap:8px;font:500 13px/1 ui-monospace,"SF Mono",Menlo,monospace;flex:none}
+.cbtn i{width:30px;height:24px;border-radius:5px;display:block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2)}
+/* the color picker */
+.cpick{position:fixed;z-index:50;width:300px;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.4);padding:12px;display:flex;flex-direction:column;gap:10px}
+.cpick h3{margin:0;font:600 14px/1.2 var(--f-display);display:flex;align-items:center;gap:8px}
+.cpick h3 button{padding:5px 10px;font-size:13px}
+.cp-sv{position:relative;height:170px;border-radius:9px;cursor:crosshair;touch-action:none;background-image:linear-gradient(to top,#000,rgba(0,0,0,0)),linear-gradient(to right,#fff,rgba(255,255,255,0))}
+.cp-hue{position:relative;height:16px;border-radius:8px;cursor:ew-resize;touch-action:none;background:linear-gradient(to right,#f00 0%,#ff0 17%,#0f0 33%,#0ff 50%,#00f 67%,#f0f 83%,#f00 100%)}
+.cp-knob{position:absolute;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.45),0 2px 6px rgba(0,0,0,.35);pointer-events:none}
+.cp-hue .cp-knob{top:50%}
+.cp-sv:focus-visible,.cp-hue:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cp-row{display:flex;align-items:center;gap:8px}
+.cp-prev{width:44px;height:36px;border-radius:8px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2);background-image:linear-gradient(var(--c1),var(--c1)),linear-gradient(var(--c2),var(--c2));background-size:50% 100%,50% 100%;background-position:left,right;background-repeat:no-repeat}
+.cp-row input{font:500 14px/1 ui-monospace,"SF Mono",Menlo,monospace;padding:8px;min-width:0}
+.cp-row input.cp-hex{flex:1 1 auto;width:auto;min-width:84px}.cp-row input.cp-rgb{flex:0 0 52px;width:52px;padding:8px 4px;text-align:center;-moz-appearance:textfield}
+.cp-row input.cp-rgb::-webkit-inner-spin-button{display:none}
+.cp-tools{display:flex;gap:6px;flex-wrap:wrap}.cp-tools button{padding:6px 9px;font-size:12px}
+.cp-tools button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.cp-sec{display:flex;flex-direction:column;gap:6px}
+.cp-sec>div:first-child{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500}
+.cp-sec>div:first-child .rv{margin-left:auto}
+.cp-sec>div:first-child button{padding:3px 8px;font-size:12px}
+.cp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(26px,1fr));gap:6px}
+.cp-grid button{position:relative;width:100%;aspect-ratio:1;padding:0;border-radius:7px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.2);border:0}
+.cp-grid button.on{outline:2px solid var(--accent);outline-offset:1px}
+.cp-grid button i{position:absolute;top:-6px;right:-6px;width:17px;height:17px;border-radius:50%;background:var(--ink);color:var(--bg);font:600 10px/17px var(--f-body);font-style:normal;text-align:center}
+.cp-grid .addc{display:grid;place-items:center;font-size:18px;color:var(--accent);background:var(--bg);box-shadow:inset 0 0 0 1px var(--line)}
+.cp-empty{font-size:12px;color:var(--muted);margin:0}
+canvas#cv.picking{cursor:crosshair!important}
+@media (max-width:900px){.cpick{left:8px!important;right:8px;width:auto;bottom:8px;top:auto!important;max-height:78vh}.cp-sv{height:150px}}
 .colrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .dim{opacity:.45;pointer-events:none}
 /* the picture */
@@ -306,8 +337,76 @@ function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTim
 function segF(id,label,opts,val,on){const g=h('div',{class:'seg',role:'group','aria-labelledby':id+'-l'});opts.forEach(([v,l,st])=>g.append(h('button',{type:'button','aria-pressed':String(v===val),style:st||null,onclick:()=>on(v)},l)));return h('div',{class:'field'},h('span',{class:'flabel',id:id+'-l'},label),g);}
 function rangeF(id,label,min,max,step,val,fmt,on){const out=h('output',{class:'rv',for:id},fmt(val)),inp=h('input',{type:'range',id,min,max,step,value:val});inp.oninput=()=>{out.textContent=fmt(+inp.value);on(+inp.value,false);};inp.onchange=()=>on(+inp.value,true);return h('div',{class:'field'},h('label',{for:id},label,out),inp);}
 const SW=['#FFFFFF','#000000','#FFD43B','#FF4D4D','#3E8BFF','#2FBF71','#FF7AC6','#9C88FF'];
-function colorF(id,label,val,on,sw){const ci=h('input',{type:'color',id,value:String(val||'#ffffff').toLowerCase(),'aria-label':label});ci.oninput=()=>on(ci.value,false);ci.onchange=()=>on(ci.value,true);
-  return h('div',{class:'field'},h('span',{class:'flabel'},label),h('div',{class:'colrow'},ci,...(sw||SW).map(c=>h('button',{type:'button',class:'swatch',style:`background:${c}`,'aria-label':'Use '+c,title:c,onclick:()=>on(c,true)}))));}
+/* a color setting: the color itself (tap it for the full picker), then your saved colors (or a few to start with) for one tap */
+function colorF(id,label,val,on,sw){val=normHex(val)||'#FFFFFF';
+  const cur=h('button',{type:'button',class:'cbtn',id,'aria-haspopup':'dialog','aria-label':`${label}: ${val}. Change`,title:'Open the color picker',onclick:()=>openPicker(cur,label,normHex(cur.dataset.v)||val,on)},h('i',{style:`background:${val}`}),h('span',{},val));cur.dataset.v=val;
+  const mine=myColors(),quick=(mine.length?mine:(sw||SW)).slice(0,10);
+  return h('div',{class:'field'},h('span',{class:'flabel'},label,mine.length?h('span',{class:'rv'},'your colors'):null),h('div',{class:'colrow'},cur,...quick.map(c=>h('button',{type:'button',class:'swatch'+(c.toUpperCase()===val?' on':''),style:`background:${c}`,'aria-label':'Use '+c,title:c,onclick:()=>{useColor(c);on(c,true);}}))));}
+/* ---------- color helpers ---------- */
+function normHex(v){v=String(v||'').trim().replace(/^#/,'');if(/^[0-9a-f]{3}$/i.test(v))v=v.split('').map(c=>c+c).join('');return/^[0-9a-f]{6}$/i.test(v)?'#'+v.toUpperCase():null;}
+function hsvToHex(hh,ss,vv){const f=n=>{const k=(n+hh/60)%6,c=vv-vv*ss*Math.max(0,Math.min(k,4-k,1));return Math.round(c*255).toString(16).padStart(2,'0');};return('#'+f(5)+f(3)+f(1)).toUpperCase();}
+function hexToHsv(hx){const[r,g,b]=hexRGB(hx).map(x=>x/255),mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let hh=0;
+  if(d){if(mx===r)hh=((g-b)/d)%6;else if(mx===g)hh=(b-r)/d+2;else hh=(r-g)/d+4;hh*=60;if(hh<0)hh+=360;}return[hh,mx?d/mx:0,mx];}
+/* your saved colors and the ones you used last, kept in this browser (the same list for every tool on this site) */
+const CKEY='pt-colors',RKEY='pt-colors-recent';
+const myColors=()=>getList(CKEY).map(normHex).filter(Boolean),recentColors=()=>getList(RKEY).map(normHex).filter(Boolean);
+function saveMyColor(c){c=normHex(c);if(!c)return false;const l=myColors();if(l.includes(c))return false;l.push(c);putList(CKEY,l.slice(-60));return true;}
+function dropMyColor(c){putList(CKEY,myColors().filter(x=>x!==c));}
+function useColor(c){c=normHex(c);if(!c)return;putList(RKEY,[c,...recentColors().filter(x=>x!==c)].slice(0,12));}
+const PALETTE=['#000000','#3A3A3A','#7A7A7A','#BDBDBD','#FFFFFF','#FFF3D6','#7A1F1F','#C1121F','#FF4D4D','#FF8A80','#FF7A1A','#FFB347','#FFD43B','#FFF176','#2FBF71','#7CFF6B','#1B5E20','#00A3A3','#3EE6FF','#3E8BFF','#1E2A78','#5B3DF5','#9C88FF','#C2368C','#FF4D8D','#FFC1E0','#6D4C41','#D7B899'];
+/* ---------- the color picker: a color square and a hue strip, a hex code, an eyedropper, your colors, recent colors and a palette ---------- */
+let CP=null;
+function openPicker(btn,label,val,on){closePicker(true);const start=normHex(val)||'#FFFFFF';let[hh,ss,vv]=hexToHsv(start);let cur=start,editing=false;
+  const el=h('div',{class:'cpick',role:'dialog','aria-label':label+' color'});CP={el,btn,on,start,get:()=>cur};
+  const sv=h('div',{class:'cp-sv',tabindex:'0','aria-label':'Shade: left and right for how strong, up and down for how bright'}),svK=h('span',{class:'cp-knob'});sv.append(svK);
+  const hue=h('div',{class:'cp-hue',tabindex:'0','aria-label':'Hue'}),hueK=h('span',{class:'cp-knob'});hue.append(hueK);
+  const prev=h('span',{class:'cp-prev',title:'New color (left) and the color before (right)'}),hex=h('input',{type:'text',class:'cp-hex',value:start,'aria-label':'Hex code',spellcheck:'false',autocomplete:'off'});
+  const rgbIn=['R','G','B'].map(k=>h('input',{type:'number',class:'cp-rgb',min:0,max:255,step:1,'aria-label':k,title:k}));
+  const mineBox=h('div',{class:'cp-sec'}),recentBox=h('div',{class:'cp-sec'}),palBox=h('div',{class:'cp-sec'});
+  /* show the color everywhere it appears, and tell the setting */
+  const paint=(live,skip)=>{cur=hsvToHex(hh,ss,vv);sv.style.backgroundColor=hsvToHex(hh,1,1);svK.style.left=(ss*100)+'%';svK.style.top=((1-vv)*100)+'%';svK.style.background=cur;hueK.style.left=(hh/360*100)+'%';hueK.style.background=hsvToHex(hh,1,1);
+    prev.style.setProperty('--c1',cur);prev.style.setProperty('--c2',CP.start);if(skip!=='hex')hex.value=cur;if(skip!=='rgb'){const v=hexRGB(cur);rgbIn.forEach((x,k)=>x.value=v[k]);}
+    const b=document.getElementById(btn.id)||btn;b.dataset.v=cur;const i=b.querySelector('i'),sp=b.querySelector('span');if(i)i.style.background=cur;if(sp)sp.textContent=cur;
+    el.querySelectorAll('.cp-grid button[data-c]').forEach(x=>x.classList.toggle('on',x.dataset.c===cur));if(live!=='none')on(cur,live===true);};
+  const setHex=(c,commitIt)=>{c=normHex(c);if(!c)return;[hh,ss,vv]=hexToHsv(c);if(ss===0)hh=hh||0;paint(commitIt?true:false);};
+  const drag=(area,fn)=>{area.addEventListener('pointerdown',e=>{area.setPointerCapture(e.pointerId);fn(e);e.preventDefault();const mv=ev=>fn(ev),up=()=>{area.removeEventListener('pointermove',mv);area.removeEventListener('pointerup',up);area.removeEventListener('pointercancel',up);on(cur,true);};
+    area.addEventListener('pointermove',mv);area.addEventListener('pointerup',up);area.addEventListener('pointercancel',up);});};
+  drag(sv,e=>{const r=sv.getBoundingClientRect();ss=clamp((e.clientX-r.left)/r.width,0,1);vv=1-clamp((e.clientY-r.top)/r.height,0,1);paint(false);});
+  drag(hue,e=>{const r=hue.getBoundingClientRect();hh=clamp((e.clientX-r.left)/r.width,0,1)*359.9;paint(false);});
+  sv.onkeydown=e=>{const st=e.shiftKey?.1:.02;if(e.key==='ArrowLeft')ss=clamp(ss-st,0,1);else if(e.key==='ArrowRight')ss=clamp(ss+st,0,1);else if(e.key==='ArrowUp')vv=clamp(vv+st,0,1);else if(e.key==='ArrowDown')vv=clamp(vv-st,0,1);else return;e.preventDefault();paint(true);};
+  hue.onkeydown=e=>{const st=e.shiftKey?15:3;if(e.key==='ArrowLeft')hh=(hh-st+360)%360;else if(e.key==='ArrowRight')hh=(hh+st)%360;else return;e.preventDefault();paint(true);};
+  hex.oninput=()=>{const c=normHex(hex.value);if(c){[hh,ss,vv]=hexToHsv(c);paint(false,'hex');}};hex.onchange=()=>{const c=normHex(hex.value);if(c)setHex(c,true);else hex.value=cur;};
+  hex.onkeydown=e=>{if(e.key==='Enter'){hex.onchange();e.preventDefault();}};
+  rgbIn.forEach(x=>{x.oninput=()=>{const v=rgbIn.map(q=>clamp(Math.round(+q.value||0),0,255));const c='#'+v.map(n=>n.toString(16).padStart(2,'0')).join('');[hh,ss,vv]=hexToHsv(c);paint(false,'rgb');};x.onchange=()=>paint(true);});
+  /* your colors: save the one you made, tap to use, Edit to remove */
+  const grid=(list,cls)=>h('div',{class:'cp-grid'+(cls?' '+cls:'')},...list.map(c=>{const b=h('button',{type:'button','data-c':c,style:`background:${c}`,title:c,'aria-label':(editing&&cls==='mine'?'Remove ':'Use ')+c,class:c===cur?'on':'',onclick:()=>{if(editing&&cls==='mine'){dropMyColor(c);fill();return;}setHex(c,true);}});if(editing&&cls==='mine')b.append(h('i',{},'✕'));return b;}));
+  const fill=()=>{const mine=myColors();mineBox.innerHTML='';
+    const addB=h('button',{type:'button',class:'addc',title:'Save this color','aria-label':'Save this color to your colors',onclick:()=>{if(saveMyColor(cur)){toast(`${cur} saved to your colors.`);}else toast('That color is already in your colors.');fill();refreshQuick();}},'+');
+    mineBox.append(h('div',{},h('span',{},'Your colors'),h('span',{class:'rv'},mine.length?`${mine.length} saved`:''),mine.length?h('button',{type:'button','aria-pressed':String(editing),onclick:()=>{editing=!editing;fill();}},editing?'Done':'Edit'):null));
+    const g=grid(mine,'mine');if(!editing)g.append(addB);mineBox.append(g);if(!mine.length)mineBox.append(h('p',{class:'cp-empty'},'Make a color, then press + to keep it here. Your colors show under every color setting for one tap.'));
+    const rec=recentColors();recentBox.innerHTML='';recentBox.hidden=!rec.length;if(rec.length)recentBox.append(h('div',{},h('span',{},'Recent')),grid(rec));
+    palBox.innerHTML='';palBox.append(h('div',{},h('span',{},'Palette')),grid(PALETTE));};
+  /* eyedroppers: from your picture (anywhere), or from the whole screen where the browser allows it */
+  const pickPic=h('button',{type:'button','aria-pressed':'false',title:'Then tap the picture to take a color from it',onclick:()=>{const onNow=pickPic.getAttribute('aria-pressed')!=='true';pickPic.setAttribute('aria-pressed',String(onNow));PICKFN=onNow?(c=>{pickPic.setAttribute('aria-pressed','false');setHex(c,true);}):null;cv.classList.toggle('picking',onNow);if(onNow)toast('Tap the picture to take a color from it.');}},'⌖ From the picture');
+  const tools=h('div',{class:'cp-tools'},pickPic);
+  if('EyeDropper' in window)tools.append(h('button',{type:'button',title:'Take a color from anywhere on your screen',onclick:async()=>{try{const r=await new window.EyeDropper().open();if(r&&r.sRGBHex)setHex(r.sRGBHex,true);}catch(e){}}},'⌖ From the screen'));
+  tools.append(h('button',{type:'button',title:'Go back to the color it was',onclick:()=>setHex(CP.start,true)},'↺ Back to before'));
+  el.append(h('h3',{},label,h('span',{class:'spacer'}),h('button',{type:'button',class:'primary',onclick:()=>closePicker()},'Done')),sv,hue,h('div',{class:'cp-row'},prev,hex,...rgbIn),tools,mineBox,recentBox,palBox);
+  document.body.append(el);fill();paint('none');place();setTimeout(()=>sv.focus({preventScroll:true}),20);
+  function place(){if(isPhone())return;const r=btn.getBoundingClientRect(),w=el.offsetWidth,hgt=el.offsetHeight;let x=r.left,y=r.bottom+6;if(x+w>innerWidth-8)x=innerWidth-8-w;if(y+hgt>innerHeight-8)y=Math.max(8,r.top-6-hgt);el.style.left=Math.max(8,x)+'px';el.style.top=y+'px';}
+  CP.place=place;}
+/* close: remember the color as recent and redraw the settings so your colors show */
+function closePicker(quiet){if(!CP)return;const c=CP.get();if(c!==CP.start)useColor(c);CP.el.remove();PICKFN=null;cv.classList.remove('picking');CP=null;if(!quiet)refreshQuick();}
+function refreshQuick(){if(typeof renderPanel==='function'){renderPanel();}}
+let PICKFN=null;
+/* taking a color from the picture: what you see there, without the handles */
+function initPicker(){
+cv.addEventListener('pointerdown',e=>{if(!PICKFN)return;e.stopImmediatePropagation();e.preventDefault();const r=cv.getBoundingClientRect(),x=Math.floor((e.clientX-r.left)/r.width*cv.width),y=Math.floor((e.clientY-r.top)/r.height*cv.height);
+  SHOWUI=false;render();let d=null;try{d=ctx.getImageData(clamp(x,0,cv.width-1),clamp(y,0,cv.height-1),1,1).data;}catch(err){}SHOWUI=true;render();
+  const fn=PICKFN;PICKFN=null;cv.classList.remove('picking');if(d)fn('#'+[d[0],d[1],d[2]].map(n=>n.toString(16).padStart(2,'0')).join('').toUpperCase());},true);
+document.addEventListener('pointerdown',e=>{if(!CP||CP.el.contains(e.target)||e.target.closest('.cbtn')||(PICKFN&&e.target===cv))return;closePicker();},true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&CP){closePicker();e.stopPropagation();}},true);
+addEventListener('resize',()=>{if(CP&&CP.place)CP.place();});}
 function checkF(id,label,val,on){const c=h('input',{type:'checkbox',id});c.checked=!!val;c.onchange=()=>on(c.checked);return h('label',{class:'chk',for:id},c,label);}
 const hexRGB=hx=>{const n=parseInt(String(hx).slice(1),16);return[n>>16&255,n>>8&255,n&255];};
 const rgba=(hx,a)=>{const[r,g,b]=hexRGB(hx||'#000000');return`rgba(${r},${g},${b},${a})`;};
@@ -863,7 +962,7 @@ const HANDOFF={name:'pt-handoff',ok(){try{return window.top===window.self&&'cach
 })();
 
 /* ================= start ================= */
-setCanvasSize(1080,1080);
+setCanvasSize(1080,1080);initPicker();
 loadOwnFonts().then(()=>restore()).then(async()=>{const fs=(await HANDOFF.take()).filter(isImg);if(fs.length)await addPictures(fs);});
 if(document.fonts){document.fonts.addEventListener&&document.fonts.addEventListener('loadingdone',()=>{render();clearTimeout(window.__lk);window.__lk=setTimeout(()=>{if($('looks').childElementCount)renderLooks();},200);});document.fonts.ready.then(()=>render());}
 addEventListener('resize',()=>render());

@@ -405,6 +405,11 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 - **On this computer:** in Chrome and Edge on a computer, **Use fonts on this computer** lists the fonts installed there (after you allow it) and uses them by name, with nothing copied. In other browsers, type a font's name. Installed fonts show only on devices that have them; to use a font everywhere, add its file.
 - Size, bold, italic, all caps, line up left, middle or right, letter spacing and line spacing.
 
+### Colors
+- **Color picker:** tap any color (it shows its code) to open it: a color square and a hue strip, a hex code and R G B numbers, and the new color next to the old one.
+- **Eyedroppers:** ⌖ **From the picture** takes a color from your picture; ⌖ **From the screen** takes one from anywhere on your screen (Chrome and Edge on a computer). **↺ Back to before** undoes the change.
+- **Your colors:** press **+** to save the color you made. They show under every color setting (text, outline, shadow, glow, 3D, box, border, canvas) for one tap. **Edit** removes them. Also **Recent** colors and a palette. Kept in the browser.
+
 ### Effects
 - **Fill:** one color, a two-color blend at any angle, or none (just the outline).
 - **Outline**, and a **second outline** around it (the sticker look). **Shadow** with distance, softness, direction and strength. **Glow** in any color.
