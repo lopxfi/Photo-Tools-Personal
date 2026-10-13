@@ -263,7 +263,8 @@ An order from a made-up delivery app, played out as a video: placed, being prepa
 Write a branching story and play it, export it, or hand it to someone as a file they can play.
 
 ### Scenes
-- **Steps:** a line (someone says something, with an expression and where they stand), narration, a choice, show or hide someone, change the background, a title card, an effect (shake or flash), a sound, music, go to another scene, or the end. Reorder, duplicate and delete them; tap one to preview from there.
+- **Steps:** a line (someone says something, with an expression and where they stand), narration, a choice, show or hide someone, change the background, a picture, a title card, an effect (shake or flash), a sound, music, go to another scene, or the end. Reorder, duplicate and delete them; tap one to preview from there.
+- **Picture:** a picture, GIF or video pops up in the middle and the scene darkens behind it (choose how much). It either **stays up** while the next lines are written over it (until a **Remove picture** step, another picture or the next scene; tick *Pause on it* to wait for a tap) or **flashes, then goes** after the time you set. Size and place it with sliders, or drag it on the stage and pull its corner. Frames: plain, white border, rounded or snapshot. It can come in with a pop, fade, zoom, slide, drop or spin, and move with a slow zoom in or out, a pan, a drift, float, sway, heartbeat or shake. An optional white flash when it appears.
 - **Choices:** up to four options, each leading to a scene. When you play it, you tap the one you want; a radio button marks which one the video takes.
 - **Scenes:** the first one is where the story starts. Each has its own background.
 
