@@ -116,6 +116,30 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
 .layers button{max-width:180px;font-size:13px;padding:6px 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
 .layers button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--soft)}
 .under{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* the pictures in this project */
+.strip{display:flex;gap:8px;overflow-x:auto;padding:8px;border:1px solid var(--line);border-radius:12px;background:var(--panel);align-items:stretch}
+.strip .pg{flex:none;display:flex;flex-direction:column;gap:4px;padding:4px;border:1px solid var(--line);border-radius:9px;background:var(--bg);cursor:pointer;width:132px;position:relative}
+.strip .pg[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.strip .pg canvas{width:100%;height:84px;object-fit:contain;display:block;border-radius:5px;background:var(--stage) conic-gradient(var(--check) 25%,transparent 0 50%,var(--check) 0 75%,transparent 0) 0 0/10px 10px}
+.strip .pg span{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strip .pg b{position:absolute;top:8px;left:8px;font:600 11px/1 var(--f-body);background:rgba(0,0,0,.65);color:#fff;border-radius:5px;padding:3px 5px}
+.strip .addpg{flex:none;width:110px;flex-direction:column;justify-content:center;font-size:13px;text-align:center;border-style:dashed}
+.strip .pgacts{flex:none;display:flex;flex-direction:column;gap:4px;justify-content:center}
+.strip .pgacts button{padding:6px 9px;font-size:12px}
+.copyrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.copyrow select{width:auto;flex:0 1 260px;font-size:13px;padding:7px 9px}
+.copyrow .help{flex:1;min-width:140px}
+/* settings fold into dropdown sections */
+.fsec{border-top:1px solid var(--line);margin:0 -16px;padding:0 16px}
+.fold{width:100%;justify-content:space-between;border:0;background:transparent;padding:12px 0;font:600 13px/1.2 var(--f-display);border-radius:0;color:var(--ink);gap:10px}
+.fold:hover{color:var(--accent)}
+.fold .fsum{flex:1;min-width:0;text-align:right;font:400 12px/1.2 var(--f-body);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fold .chev{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;margin-right:4px;flex:none}
+.fold[aria-expanded="true"] .chev{transform:rotate(45deg)}
+.foldbody{display:flex;flex-direction:column;gap:14px;padding-bottom:14px}
+.foldall{display:flex;gap:6px;justify-content:flex-end;margin:-6px 0 -8px}
+.foldall button{padding:4px 8px;font-size:12px;border-color:transparent;background:transparent;color:var(--muted)}
+.foldall button:hover{color:var(--accent)}
 .under .help{flex:1;min-width:200px}
 .status{min-height:1.2em;font-size:13px;color:var(--accent);margin:0}
 /* looks */
@@ -170,11 +194,8 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
   .seg button,.row button{padding:10px 12px;font-size:14px}
   .field input[type=range]{height:30px}
   .looks{grid-template-columns:repeat(3,1fr)}
-  .fsec{border-top:1px solid var(--line);margin:4px -16px 0;padding:0 16px}
-  .fold{width:100%;justify-content:space-between;border:0;background:transparent;padding:14px 0;font:600 14px/1.2 var(--f-display);border-radius:0;color:var(--ink)}
-  .fold .chev{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;margin-right:4px;flex:none}
-  .fold[aria-expanded="true"] .chev{transform:rotate(45deg)}
-  .foldbody{display:flex;flex-direction:column;gap:14px;padding-bottom:14px}
+  .fold{padding:14px 0;font-size:14px}
+  .strip .pg{width:112px}.strip .pg canvas{height:70px}
   .flist{grid-template-columns:1fr 1fr}
   .fopt .fs{font-size:20px}
 }
@@ -206,6 +227,8 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
       <button type="button" id="redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
     </div>
     <div class="layers" id="layers" role="group" aria-label="Your text"></div>
+    <div class="copyrow" id="copyRow"></div>
+    <div class="strip" id="strip" aria-label="Pictures in this project"></div>
     <div class="under">
       <p class="help">Drag text to move it. Pull the corner to resize, the round handle to turn it, and the dot at a bubble’s tail to point it. Double-tap text to type.</p>
     </div>
@@ -253,17 +276,24 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
 <script>
 /* ================= phones: fold-out sections ================= */
 const phoneMQ=matchMedia('(max-width:900px)'),isPhone=()=>phoneMQ.matches;
-const openSecs=new Set(['Looks','Font']);
+const openSecs=new Set((()=>{try{const v=JSON.parse(localStorage.getItem('cm-open')||'null');if(Array.isArray(v))return v;}catch(e){}return['Looks','Font'];})());
+const keepOpen=()=>{try{localStorage.setItem('cm-open',JSON.stringify([...openSecs]));}catch(e){}};
 function foldSections(p,sel){let body=null;
   for(const el of[...p.children]){
     if(el.matches(sel)){const name=el.firstChild.textContent.trim(),open=openSecs.has(name);
-      const b=document.createElement('button');b.type='button';b.className='fold';b.setAttribute('aria-expanded',String(open));b.append(name);
+      const b=document.createElement('button');b.type='button';b.className='fold';b.dataset.sec=name;b.setAttribute('aria-expanded',String(open));b.append(name);
+      const sm=document.createElement('span');sm.className='fsum';b.append(sm);
       const ch=document.createElement('span');ch.className='chev';ch.setAttribute('aria-hidden','true');b.append(ch);
       body=document.createElement('div');body.className='foldbody';body.hidden=!open;const bd=body;
-      b.onclick=()=>{const o=bd.hidden;bd.hidden=!o;b.setAttribute('aria-expanded',String(o));if(o)openSecs.add(name);else openSecs.delete(name);};
+      b.onclick=()=>{const o=bd.hidden;bd.hidden=!o;b.setAttribute('aria-expanded',String(o));if(o)openSecs.add(name);else openSecs.delete(name);keepOpen();};
       const sec=document.createElement('div');sec.className='fsec';sec.append(b,body);el.replaceWith(sec);continue;}
     if(body)body.append(el);}}
-if(isPhone())foldSections($id('opts'),'h4.fhead');
+foldSections($id('opts'),'h4.fhead');
+/* open or close every section at once */
+(function(){const o=$id('opts'),first=o.querySelector('.fsec');if(!first)return;const set=open=>{o.querySelectorAll('.fold').forEach(b=>{const bd=b.nextElementSibling;bd.hidden=!open;b.setAttribute('aria-expanded',String(open));if(open)openSecs.add(b.dataset.sec);else openSecs.delete(b.dataset.sec);});keepOpen();};
+  const bar=document.createElement('div');bar.className='foldall';const mk=(t,f)=>{const x=document.createElement('button');x.type='button';x.textContent=t;x.onclick=f;return x;};bar.append(mk('Open all',()=>set(true)),mk('Close all',()=>set(false)));first.before(bar);})();
+/* a short note on each closed section saying what's set in it */
+function setSum(name,txt){const b=document.querySelector(`.fold[data-sec="${name}"] .fsum`);if(b)b.textContent=txt||'';}
 function $id(id){return document.getElementById(id);}
 
 /* ================= basics ================= */
@@ -484,6 +514,8 @@ function focusText(){const t=$('txt');if(isPhone()){const sec=t.closest('.fsec')
 document.addEventListener('keydown',e=>{const tag=(e.target&&e.target.tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tag)||!$('fmodal').hidden)return;
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();return;}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();redo();return;}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='c'&&selT()&&!String(getSelection()||'')){CLIP=cleanTexts([selT()])[0];toast('Text copied. Switch pictures and press Ctrl+V.');e.preventDefault();return;}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='v'&&CLIP){const c={...JSON.parse(JSON.stringify(CLIP)),id:'t_'+rkey()};if(S.texts.some(t=>t.x===c.x&&t.y===c.y)){c.x=clamp(c.x+.02,0,1);c.y=clamp(c.y+.02,0,1);}S.texts.push(c);S.sel=c.id;commit();renderPanel();render();e.preventDefault();return;}
   const T=selT();if(!T)return;const st=(e.shiftKey?10:1)/Math.max(IW(),IH());
   if(e.key==='ArrowLeft'){T.x-=st;}else if(e.key==='ArrowRight'){T.x+=st;}else if(e.key==='ArrowUp'){T.y-=st;}else if(e.key==='ArrowDown'){T.y+=st;}
   else if(e.key==='Delete'||e.key==='Backspace'){delText();e.preventDefault();return;}else return;e.preventDefault();render();syncPlace();commitSoon();});
@@ -491,7 +523,7 @@ document.addEventListener('keydown',e=>{const tag=(e.target&&e.target.tagName)||
 /* ================= undo, and keeping your work ================= */
 let HIST=[],HI=-1;
 const snap=()=>JSON.stringify(S.texts.map(t=>{const o={...t};delete o._L;return o;}));
-function commit(){const s=snap();if(HIST[HI]!==s){HIST=HIST.slice(0,HI+1);HIST.push(s);if(HIST.length>80)HIST.shift();HI=HIST.length-1;}syncUndo();save();renderLayers();}
+function commit(){const s=snap();if(HIST[HI]!==s){HIST=HIST.slice(0,HI+1);HIST.push(s);if(HIST.length>80)HIST.shift();HI=HIST.length-1;}syncUndo();save();renderLayers();renderStripSoon();}
 let cT=0;const commitSoon=()=>{clearTimeout(cT);cT=setTimeout(commit,400);};
 function restoreSnap(s){const sel=S.sel;S.texts=JSON.parse(s);if(!S.texts.some(t=>t.id===sel))S.sel=S.texts.length?S.texts[S.texts.length-1].id:null;renderPanel();render();save();renderLayers();syncUndo();}
 function undo(){if(HI>0){HI--;restoreSnap(HIST[HI]);}}
@@ -501,12 +533,28 @@ $('undo').onclick=undo;$('redo').onclick=redo;
 const DB={open(){if(DB.p)return DB.p;return DB.p=new Promise(res=>{try{const r=indexedDB.open('caption-maker',1);r.onupgradeneeded=()=>r.result.createObjectStore('state');r.onsuccess=()=>res(r.result);r.onerror=r.onblocked=()=>res(null);}catch(e){res(null);}});},
   async tx(mode,fn){const db=await DB.open();if(!db)return null;return new Promise(res=>{try{const t=db.transaction('state',mode),s=t.objectStore('state'),q=fn(s);t.oncomplete=()=>res(q&&'result' in q?q.result:true);t.onerror=t.onabort=()=>res(null);}catch(e){res(null);}});}};
 let restored=false,sT=0;
-function writeState(){if(!restored)return Promise.resolve();return DB.tx('readwrite',s=>s.put({S:{...S,texts:JSON.parse(snap())},img:S.bg.kind==='img'?IMGBLOB:null,name:IMGNAME},'current'));}
+/* ---------- the project: one or more pictures, each with its own text ---------- */
+let PAGES=[],CUR=0;
+const newPage=o=>({id:'p_'+rkey(),bg:{kind:'sample',color:'#1B1A23',w:1080,h:1080},img:null,blob:null,name:'',texts:[],sel:null,hist:null,...(o||{})});
+const cleanTexts=ts=>ts.map(t=>{const o=JSON.parse(JSON.stringify(t));delete o._L;return o;});
+/* the picture on screen lives in S, IMG and friends; tuck it back into its page before switching or saving */
+function stash(){const pg=PAGES[CUR];if(!pg)return;Object.assign(pg,{bg:S.bg,texts:S.texts,sel:S.sel,img:IMG,blob:IMGBLOB,name:IMGNAME,hist:{HIST,HI}});}
+function showPage(i,quiet,fresh){if(!fresh)stash();CUR=clamp(i,0,PAGES.length-1);const pg=PAGES[CUR];S.bg=pg.bg;S.texts=pg.texts;S.sel=pg.sel;IMG=pg.img;IMGBLOB=pg.blob;IMGNAME=pg.name;setCanvasSize(pg.bg.w||1080,pg.bg.h||1080);
+  if(pg.hist){HIST=pg.hist.HIST;HI=pg.hist.HI;}else{HIST=[snap()];HI=0;}syncUndo();paneT=null;if(!quiet){renderAll();renderStrip();save();}}
+function writeState(){if(!restored)return Promise.resolve();stash();
+  return DB.tx('readwrite',s=>s.put({v:2,S:{fmt:S.fmt,q:S.q,maxSide:S.maxSide},cur:CUR,pages:PAGES.map(pg=>({id:pg.id,bg:pg.bg,blob:pg.bg.kind==='img'?pg.blob:null,name:pg.name,texts:cleanTexts(pg.texts),sel:pg.sel}))},'current'));}
 function save(){clearTimeout(sT);sT=setTimeout(writeState,500);}
 let LOOKS_MINE=[];
 async function restore(){try{const m=await DB.tx('readonly',s=>s.get('looks'));if(Array.isArray(m))LOOKS_MINE=m;
-  const st=await DB.tx('readonly',s=>s.get('current'));if(st&&st.S){const t=st.S.texts||[];S={...S,...st.S,texts:t.map(x=>mergeDeep(DEFTEXT(),x))};if(st.img&&S.bg.kind==='img')await setImage(st.img,st.name,true);else setCanvasSize(S.bg.w||1080,S.bg.h||1080);}}catch(e){}
-  restored=true;if(!S.texts.length)addText(true);HIST=[snap()];HI=0;syncUndo();renderAll();}
+  const st=await DB.tx('readonly',s=>s.get('current'));ST0=(st&&st.cur)|0;
+  if(st&&Array.isArray(st.pages)){S={...S,...(st.S||{})};for(const q of st.pages){const pg=newPage({id:q.id,bg:q.bg,name:q.name||'',texts:(q.texts||[]).map(x=>mergeDeep(DEFTEXT(),x)),sel:q.sel});
+      if(q.blob&&q.bg&&q.bg.kind==='img'){const im=await loadImg(q.blob);if(im){pg.img=im;pg.blob=q.blob;}else pg.bg={...pg.bg,kind:'sample'};}PAGES.push(pg);}}
+  else if(st&&st.S){/* a project from before there could be several pictures */const t=st.S.texts||[];const pg=newPage({bg:st.S.bg||undefined,texts:t.map(x=>mergeDeep(DEFTEXT(),x)),sel:st.S.sel,name:st.name||''});
+    if(st.img&&pg.bg.kind==='img'){const im=await loadImg(st.img);if(im){pg.img=im;pg.blob=st.img;}}S={...S,fmt:st.S.fmt||S.fmt,q:st.S.q||S.q,maxSide:st.S.maxSide||0};PAGES.push(pg);}}catch(e){}
+  if(!PAGES.length)PAGES.push(newPage());CUR=clamp(st0(),0,PAGES.length-1);showPage(CUR,true,true);
+  restored=true;if(!S.texts.length)addText(true);HIST=[snap()];HI=0;syncUndo();renderAll();renderStrip();}
+let ST0=0;const st0=()=>ST0;
+async function loadImg(blob){const im=new Image();im.src=URL.createObjectURL(blob);try{await im.decode();return im;}catch(e){return null;}}
 function mergeDeep(a,b){for(const k in b){if(b[k]&&typeof b[k]==='object'&&!Array.isArray(b[k])&&a[k]&&typeof a[k]==='object')a[k]=mergeDeep({...a[k]},b[k]);else a[k]=b[k];}return a;}
 
 /* ================= the picture: open, blank, or see-through ================= */
@@ -516,10 +564,16 @@ async function setImage(blob,name,quiet){const url=URL.createObjectURL(blob),im=
   /* text keeps its size relative to the picture, so switching pictures keeps the layout */
   IMG=im;IMGBLOB=blob;IMGNAME=name||'picture';S.bg={...S.bg,kind:'img',w:Math.round(w),h:Math.round(hh)};setCanvasSize(w,hh);if(!quiet){renderPanel();render();save();}return true;}
 const isImg=f=>/^image\//.test(f.type)||/\.(png|jpe?g|webp|gif|avif|heic|bmp)$/i.test(f.name||'');
-async function openFiles(fs){const f=[...fs].find(isImg);if(f){await setImage(f,f.name);toast('Picture opened. Your text is still where it was.');return;}
+/* new pictures join the project, each with a copy of the current text's look ready to type into */
+async function addPictures(files){const imgs=[...files].filter(isImg);if(!imgs.length)return;const style=selT()?cleanTexts([selT()])[0]:null;let first=-1,n=0;
+  for(const f of imgs){const reuse=PAGES.length===1&&S.bg.kind==='sample'&&n===0;if(!reuse){stash();const pg=newPage();PAGES.splice(CUR+1,0,pg);showPage(CUR+1,true);}
+    if(await setImage(f,f.name,true)){n++;if(first<0)first=CUR;if(!reuse||!S.texts.length){if(!S.texts.length){const T=DEFTEXT();if(style)Object.assign(T,style,{id:T.id,text:'Your text here',x:.5,y:.82});S.texts=[T];S.sel=T.id;}}HIST=[snap()];HI=0;}
+    else if(!reuse){PAGES.splice(CUR,1);showPage(Math.max(0,CUR-1),true);}}
+  showPage(CUR,true);renderAll();renderStrip();save();if(n)toast(n>1?`${n} pictures added. Each one has its own text.`:'Picture added.');}
+async function openFiles(fs){if([...fs].some(isImg)){await addPictures(fs);return;}
   const fontsIn=[...fs].filter(f=>/\.(ttf|otf|woff2?)$/i.test(f.name));if(fontsIn.length){const id=await addFontFiles(fontsIn);if(id&&selT()){selT().font=id;commit();renderPanel();render();}}}
 const SIZES=[['1080x1080','Square'],['1080x1350','Portrait 4:5'],['1080x1920','Tall 9:16'],['1920x1080','Wide 16:9'],['1600x900','Banner']];
-function blank(kind,size){const[w,hh]=String(size||S.bg.w+'x'+S.bg.h).split('x').map(Number);IMG=null;IMGBLOB=null;S.bg={...S.bg,kind,w,h:hh};setCanvasSize(w,hh);renderPanel();render();save();}
+function blank(kind,size){const[w,hh]=String(size||S.bg.w+'x'+S.bg.h).split('x').map(Number);IMG=null;IMGBLOB=null;S.bg={...S.bg,kind,w,h:hh};setCanvasSize(w,hh);renderPanel();render();save();renderStrip();}
 /* drop a picture, font files or a whole fonts folder anywhere on the page */
 const dropEl=$('drop');let dragN=0;
 const isFontFile=f=>/\.(ttf|otf|woff2?)$/i.test(f.name||'');
@@ -549,7 +603,7 @@ $('dupText').onclick=()=>{const T=selT();if(!T)return;const c=JSON.parse(JSON.st
 $('upText').onclick=()=>{const i=S.texts.findIndex(t=>t.id===S.sel);if(i<0||i===S.texts.length-1)return;[S.texts[i],S.texts[i+1]]=[S.texts[i+1],S.texts[i]];commit();render();};
 $('downText').onclick=()=>{const i=S.texts.findIndex(t=>t.id===S.sel);if(i<=0)return;[S.texts[i],S.texts[i-1]]=[S.texts[i-1],S.texts[i]];commit();render();};
 function renderLayers(){const L=$('layers');L.innerHTML='';S.texts.slice().reverse().forEach(T=>L.append(h('button',{type:'button','aria-pressed':String(T.id===S.sel),style:`font-family:${fontCss(T.font)}`,onclick:()=>{S.sel=T.id;renderPanel();render();}},(T.text||'…').split('\n')[0].slice(0,40)||'…')));
-  ['dupText','delText','upText','downText'].forEach(id=>$(id).disabled=!selT());}
+  ['dupText','delText','upText','downText'].forEach(id=>$(id).disabled=!selT());if(restored)renderCopy();}
 
 /* ================= looks: whole styles in one tap ================= */
 const LOOK=(name,o)=>({name,o});
@@ -594,7 +648,7 @@ $('saveLook').onclick=()=>{const T=selT();if(!T)return;const name=(prompt('Name 
 let paneT=null;
 const ch=(fn,fin)=>(v,done)=>{const T=selT();if(!T)return;fn(T,v);render();if(done!==false){commit();if(fin)renderPanel();}else commitSoon();};
 function renderAll(){renderPanel();renderLayers();renderLooks();render();}
-function renderPanel(){const T=selT();$('txt').value=T?T.text:'';$('txt').disabled=!T;
+function renderPanel(){const T=selT();$('txt').value=T?T.text:'';$('txt').disabled=!T;setTimeout(updateSums,0);
   const none=h('p',{class:'help'},'Tap some text on the picture, or press + Text.');
   ['fontF','colorF','outF','shadowF','depthF','boxF','placeF'].forEach(id=>{const el=$(id);el.innerHTML='';if(!T)el.append(none.cloneNode(true));});
   renderPic();renderSave();renderLayers();if(paneT!==S.sel){paneT=S.sel;renderLooks();}if(!T){render();return;}needFont(T.font);
@@ -604,7 +658,7 @@ function renderPanel(){const T=selT();$('txt').value=T?T.text:'';$('txt').disabl
   $('fontF').append(h('div',{class:'fontrow'},h('button',{type:'button',class:'fontbtn',id:'fontBtn',style:`font-family:${F.css}`,onclick:openFonts},h('span',{},F.name),h('small',{},'Change ▸')),
       h('button',{type:'button',class:'fstar big'+(fv?' on':''),id:'favThis','aria-pressed':String(fv),'aria-label':fv?'Remove this font from favorites':'Add this font to favorites',title:fv?'In your favorites':'Add to favorites',onclick:()=>{toggleFav(F.id);renderPanel();}},fv?'★':'☆')),
     quick.length?h('div',{class:'field'},h('span',{class:'flabel'},favFonts().length?'Favorites':'Recent',h('span',{class:'rv'},favFonts().length?'tap to use':'tap ☆ to keep a font here')),
-      h('div',{class:'favs'},...quick.map(f=>{needFont(f.id);return h('button',{type:'button','aria-pressed':String(f.id===T.font),style:`font-family:${f.css}`,title:f.name,onclick:()=>{setFont(f.id);renderPanel();}},f.name);}))):null,
+      h('div',{class:'favs'},...quick.map(f=>{needFont(f.id);return h('button',{type:'button','aria-pressed':String(f.id===T.font),style:`font-family:${f.css}`,title:f.name,onclick:()=>{setFont(f.id);renderPanel();}},f.name);}))):'',
     rangeF('sz','Size',.01,.4,.001,T.size,v=>Math.round(v*IH())+' px',ch((T,v)=>T.size=v)),
     h('div',{class:'row'},checkF('bold','Bold',T.bold,ch((T,v)=>T.bold=v)),checkF('ital','Italic',T.italic,ch((T,v)=>T.italic=v)),checkF('caps','ALL CAPS',T.upper,ch((T,v)=>T.upper=v))),
     segF('al','Line up',[['left','Left'],['center','Middle'],['right','Right']],T.align,v=>ch((T,x)=>T.align=x,true)(v)),
@@ -646,6 +700,13 @@ function moveTo(x,y){const T=selT();if(!T)return;if(x!=null){T.box.tx=clamp(T.bo
 function syncPlace(){const T=selT();if(!T)return;const set=(id,v,txt)=>{const i=$(id);if(!i)return;i.value=v;const o=i.parentElement.querySelector('output');if(o&&txt)o.textContent=txt;};
   set('px',T.x,pct(T.x));set('py',T.y,pct(T.y));set('rot',T.rot,deg(T.rot));set('sz',T.size,Math.round(T.size*IH())+' px');}
 $('txt').oninput=()=>{const T=selT();if(!T)return;T.text=$('txt').value;render();commitSoon();renderLayers();};
+/* what each closed section has in it */
+function updateSums(){const T=selT();if(!T){['Font','Color','Outline','Shadow and glow','3D and curve','Box and bubble','Size, place and turn'].forEach(n=>setSum(n,''));}
+  else{const BK={none:'',box:'box',round:'rounded box',pill:'pill',lines:'each line',speech:'speech bubble',oval:'round bubble',thought:'thought',shout:'shout',tag:'tag',bar:'strip across'};
+    setSum('Font',(FONTS[T.font]||{}).name||'');setSum('Color',T.fill==='gradient'?'two-color blend':T.fill==='none'?'outline only':'one color');setSum('Outline',T.o1.on?(T.o2.on?'two outlines':'on'):'off');
+    setSum('Shadow and glow',[T.shadow.on?'shadow':'',T.glow.on?'glow':''].filter(Boolean).join(', ')||'off');setSum('3D and curve',[T.depth.on?'3D':'',T.curve?'curved':''].filter(Boolean).join(', ')||'off');
+    setSum('Box and bubble',BK[T.box.kind]||'nothing');setSum('Size, place and turn',`${Math.round(T.size*IH())} px${T.rot?' · '+T.rot+'°':''}`);}
+  setSum('Picture',PAGES.length>1?`picture ${CUR+1} of ${PAGES.length}`:S.bg.kind==='img'?IMGNAME:S.bg.kind==='sample'?'sample':'blank');setSum('Save',S.fmt.toUpperCase());setSum('Looks','');}
 
 /* ================= the font picker ================= */
 /* favorites (★) and the fonts you used last, kept in this browser for every visit */
@@ -690,8 +751,9 @@ function renderFonts(){const T=selT(),q=$('fSearch').value.trim().toLowerCase(),
     h('p',{class:'help'},'Installed fonts show up only on a device that has them. To use a font everywhere, add its file above.'));}
 
 /* ================= the picture section ================= */
-function renderPic(){const p=$('picF');p.innerHTML='';const inp=h('input',{type:'file',id:'pickImg',accept:'image/*'});inp.onchange=()=>{const f=inp.files[0];inp.value='';if(f)openFiles([f]);};
-  p.append(h('div',{class:'row'},h('label',{class:'btn primary',for:'pickImg'},S.bg.kind==='img'?'Change picture':'Open a picture',inp)),
+function renderPic(){const p=$('picF');p.innerHTML='';const inp=h('input',{type:'file',id:'pickImg',accept:'image/*'});inp.onchange=async()=>{const f=inp.files[0];inp.value='';if(f){await setImage(f,f.name);renderStrip();toast('Picture changed. Your text is still where it was.');}};
+  const more=h('input',{type:'file',id:'addImgs',accept:'image/*',multiple:true});more.onchange=()=>{const fs=[...more.files];more.value='';if(fs.length)addPictures(fs);};
+  p.append(h('div',{class:'row'},h('label',{class:'btn primary',for:'pickImg'},S.bg.kind==='img'?'Change this picture':'Open a picture',inp),h('label',{class:'btn',for:'addImgs'},'+ Add more pictures',more)),
     h('p',{class:'help'},S.bg.kind==='img'?`${IMGNAME} · ${IW()} × ${IH()}`:S.bg.kind==='sample'?'You’re trying things on a sample picture. Open your own, drop one here, or paste one.':`A blank ${IW()} × ${IH()} canvas.`));
   p.append(segF('blank','Or start blank',[['color','Solid color'],['clear','See-through (text only)']],S.bg.kind==='color'||S.bg.kind==='clear'?S.bg.kind:'',v=>blank(v)));
   if(S.bg.kind==='color'||S.bg.kind==='clear'){p.append(segF('bsz','Canvas size',SIZES.map(([k,l])=>[k,l+' · '+k.replace('x',' × ')]),IW()+'x'+IH(),v=>blank(S.bg.kind,v)));
@@ -713,15 +775,20 @@ async function cleanJpeg(blob){try{const b=new Uint8Array(await blob.arrayBuffer
 const rndCode=(n=6)=>{const a='abcdefghjkmnpqrstuvwxyz23456789',u=new Uint8Array(n);crypto.getRandomValues(u);return[...u].map(x=>a[x%a.length]).join('');};
 const say=m=>{$('status').textContent=m;};
 /* the finished picture, without the handles, at full size (or smaller if you ask) */
-async function makeImage(){try{await Promise.race([Promise.all(S.texts.map(t=>document.fonts.load(fontStr(t,40),t.text||'A'))),new Promise(r=>setTimeout(r,3000))]);}catch(e){}
+async function makeImage(n){try{await Promise.race([Promise.all(S.texts.map(t=>document.fonts.load(fontStr(t,40),t.text||'A'))),new Promise(r=>setTimeout(r,3000))]);}catch(e){}
   SHOWUI=false;render();SHOWUI=true;let src=cv;const max=+S.maxSide||0;
   if(max&&Math.max(cv.width,cv.height)>max){const k=max/Math.max(cv.width,cv.height),c=document.createElement('canvas');c.width=Math.round(cv.width*k);c.height=Math.round(cv.height*k);const g=c.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(cv,0,0,c.width,c.height);src=c;}
   let fmt=S.fmt;if(S.bg.kind==='clear'&&fmt==='jpg')fmt='png';
   const type=fmt==='jpg'?'image/jpeg':fmt==='webp'?'image/webp':'image/png';
   if(fmt==='jpg'){const c=document.createElement('canvas');c.width=src.width;c.height=src.height;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(src,0,0);src=c;}
   let blob=await new Promise(r=>src.toBlob(r,type,S.q));render();if(!blob)throw new Error('the browser couldn’t make the picture');if(blob.type==='image/jpeg')blob=await cleanJpeg(blob);
-  const ext=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg',base=S.bg.kind==='img'?IMGNAME.replace(/\.[^.]+$/,'').replace(/[\\/:*?"<>|]+/g,'_').slice(0,60)+'-caption':'caption-'+rndCode();
+  const ext=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg',base=S.bg.kind==='img'?IMGNAME.replace(/\.[^.]+$/,'').replace(/[\\/:*?"<>|]+/g,'_').slice(0,60)+'-caption':'caption-'+(n?SAVECODE+'-'+n:rndCode());
   return new File([blob],`${base}.${ext}`,{type:blob.type});}
+let SAVECODE=rndCode();
+/* every picture in the project, one after another */
+async function makeAll(){stash();const keep=CUR,out=[],used=new Set();SAVECODE=rndCode();
+  for(let i=0;i<PAGES.length;i++){say(`Making picture ${i+1} of ${PAGES.length}…`);showPage(i,true);render();let f=await makeImage(i+1);let nm=f.name,k=2;while(used.has(nm))nm=f.name.replace(/(\.[a-z]+)$/,`-${k++}$1`);used.add(nm);if(nm!==f.name)f=new File([f],nm,{type:f.type});out.push(f);}
+  showPage(keep,true);renderAll();return out;}
 let busy=false;async function run(fn){if(busy)return;busy=true;try{await fn();}catch(err){say('That didn’t work: '+(err&&err.message||err)+'.');}finally{busy=false;}}
 function renderSave(){const p=$('saveF');p.innerHTML='';
   p.append(segF('fmt','Format',[['png','PNG'],['jpg','JPG'],['webp','WebP']],S.fmt,v=>{S.fmt=v;save();renderSave();}));
@@ -733,7 +800,50 @@ function renderSave(){const p=$('saveF');p.innerHTML='';
   if(canSave())b.append(h('button',{type:'button',class:'primary',id:'saveBtn',onclick:()=>run(async()=>{say('Making the picture…');const f=await makeImage();say(await saveFile(f,f.name)+` ${(f.size/1e6).toFixed(f.size<1e6?2:1)} MB.`);})},'Save picture'));
   if(share)b.append(h('button',{type:'button',onclick:()=>run(async()=>{const f=await makeImage();say('');try{await navigator.share({files:[f]});say('Shared.');}catch(err){say(err&&err.name==='AbortError'?'':'Sharing didn’t work here. Save it instead.');}})},'Share'));
   if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write)b.append(h('button',{type:'button',onclick:()=>run(async()=>{const old=S.fmt;S.fmt='png';const f=await makeImage();S.fmt=old;try{await navigator.clipboard.write([new ClipboardItem({'image/png':f})]);say('Copied. Paste it anywhere.');}catch(err){say('Copying isn’t allowed here. Save it instead.');}})},'Copy'));
-  p.append(b);if(!canSave())p.append(h('p',{class:'help'},'Saving isn’t available here. Open the Photo Tools website or app to save.'));}
+  p.append(b);
+  if(PAGES.length>1){const all=h('div',{class:'row'});
+    if(canSave())all.append(h('button',{type:'button',id:'saveAll',onclick:()=>run(async()=>{const fs=await makeAll();let last='';for(let i=0;i<fs.length;i++){say(`Saving picture ${i+1} of ${fs.length}…`);last=await saveFile(fs[i],fs[i].name);if(/Not saved|isn’t available|too big/.test(last))break;await new Promise(r=>setTimeout(r,DL?0:350));}say(/Saved/.test(last)?`Saved ${fs.length} pictures.`:last);})},`Save all ${PAGES.length}`),
+      h('button',{type:'button',id:'saveZip',onclick:()=>run(async()=>{const fs=await makeAll();say('Putting the ZIP together…');const zip=await makeZip(fs.map(f=>({name:f.name,blob:f})));say(await saveFile(zip,`captions-${SAVECODE}.zip`)+` ${(zip.size/1e6).toFixed(1)} MB.`);})},'Save all as ZIP'));
+    if(share)all.append(h('button',{type:'button',onclick:()=>run(async()=>{const fs=await makeAll();say('');try{await navigator.share({files:fs});say('Shared.');}catch(err){say(err&&err.name==='AbortError'?'':'Sharing didn’t work here. Save them instead.');}})},'Share all'));
+    p.append(h('span',{class:'flabel'},'Every picture in this project'),all);}
+  if(!canSave())p.append(h('p',{class:'help'},'Saving isn’t available here. Open the Photo Tools website or app to save.'));}
+/* a ZIP of the pictures, with no dates or other details about you inside */
+const CRC_T=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRC_T[(c^u8[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0;}
+async function makeZip(entries){const parts=[],central=[];let off=0;const time=0,date=33;
+  for(const en of entries){const data=new Uint8Array(await en.blob.arrayBuffer()),name=new TextEncoder().encode(en.name),crc=crc32(data);
+    const lh=new DataView(new ArrayBuffer(30));lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(10,time,true);lh.setUint16(12,date,true);lh.setUint32(14,crc,true);lh.setUint32(18,data.length,true);lh.setUint32(22,data.length,true);lh.setUint16(26,name.length,true);
+    parts.push(new Uint8Array(lh.buffer),name,data);
+    const ch=new DataView(new ArrayBuffer(46));ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(12,time,true);ch.setUint16(14,date,true);ch.setUint32(16,crc,true);ch.setUint32(20,data.length,true);ch.setUint32(24,data.length,true);ch.setUint16(28,name.length,true);ch.setUint32(42,off,true);
+    central.push(new Uint8Array(ch.buffer),name);off+=30+name.length+data.length;}
+  const cs=central.reduce((a,q)=>a+q.length,0),end=new DataView(new ArrayBuffer(22));end.setUint32(0,0x06054b50,true);end.setUint16(8,entries.length,true);end.setUint16(10,entries.length,true);end.setUint32(12,cs,true);end.setUint32(16,off,true);
+  return new Blob([...parts,...central,new Uint8Array(end.buffer)],{type:'application/zip'});}
+/* ---------- the strip of pictures ---------- */
+function drawBg2(c,w,hh,pg){if(pg.bg.kind==='img'&&pg.img){c.drawImage(pg.img,0,0,w,hh);return;}if(pg.bg.kind==='color'){c.fillStyle=pg.bg.color;c.fillRect(0,0,w,hh);return;}if(pg.bg.kind==='clear')return;sampleBg(c,w,hh);}
+function thumbOf(pg){const W0=pg.bg.w||1080,H0=pg.bg.h||1080,k=Math.min(240/W0,168/H0),c=document.createElement('canvas');c.width=Math.max(8,Math.round(W0*k));c.height=Math.max(8,Math.round(H0*k));const g=c.getContext('2d');
+  drawBg2(g,c.width,c.height,pg);VIEW={w:c.width,h:c.height};try{pg.texts.forEach(T=>drawText(g,T));}catch(e){}VIEW=null;return c;}
+let stripT=0;const renderStripSoon=()=>{clearTimeout(stripT);stripT=setTimeout(renderStrip,300);};
+function renderStrip(){const el=$('strip');if(!el)return;stash();el.innerHTML='';
+  PAGES.forEach((pg,i)=>el.append(h('div',{class:'pg',role:'button',tabindex:'0','aria-current':String(i===CUR),'aria-label':`Picture ${i+1}${pg.name?': '+pg.name:''}`,title:pg.name||`Picture ${i+1}`,onclick:()=>{if(i!==CUR)showPage(i);},onkeydown:e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showPage(i);}}},
+    thumbOf(pg),h('b',{},String(i+1)),h('span',{},(pg.texts[0]&&pg.texts[0].text.split('\n')[0])||pg.name||'No text'))));
+  const add=h('input',{type:'file',id:'stripAdd',accept:'image/*',multiple:true});add.onchange=()=>{const fs=[...add.files];add.value='';if(fs.length)addPictures(fs);};
+  el.append(h('label',{class:'btn addpg',for:'stripAdd',title:'Add pictures to this project'},'+ Add pictures',add));
+  el.append(h('div',{class:'pgacts'},h('button',{type:'button',id:'pgDup',title:'A copy of this picture with its text',onclick:()=>{stash();const pg=PAGES[CUR],c=newPage({bg:{...pg.bg},img:pg.img,blob:pg.blob,name:pg.name,texts:cleanTexts(pg.texts).map(t=>({...t,id:'t_'+rkey()}))});c.sel=c.texts.length?c.texts[c.texts.length-1].id:null;PAGES.splice(CUR+1,0,c);showPage(CUR+1);}},'Duplicate'),
+    h('button',{type:'button',id:'pgLeft','aria-label':'Move this picture earlier',disabled:CUR===0,onclick:()=>{stash();[PAGES[CUR-1],PAGES[CUR]]=[PAGES[CUR],PAGES[CUR-1]];CUR--;renderStrip();save();}},'◀'),
+    h('button',{type:'button',id:'pgRight','aria-label':'Move this picture later',disabled:CUR===PAGES.length-1,onclick:()=>{stash();[PAGES[CUR+1],PAGES[CUR]]=[PAGES[CUR],PAGES[CUR+1]];CUR++;renderStrip();save();}},'▶'),
+    h('button',{type:'button',id:'pgDel',disabled:PAGES.length<2,onclick:()=>{if(!confirm('Remove this picture and its text from the project?'))return;PAGES.splice(CUR,1);CUR=clamp(CUR,0,PAGES.length-1);const pg=PAGES[CUR];S.bg=pg.bg;S.texts=pg.texts;S.sel=pg.sel;IMG=pg.img;IMGBLOB=pg.blob;IMGNAME=pg.name;setCanvasSize(pg.bg.w,pg.bg.h);HIST=pg.hist?pg.hist.HIST:[snap()];HI=pg.hist?pg.hist.HI:0;syncUndo();paneT=null;renderAll();renderStrip();save();}},'Remove')));
+  renderCopy();}
+/* ---------- copying text between pictures ---------- */
+let CLIP=null;
+function copyTo(targets,which){stash();const src=which==='all'?cleanTexts(S.texts):selT()?cleanTexts([selT()]):[];if(!src.length)return;let n=0;
+  targets.forEach(i=>{if(i===CUR)return;const pg=PAGES[i];src.forEach(t=>{const c={...JSON.parse(JSON.stringify(t)),id:'t_'+rkey()};pg.texts.push(c);pg.sel=c.id;});pg.hist=null;n++;});
+  renderStrip();save();toast(`${which==='all'?'All the text':'That text'} copied to ${n} picture${n===1?'':'s'}, in the same place.`);}
+function renderCopy(){const el=$('copyRow');if(!el)return;el.innerHTML='';if(PAGES.length<2){el.append(h('p',{class:'help'},'Add more pictures to make a set, each with its own text. Copy text between them here.'));return;}
+  const T=selT(),sel=h('select',{id:'copySel','aria-label':'Copy text to other pictures'},h('option',{value:''},T?'Copy this text to…':'Copy text to…'),
+    T?h('option',{value:'sel:all'},`Every other picture (${PAGES.length-1})`):null,...(T?PAGES.map((pg,i)=>i===CUR?null:h('option',{value:'sel:'+i},`Picture ${i+1}${pg.name?' · '+pg.name.slice(0,24):''}`)):[]),
+    S.texts.length>1||!T?h('option',{value:'all:all'},`All the text on this picture → every other picture`):null);
+  sel.onchange=()=>{const v=sel.value;sel.value='';if(!v)return;const[w,t]=v.split(':');copyTo(t==='all'?PAGES.map((_,i)=>i):[+t],w==='all'?'all':'sel');};
+  el.append(sel,h('p',{class:'help'},'Or Ctrl+C a text, switch pictures, Ctrl+V. Text keeps its place and look.'));}
 
 /* ================= passing files between tools, and from your gallery's Share menu ================= */
 const HANDOFF={name:'pt-handoff',ok(){try{return window.top===window.self&&'caches' in window;}catch(e){return false;}},
@@ -754,7 +864,7 @@ const HANDOFF={name:'pt-handoff',ok(){try{return window.top===window.self&&'cach
 
 /* ================= start ================= */
 setCanvasSize(1080,1080);
-loadOwnFonts().then(()=>restore()).then(async()=>{const fs=(await HANDOFF.take()).filter(isImg);if(fs.length)await openFiles(fs);});
+loadOwnFonts().then(()=>restore()).then(async()=>{const fs=(await HANDOFF.take()).filter(isImg);if(fs.length)await addPictures(fs);});
 if(document.fonts){document.fonts.addEventListener&&document.fonts.addEventListener('loadingdone',()=>{render();clearTimeout(window.__lk);window.__lk=setTimeout(()=>{if($('looks').childElementCount)renderLooks();},200);});document.fonts.ready.then(()=>render());}
 addEventListener('resize',()=>render());
 </script>

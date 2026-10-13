@@ -380,10 +380,19 @@ Removes everything from a photo or video except the picture and sound themselves
 
 Puts words on a picture: a caption, a line of dialogue, a speech bubble or a title. Open a picture (or drop or paste one), or start on a blank canvas in a color or see-through.
 
+### A set of pictures
+- **Several pictures in one project**, each with its own text: **+ Add pictures** in the strip under the picture (or add several at once, or drop them). Each new picture starts with a text in the current look, ready to type. Tap a picture in the strip to work on it.
+- **Copy text between pictures:** pick a text, then **Copy this text to…** every other picture or one of them (it keeps its place and look), or copy all the text on a picture to all the others. Ctrl+C a text, switch pictures, Ctrl+V works too.
+- **Duplicate**, move (◀ ▶) or remove a picture. Undo works per picture.
+- **Save all** one after another, **Save all as ZIP**, or **Share all** on phones. The whole project is kept in the browser.
+
 ### Text
 - **As many pieces of text as you like.** Tap one on the picture to pick it, double-tap to type. **+ Text** adds another in the same look.
 - **On the picture:** drag to move (it snaps to the middle), pull the square corner to resize, turn it with the round handle (it snaps to 0°, 45° and 90°), and drag the yellow dot to point a bubble's tail. Arrow keys nudge it.
 - **Undo and redo** (↶ ↷, or Ctrl+Z).
+
+### Settings
+- Every section (Looks, Font, Color, Outline, Shadow and glow, 3D and curve, Box and bubble, Size and place, Picture, Save) folds open and shut, with a note on closed ones saying what's set ("speech bubble", "two outlines"). **Open all** and **Close all** at the top; which ones are open is remembered.
 
 ### Looks
 - One tap for a whole style: Meme, Subtitle, Social (each line highlighted), Speech, Round bubble, Thought, Shout, Comic caption, Manga, Sticker, Neon, Retro 3D, Gold, Horror, Note, Lower third, Banner, Pixel, Arched, Wedding and Typewriter. Your words and where they are stay put.
