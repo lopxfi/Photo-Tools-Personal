@@ -392,6 +392,7 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 ### Fonts
 - About 55 free web fonts in groups (comic and manga, bold, handwriting, script, serif, clean, retro and pixel, spooky and fun), plus Impact, Arial, Georgia and Comic Sans from the device. Each shows your own words in the picker.
 - **Your fonts:** add TTF, OTF or WOFF files with **+ Add font files** or **+ Add a folder** in the picker, or drop font files or a whole fonts folder anywhere on the page. They show their real names, stay in this browser for next time, and nothing is uploaded. Fonts you've licensed for your own use (like Segoe Print or RockStyle) belong here rather than in the site, which is public.
+- **Favorites:** tap ☆ on any font in the picker (or the ☆ next to the font button) to keep it on your list. Favorites come first in every tab, have their own **★ Favorites** tab (the picker opens on it), and show as one-tap buttons under the font button. Until you have favorites, the fonts you used last show there instead (the **Recent** tab too). Kept in the browser.
 - **On this computer:** in Chrome and Edge on a computer, **Use fonts on this computer** lists the fonts installed there (after you allow it) and uses them by name, with nothing copied. In other browsers, type a font's name. Installed fonts show only on devices that have them; to use a font everywhere, add its file.
 - Size, bold, italic, all caps, line up left, middle or right, letter spacing and line spacing.
 

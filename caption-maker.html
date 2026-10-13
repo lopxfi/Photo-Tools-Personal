@@ -134,7 +134,14 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
 .fcats button{padding:6px 10px;font-size:12px}
 .fcats button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .flist{overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;padding:2px;min-height:200px}
-.fopt{flex-direction:column;align-items:flex-start;gap:4px;padding:8px 10px;text-align:left;min-height:70px;overflow:hidden}
+.fopt{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:8px 34px 8px 10px;text-align:left;min-height:70px;overflow:hidden;border:1px solid var(--line);border-radius:8px;background:var(--panel);cursor:pointer}
+.fopt:hover{border-color:var(--muted)}.fopt:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fstar{position:absolute;top:4px;right:4px;width:28px;height:28px;padding:0;justify-content:center;border-color:transparent;background:transparent;font-size:17px;line-height:1;color:var(--muted)}
+.fstar:hover{border-color:var(--line)}.fstar.on{color:#E8A400}
+.fontrow{display:flex;gap:6px;align-items:stretch}.fontrow .fontbtn{flex:1;min-width:0}.fontrow .fontbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fstar.big{position:static;width:48px;height:auto;font-size:22px;border-color:var(--line);background:var(--panel)}
+.favs{display:flex;flex-wrap:wrap;gap:6px}.favs button{font-size:16px;padding:6px 10px;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.favs button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--soft)}
 .fopt .fs{font-size:24px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .fopt .fn{font:400 11px/1 var(--f-body);color:var(--muted)}
 .fopt[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);background:var(--soft)}
@@ -305,7 +312,7 @@ const WEB_FONTS=[
   ['righteous','Righteous','Righteous','"Righteous",cursive','retro',0],['elite','Special Elite','Special Elite','"Special Elite","Courier New",monospace','retro',0],
   ['creepster','Creepster','Creepster','"Creepster",cursive','fun',0],['nosifer','Nosifer','Nosifer','"Nosifer",cursive','fun',0],['fredericka','Fredericka the Great','Fredericka the Great','"Fredericka the Great",cursive','fun',0],
   ['sedgwick','Sedgwick Ave Display','Sedgwick Ave Display','"Sedgwick Ave Display",cursive','fun',0],['comicsans','Comic Sans MS','','"Comic Sans MS","Comic Neue",cursive','fun',1]];
-const FONT_KINDS=[['all','All'],['comic','Comic and manga'],['bold','Bold and loud'],['hand','Handwriting'],['script','Script'],['serif','Serif'],['clean','Clean'],['retro','Retro and pixel'],['fun','Spooky and fun'],['mine','Your fonts'],['device','On this computer']];
+const FONT_KINDS=[['fav','★ Favorites'],['recent','Recent'],['all','All'],['comic','Comic and manga'],['bold','Bold and loud'],['hand','Handwriting'],['script','Script'],['serif','Serif'],['clean','Clean'],['retro','Retro and pixel'],['fun','Spooky and fun'],['mine','Your fonts'],['device','On this computer']];
 const FONTS={};WEB_FONTS.forEach(([id,name,gf,css,kind,bold])=>FONTS[id]={id,name,gf,css,kind,bold:!!bold});
 const GF_LOADED=new Set();
 /* a web font's stylesheet is fetched the first time it's used, one family at a time */
@@ -346,7 +353,7 @@ async function useDeviceFonts(){if(!('queryLocalFonts' in window)){toast('This b
   catch(err){toast(err&&err.name==='SecurityError'?'Fonts on this computer can’t be listed in this window. Open the Photo Tools website in Chrome or Edge, or type a font’s name below.':'Fonts weren’t shared. Type a font’s name below instead, or add its file.');}}
 function addDeviceByName(name){name=String(name||'').trim();if(!name)return;if(!installed(name)){toast(`“${name}” isn’t installed on this device (check the spelling), so add its file instead.`);return;}
   addDevice([name]);const id='dev-'+name.toLowerCase().replace(/[^a-z0-9]+/g,'-');if(selT()){selT().font=id;commit();render();}FCAT='device';renderFonts();toast(`“${name}” is ready. It works on this device, where it’s installed.`);}
-async function removeOwnFont(id){const k=id.replace(/^own-/,'');await FDB.tx('readwrite',s=>s.delete(k));delete FONTS[id];S.texts.forEach(t=>{if(t.font===id)t.font='bangers';});commit();}
+async function removeOwnFont(id){FAVS=FAVS.filter(x=>x!==id);RECENT=RECENT.filter(x=>x!==id);putList('pt-font-favs',FAVS);putList('pt-font-recent',RECENT);const k=id.replace(/^own-/,'');await FDB.tx('readwrite',s=>s.delete(k));delete FONTS[id];S.texts.forEach(t=>{if(t.font===id)t.font='bangers';});commit();}
 
 /* ================= the picture and its text ================= */
 const cv=$('cv');let ctx=cv.getContext('2d');let IMG=null,IMGBLOB=null,IMGNAME='';
@@ -593,7 +600,11 @@ function renderPanel(){const T=selT();$('txt').value=T?T.text:'';$('txt').disabl
   renderPic();renderSave();renderLayers();if(paneT!==S.sel){paneT=S.sel;renderLooks();}if(!T){render();return;}needFont(T.font);
   /* font */
   const F=FONTS[T.font]||FONTS.bangers;
-  $('fontF').append(h('button',{type:'button',class:'fontbtn',id:'fontBtn',style:`font-family:${F.css}`,onclick:openFonts},h('span',{},F.name),h('small',{},'Change ▸')),
+  const fv=isFav(F.id),quick=favFonts().length?favFonts():recentFonts().filter(f=>f.id!==F.id).slice(0,8);
+  $('fontF').append(h('div',{class:'fontrow'},h('button',{type:'button',class:'fontbtn',id:'fontBtn',style:`font-family:${F.css}`,onclick:openFonts},h('span',{},F.name),h('small',{},'Change ▸')),
+      h('button',{type:'button',class:'fstar big'+(fv?' on':''),id:'favThis','aria-pressed':String(fv),'aria-label':fv?'Remove this font from favorites':'Add this font to favorites',title:fv?'In your favorites':'Add to favorites',onclick:()=>{toggleFav(F.id);renderPanel();}},fv?'★':'☆')),
+    quick.length?h('div',{class:'field'},h('span',{class:'flabel'},favFonts().length?'Favorites':'Recent',h('span',{class:'rv'},favFonts().length?'tap to use':'tap ☆ to keep a font here')),
+      h('div',{class:'favs'},...quick.map(f=>{needFont(f.id);return h('button',{type:'button','aria-pressed':String(f.id===T.font),style:`font-family:${f.css}`,title:f.name,onclick:()=>{setFont(f.id);renderPanel();}},f.name);}))):null,
     rangeF('sz','Size',.01,.4,.001,T.size,v=>Math.round(v*IH())+' px',ch((T,v)=>T.size=v)),
     h('div',{class:'row'},checkF('bold','Bold',T.bold,ch((T,v)=>T.bold=v)),checkF('ital','Italic',T.italic,ch((T,v)=>T.italic=v)),checkF('caps','ALL CAPS',T.upper,ch((T,v)=>T.upper=v))),
     segF('al','Line up',[['left','Left'],['center','Middle'],['right','Right']],T.align,v=>ch((T,x)=>T.align=x,true)(v)),
@@ -637,19 +648,32 @@ function syncPlace(){const T=selT();if(!T)return;const set=(id,v,txt)=>{const i=
 $('txt').oninput=()=>{const T=selT();if(!T)return;T.text=$('txt').value;render();commitSoon();renderLayers();};
 
 /* ================= the font picker ================= */
-let FCAT='all';
-function openFonts(){$('fmodal').hidden=false;$('fSearch').value='';renderFonts();setTimeout(()=>$('fSearch').focus(),30);}
+/* favorites (★) and the fonts you used last, kept in this browser for every visit */
+const getList=k=>{try{const v=JSON.parse(localStorage.getItem(k)||'[]');return Array.isArray(v)?v:[];}catch(e){return[];}};
+const putList=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
+let FAVS=getList('pt-font-favs'),RECENT=getList('pt-font-recent');
+const isFav=id=>FAVS.includes(id);
+function toggleFav(id){FAVS=isFav(id)?FAVS.filter(x=>x!==id):[...FAVS,id];putList('pt-font-favs',FAVS);toast(isFav(id)?`${(FONTS[id]||{}).name} is in your favorites.`:`${(FONTS[id]||{}).name} is out of your favorites.`);}
+/* put a font on the selected text, and remember it as recent */
+function setFont(id){const T=selT();if(!T||!FONTS[id])return;T.font=id;needFont(id);RECENT=[id,...RECENT.filter(x=>x!==id)].slice(0,10);putList('pt-font-recent',RECENT);commit();render();renderLayers();}
+const favFonts=()=>FAVS.filter(id=>FONTS[id]).map(id=>FONTS[id]),recentFonts=()=>RECENT.filter(id=>FONTS[id]).map(id=>FONTS[id]);
+let FCAT='all',FOPENED=false;
+function openFonts(){if(!FOPENED){FOPENED=true;if(favFonts().length)FCAT='fav';}$('fmodal').hidden=false;$('fSearch').value='';renderFonts();setTimeout(()=>$('fSearch').focus(),30);}
 $('fClose').onclick=()=>{$('fmodal').hidden=true;renderPanel();};
 $('fmodal').addEventListener('click',e=>{if(e.target===$('fmodal')){$('fmodal').hidden=true;renderPanel();}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('fmodal').hidden){$('fmodal').hidden=true;renderPanel();}});
 $('fSearch').oninput=()=>renderFonts();
 function renderFonts(){const T=selT(),q=$('fSearch').value.trim().toLowerCase(),sample=(T&&T.text.split('\n')[0].slice(0,24))||'Hello there';
   $('fCats').innerHTML='';FONT_KINDS.forEach(([k,l])=>$('fCats').append(h('button',{type:'button','aria-pressed':String(k===FCAT),onclick:()=>{FCAT=k;renderFonts();}},l)));
-  const list=$('fList');list.innerHTML='';const all=Object.values(FONTS).filter(f=>(FCAT==='all'||f.kind===FCAT)&&(!q||f.name.toLowerCase().includes(q)));
-  all.sort((a,b)=>(b.own?1:0)-(a.own?1:0));
-  all.forEach(f=>{needFont(f.id);list.append(h('button',{type:'button',class:'fopt'+(f.own?' own':'')+(f.device?' dev':''),role:'option','aria-pressed':String(T&&T.font===f.id),'aria-selected':String(T&&T.font===f.id),onclick:()=>{const T=selT();if(!T)return;T.font=f.id;commit();render();renderFonts();renderLayers();}},
-    h('span',{class:'fs',style:`font-family:${f.css}`},sample),h('span',{class:'fn'},f.name)));});
-  if(!all.length)list.append(h('p',{class:'help'},FCAT==='mine'?'No fonts of your own yet. Add font files below, or drop them here.':FCAT==='device'?'None yet. Use the button below, or type a font’s name.':'No fonts match that.'));
+  const list=$('fList');list.innerHTML='';const match=f=>!q||f.name.toLowerCase().includes(q);
+  let all=FCAT==='fav'?favFonts().filter(match):FCAT==='recent'?recentFonts().filter(match):Object.values(FONTS).filter(f=>(FCAT==='all'||f.kind===FCAT)&&match(f));
+  /* favorites first, then your own fonts */
+  if(FCAT!=='fav'&&FCAT!=='recent')all.sort((a,b)=>(isFav(b.id)-isFav(a.id))||((b.own?1:0)-(a.own?1:0)));
+  all.forEach(f=>{needFont(f.id);const on=T&&T.font===f.id,fav=isFav(f.id);
+    list.append(h('div',{class:'fopt'+(f.own?' own':'')+(f.device?' dev':''),role:'option',tabindex:'0','aria-selected':String(!!on),'aria-pressed':String(!!on),onclick:()=>{setFont(f.id);renderFonts();},onkeydown:e=>{if(e.target===e.currentTarget&&(e.key==='Enter'||e.key===' ')){e.preventDefault();setFont(f.id);renderFonts();}}},
+      h('span',{class:'fs',style:`font-family:${f.css}`},sample),h('span',{class:'fn'},f.name),
+      h('button',{type:'button',class:'fstar'+(fav?' on':''),'aria-pressed':String(fav),'aria-label':(fav?'Remove from favorites: ':'Add to favorites: ')+f.name,title:fav?'In your favorites':'Add to favorites',onclick:e=>{e.stopPropagation();toggleFav(f.id);renderFonts();}},fav?'★':'☆')));});
+  if(!all.length)list.append(h('p',{class:'help'},FCAT==='fav'?'No favorites yet. Tap ☆ on any font to add it here.':FCAT==='recent'?'Fonts you use show up here.':FCAT==='mine'?'No fonts of your own yet. Add font files below, or drop them here.':FCAT==='device'?'None yet. Use the button below, or type a font’s name.':'No fonts match that.'));
   const mine=Object.values(FONTS).filter(f=>f.own),mf=$('myFonts');mf.innerHTML='';
   const inp=h('input',{type:'file',id:'fontFiles',accept:'.ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2',multiple:true});inp.onchange=async()=>{const fs=[...inp.files];inp.value='';if(!fs.length)return;const id=await addFontFiles(fs);FCAT='mine';if(id&&selT()){selT().font=id;commit();render();}renderFonts();};
   inp.onchange=async()=>{const fs=[...inp.files].filter(isFontFile);inp.value='';if(!fs.length){toast('No font files there.');return;}const id=await addFontsChecked(fs);FCAT='mine';if(id&&selT()){selT().font=id;commit();render();}renderFonts();};
