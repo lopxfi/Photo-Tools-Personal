@@ -166,7 +166,10 @@ def artifact(tool=None, out=None):
     total = sum(Path(v).stat().st_size for v in files.values()) + (out / page).stat().st_size
     big = [k for k, v in files.items() if Path(v).stat().st_size > 15 * 2**20]
     # the tools save files through Claude's downloads capability; without this declaration saving is off in the artifact
-    plan = {'file_path': str(out / page), 'files': files, 'capabilities': {'downloads': True},
+    caps = {'downloads': True}
+    # Outfit Tags reads photos with the viewer's Claude account inside Claude; that needs the sample capability
+    if any('window.claude.use("sample")' in read(p) for p in pages): caps['sample'] = {'images': True}
+    plan = {'file_path': str(out / page), 'files': files, 'capabilities': caps,
             'url': REG['site'] if not tool else REG['tools'].get(tool)}
     (out.parent / f'{name}.publish.json').write_text(json.dumps(plan, indent=1))
     print(f'Staged {len(files) + 1} files ({total / 2**20:.1f} MB) in {out}')

@@ -4,7 +4,7 @@ A small set of personal browser tools for dressing up photos, making short video
 
 **Open it:** https://lopxfi.github.io/Photo-Tools-Personal/
 
-- **Everything runs in your browser.** Photos, videos and sounds never leave your device, and nothing is uploaded anywhere.
+- **Everything runs in your browser.** Photos, videos and sounds never leave your device, and nothing is uploaded anywhere. The one exception is [Outfit Tags](#outfit-tags), which sends the photo you pick to an AI model so it can read the outfit.
 - **Your work is kept automatically.** Each tool saves its work in the browser (videos and photos included), so you can close the page or switch tools and pick up where you left off.
 - **It works offline.** Install it as an app on your phone or computer and it runs without internet.
 - **Share straight from your gallery.** On Android, once the app is installed, it shows up in the Share menu for photos, videos and sounds. Pick it, then pick the tool.
@@ -24,6 +24,7 @@ A small set of personal browser tools for dressing up photos, making short video
 | [Delivery Reel](#delivery-reel) | Plays out an order from a made-up delivery app, from placed to delivered, and ends on the delivered screen. A courier chat on the way and a doorstep photo or video that opens full screen. |
 | [Visual Novel](#visual-novel) | Scenes with characters, expressions and choices that branch. Play it in the page, export a video of a path, or save a playable file anyone can open. |
 | [Motion Comic](#motion-comic) | Panels pop in, then their bubbles, with sound words, speed lines, cut-ins and page turns. Scrolls like a webtoon or turns pages like a book. |
+| [Outfit Tags](#outfit-tags) | Reads the outfit in a photo or a piece of anime art and turns it into Danbooru tags or prompts for AI image generators, with characters, series and named outfits. Sends the photo to an AI model to read it. |
 
 Every tool has a switcher at the top to jump to another tool. Your work is saved before it switches.
 
@@ -614,6 +615,34 @@ Puts pictures, videos, text, music and your voice together and makes a new video
 
 ---
 
+## Outfit Tags
+
+Reads the outfit in a photo or a piece of anime art and turns it into tags and prompts for AI image generators such as Illustrious, NoobAI, Pony, NovelAI and Flux. **Unlike the other tools, it sends the photo you pick to an AI model to read it.**
+
+### Reading a photo
+- **Up to 5 at once:** drop, pick or paste them, or share them from your gallery. They're read one after another, and photo tabs above the tags switch between them.
+- **Who reads it:**
+  - On the website: Claude, with your own Anthropic API key, or any OpenAI-compatible model. The key stays in your browser and goes only to that provider. Reading one photo costs about 5 to 10 cents on Claude Opus, billed to the key's account.
+  - Inside Claude: your Claude account, with no key needed. The first read asks you to allow it.
+- **Tags by garment:** each piece of clothing gets its own group of Danbooru tags, with how sure it is, plus hair, face, style and framing.
+- **Characters, series and named outfits:** fictional characters, their series and named outfits (like a particular school's uniform), with what gave them away. It never identifies real people; for cosplay it names the character being worn.
+- **Checked on Danbooru** (website only): name order is fixed (`miku_hatsune` becomes `hatsune_miku`), near misses are corrected, and names Danbooru doesn't know are flagged and left out of the prompt until you put them back.
+
+### Prompts
+- **Generators:** ready-made settings for Illustrious XL, NoobAI XL, Pony V6, Animagine XL 4, NovelAI V4.5 and Flux add the right quality words, negative prompt and weight style. You can edit each one.
+- **Formats:** tags with underscores or spaces, tags weighted by how sure it is, tags plus one sentence about layering and fit, or plain sentences for models that read them. After you edit the tags, **Rewrite it** updates the sentence.
+- **Copy:** the whole prompt, the negative prompt, just the outfit, or any one group. Tap a tag to open its Danbooru wiki page; **×** leaves it out of the prompt.
+
+### Your outfits
+- **Catalog:** every read is kept with a thumbnail. Name it, add labels and notes, star it, mark it "to try" or "done", and search everything. Export and import it to move it between devices.
+- **Three new outfits:** three fresh takes on any outfit (a restyle, a different genre, a different season), or your own direction like "make it winter".
+- **Remix:** delete or add tags, swap in a garment from another saved outfit, add or remove pieces, and save it as a copy.
+- **Check tags:** fixes common misspellings and, on the website, shows how often each tag is used on Danbooru.
+
+A Chrome and Brave extension that reads any image from the right-click menu, with the same catalog and prompts, lives in the [Outfit-Idenitfy](https://github.com/lopxfi/Outfit-Idenitfy) repository. This page is built from that repository's code with its `build_phototools.py`.
+
+---
+
 ## What's in the files you save
 
 Nothing that points back to you or your originals:
@@ -654,7 +683,7 @@ Open each tool once while you're online so everything, fonts included, is saved 
 
 ## Sharing into the tools
 
-- **Android:** after installing the app, open a photo, video or sound in your gallery (or any app), tap **Share** and choose **Photo Tools**. A page shows what you shared and which tools can take it: the Splitter for photos, Frame Studio and the Scrubber for photos and videos, Video Layers and Chat Reel for all three.
+- **Android:** after installing the app, open a photo, video or sound in your gallery (or any app), tap **Share** and choose **Photo Tools**. A page shows what you shared and which tools can take it: the Splitter and Outfit Tags for photos, Frame Studio and the Scrubber for photos and videos, Video Layers and Chat Reel for all three.
 - **iPhone:** iOS doesn't let web apps appear in the Share menu. Use **Add photo** in any tool, which opens your photo library.
 - **Between tools:** after exporting in Photo Frame Studio, tap **Split for X** or **Use in Video Layers**; after exporting in Chat Reel, tap **Use in Video Layers**. The result is carried straight over. This works on the website and in the installed app.
 
@@ -681,12 +710,13 @@ Open each tool once while you're online so everything, fonts included, is saved 
 | `caption-maker.html` | Caption Maker |
 | `background-remover.html` | Background Remover |
 | `video-layers.html` | Video Layers |
+| `outfit-tags.html` | Outfit Tags (built from the Outfit-Idenitfy repository) |
 | `manifest.webmanifest` | App name, icons, shortcuts and the Share menu entry for installing |
 | `sw.js` | Offline support: keeps the tools and fonts on your device, and receives files shared from other apps |
 | `icons/` | App icons |
 | `vendor/mediapipe/` | The background remover and face finder (used by Video Layers and Background Remover): Google's MediaPipe vision library (Apache 2.0) with its people, animal and face models. Its usage reporting to Google is switched off in this copy. See the README in that folder. |
 
-Each tool is a single self-contained HTML file with no build step and no server code. Chat Reel's emoji list comes from [unicode-emoji-json](https://github.com/muan/unicode-emoji-json) and [emoji-data](https://github.com/iamcal/emoji-data), both MIT licensed. The background remover's files are the only ones loaded from elsewhere in the site, and only when you turn it on.
+Each tool is a single self-contained HTML file with no build step and no server code. Outfit Tags is the only one that talks to an outside service: the AI model you choose, and Danbooru for tag checks. Chat Reel's emoji list comes from [unicode-emoji-json](https://github.com/muan/unicode-emoji-json) and [emoji-data](https://github.com/iamcal/emoji-data), both MIT licensed. The background remover's files are the only ones loaded from elsewhere in the site, and only when you turn it on.
 
 `.github/workflows/fetch-models.yml` downloads newer copies of the background remover's files when run from the Actions tab and puts them on the `cutout-files` branch.
 
