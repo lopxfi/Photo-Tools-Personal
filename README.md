@@ -425,7 +425,7 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 
 ### Looks
 - One tap for a whole style. Your words and where they are stay put.
-- **Save this look** keeps your own styles, for the next caption in the same style. Only your looks show.
+- **Save this look** keeps your own styles, for the next caption in the same style. Only your looks show. ✕ deletes one, after asking first.
 - **Show 21 examples** opens the ready-made ones (Meme, Subtitle, Social, Speech, Round bubble, Thought, Shout, Comic caption, Manga, Sticker, Neon, Retro 3D, Gold, Horror, Note, Lower third, Banner, Pixel, Arched, Wedding and Typewriter); **Hide the examples** puts them away again, and the choice is remembered.
 
 ### Fonts

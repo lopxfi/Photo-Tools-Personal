@@ -1032,8 +1032,8 @@ function fixTail(T){if(!/speech|oval|thought/.test(T.box.kind))return;if(T.kind=
 let LOOKS_ALL=(()=>{try{return localStorage.getItem('cm-looks-all')==='1';}catch(e){return false;}})();
 function renderLooks(){const box=$('looks');box.innerHTML='';const T=selT();
   const built=LOOKS_ALL?LOOKS:[];if(!LOOKS_MINE.length&&!built.length)box.append(h('p',{class:'help',style:'grid-column:1/-1;margin:0'},'Your looks show here. Style a text the way you like, then Save this look.'));
-  [...LOOKS_MINE.map(l=>({...l,mine:true})),...built.map(l=>({...l,mine:false}))].forEach((l,k)=>{needFont(l.o.font);const b=h('button',{type:'button',class:l.mine?'mine':'',title:l.name,onclick:e=>{if(e.target.closest('i')){LOOKS_MINE.splice(LOOKS_MINE.indexOf(LOOKS_MINE.find(x=>x.name===l.name)),1);DB.tx('readwrite',s=>s.put(LOOKS_MINE,'looks'));renderLooks();return;}applyLook(l.o);toast(l.name+' look on.');}},
-    lookPreview(l.o,180,100),h('span',{},l.name));if(l.mine)b.append(h('i',{title:'Remove this look','aria-label':'Remove '+l.name},'✕'));if(!T)b.disabled=true;box.append(b);});
+  [...LOOKS_MINE.map(l=>({...l,mine:true})),...built.map(l=>({...l,mine:false}))].forEach((l,k)=>{needFont(l.o.font);const b=h('button',{type:'button',class:l.mine?'mine':'',title:l.name,onclick:e=>{if(e.target.closest('i')){if(!confirm(`Delete your look “${l.name}”? This can’t be undone.`))return;LOOKS_MINE.splice(LOOKS_MINE.indexOf(LOOKS_MINE.find(x=>x.name===l.name)),1);DB.tx('readwrite',s=>s.put(LOOKS_MINE,'looks'));renderLooks();return;}applyLook(l.o);toast(l.name+' look on.');}},
+    lookPreview(l.o,180,100),h('span',{},l.name));if(l.mine)b.append(h('i',{title:'Delete this look','aria-label':'Delete '+l.name},'✕'));if(!T)b.disabled=true;box.append(b);});
   const more=$('moreLooks');if(more){more.textContent=LOOKS_ALL?'Hide the examples':`Show ${LOOKS.length} examples`;more.setAttribute('aria-pressed',String(LOOKS_ALL));}
   setSum('Looks',LOOKS_MINE.length?`${LOOKS_MINE.length} of yours`:'');render();}
 $('moreLooks').onclick=()=>{LOOKS_ALL=!LOOKS_ALL;try{localStorage.setItem('cm-looks-all',LOOKS_ALL?'1':'0');}catch(e){}renderLooks();};
