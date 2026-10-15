@@ -927,7 +927,7 @@ function stash(){const pg=PAGES[CUR];if(!pg)return;Object.assign(pg,{bg:S.bg,tex
 function showPage(i,quiet,fresh){if(!fresh)stash();CUR=clamp(i,0,PAGES.length-1);const pg=PAGES[CUR];S.bg=pg.bg;S.texts=pg.texts;S.sel=pg.sel;IMG=pg.img;IMGBLOB=pg.blob;IMGNAME=pg.name;setCanvasSize(pg.bg.w||1080,pg.bg.h||1080);
   if(pg.hist){HIST=pg.hist.HIST;HI=pg.hist.HI;}else{HIST=[snap()];HI=0;}if(typeof MULTI!=='undefined')MULTI.clear();syncUndo();paneT=null;if(!quiet){renderAll();renderStrip();save();}}
 function writeState(){if(!restored)return Promise.resolve();stash();
-  return DB.tx('readwrite',s=>s.put({v:2,S:{fmt:S.fmt,q:S.q,maxSide:S.maxSide,gap:S.gap},cur:CUR,pages:PAGES.map(pg=>({id:pg.id,bg:pg.bg,blob:pg.bg.kind==='img'?pg.blob:null,name:pg.name,texts:cleanTexts(pg.texts),sel:pg.sel}))},'current'));}
+  return DB.tx('readwrite',s=>s.put({v:2,S:{fmt:S.fmt,q:S.q,maxSide:S.maxSide,gap:S.gap,seqName:S.seqName||'',seqStart:S.seqStart==null?1:S.seqStart},cur:CUR,pages:PAGES.map(pg=>({id:pg.id,bg:pg.bg,blob:pg.bg.kind==='img'?pg.blob:null,name:pg.name,texts:cleanTexts(pg.texts),sel:pg.sel}))},'current'));}
 function save(){clearTimeout(sT);sT=setTimeout(writeState,500);}
 let LOOKS_MINE=[];
 async function restore(){try{const pr=await DB.tx('readonly',s=>s.get('props'));if(Array.isArray(pr))for(const q of pr)await loadProp(q);}catch(e){}
@@ -1353,9 +1353,15 @@ async function makeImage(n){try{await Promise.race([Promise.all(S.texts.map(t=>d
   const type=fmt==='jpg'?'image/jpeg':fmt==='webp'?'image/webp':'image/png';
   if(fmt==='jpg'){const c=document.createElement('canvas');c.width=src.width;c.height=src.height;const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(src,0,0);src=c;}
   let blob=await new Promise(r=>src.toBlob(r,type,S.q));render();if(!blob)throw new Error('the browser couldn’t make the picture');if(blob.type==='image/jpeg')blob=await cleanJpeg(blob);
-  const ext=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg',base=S.bg.kind==='img'?IMGNAME.replace(/\.[^.]+$/,'').replace(/[\\/:*?"<>|]+/g,'_').slice(0,60)+'-caption':'caption-'+(n?SAVECODE+'-'+n:rndCode());
+  const ext=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg',base=seqClean()?seqName(n||CUR+1):S.bg.kind==='img'?IMGNAME.replace(/\.[^.]+$/,'').replace(/[\\/:*?"<>|]+/g,'_').slice(0,60)+'-caption':'caption-'+(n?SAVECODE+'-'+n:rndCode());
   return new File([blob],`${base}.${ext}`,{type:blob.type});}
 let SAVECODE=rndCode();
+/* your own file name: numbered in order (chapter-01, chapter-02…); # marks where the number goes */
+const seqClean=()=>String(S.seqName||'').replace(/[\\/:*?"<>|]+/g,'_').replace(/\s+/g,' ').trim().slice(0,80);
+function seqName(n){const b=seqClean(),sv=parseInt(S.seqStart,10),start=Number.isFinite(sv)?Math.max(0,sv):1,num=start+n-1;if(PAGES.length<2&&!/#/.test(b))return b;
+  const digits=Math.max(2,String(start+PAGES.length-1).length);
+  if(/#+/.test(b))return b.replace(/#+/,m=>String(num).padStart(Math.max(m.length,digits),'0')).replace(/#/g,'');
+  return b+(/[\s_-]$/.test(b)?'':'-')+String(num).padStart(digits,'0');}
 /* every picture in the project, one after another */
 async function makeAll(){stash();const keep=CUR,out=[],used=new Set();SAVECODE=rndCode();
   for(let i=0;i<PAGES.length;i++){say(`Making picture ${i+1} of ${PAGES.length}…`);showPage(i,true);render();let f=await makeImage(i+1);let nm=f.name,k=2;while(used.has(nm))nm=f.name.replace(/(\.[a-z]+)$/,`-${k++}$1`);used.add(nm);if(nm!==f.name)f=new File([f],nm,{type:f.type});out.push(f);}
@@ -1366,6 +1372,10 @@ function renderSave(){const p=$('saveF');p.innerHTML='';
   if(S.fmt!=='png')p.append(rangeF('q','Quality',.5,1,.01,S.q,v=>Math.round(v*100)+'',(v,done)=>{S.q=v;if(done!==false)save();}));
   if(S.fmt==='jpg'&&S.bg.kind==='clear')p.append(h('p',{class:'help'},'JPG can’t be see-through, so a see-through canvas saves as PNG.'));
   p.append(segF('max','Size',[[0,`Full · ${IW()} × ${IH()}`],[2048,'2048 px'],[1080,'1080 px']],S.maxSide||0,v=>{S.maxSide=v;save();renderSave();}));
+  {const ex=h('p',{class:'help',id:'seqEx'}),show=()=>{const n=PAGES.length,ext=S.fmt==='jpg'?'jpg':S.fmt;ex.textContent=seqClean()?(n>1?`Saves as ${seqName(1)}.${ext}, ${seqName(2)}.${ext}${n>2?' … '+seqName(n)+'.'+ext:''}${n>1?' (and the ZIP as '+(seqClean().replace(/#+/g,'').replace(/\s{2,}/g,' ').replace(/[\s_-]+$/,'').trim()||'captions')+'.zip)':''}.`:`Saves as ${seqName(1)}.${ext}.`):'Leave it empty to name them after the pictures you opened.';};
+    const nm=h('input',{type:'text',id:'seqName',value:S.seqName||'',placeholder:'e.g. chapter 1',autocomplete:'off',maxlength:'80'}),st=h('input',{type:'number',id:'seqStart',min:'0',step:'1',value:S.seqStart==null?1:S.seqStart,style:'width:90px;padding:8px 10px','aria-label':'Start numbering at'});
+    nm.oninput=()=>{S.seqName=nm.value;save();show();};st.oninput=()=>{const v=parseInt(st.value,10);S.seqStart=Number.isFinite(v)?Math.max(0,v):1;save();show();};
+    p.append(h('div',{class:'field'},h('label',{for:'seqName'},'File name',h('span',{class:'rv'},PAGES.length>1?'numbered in order':'')),h('div',{class:'row',style:'flex-wrap:nowrap'},nm,PAGES.length>1?h('label',{class:'chk',for:'seqStart',style:'white-space:nowrap'},'Start at',st):'')),ex);show();}
   let share=false;try{share=topLevel&&!!navigator.canShare&&navigator.canShare({files:[new File([new Blob(['x'],{type:'image/png'})],'a.png',{type:'image/png'})]});}catch(e){}
   const b=h('div',{class:'row'});
   if(canSave())b.append(h('button',{type:'button',class:'primary',id:'saveBtn',onclick:()=>run(async()=>{say('Making the picture…');const f=await makeImage();say(await saveFile(f,f.name)+` ${(f.size/1e6).toFixed(f.size<1e6?2:1)} MB.`);})},'Save picture'));
@@ -1375,7 +1385,7 @@ function renderSave(){const p=$('saveF');p.innerHTML='';
   if(PAGES.length>1){const all=h('div',{class:'row'});
     if(canSave())all.append(h('button',{type:'button',id:'saveTall',title:'Every picture stacked top to bottom, with the gap you chose',onclick:()=>run(async()=>{say('Stacking the pictures…');const f=await makeTall();say(await saveFile(f,f.name)+` ${f.size<1e6?(f.size/1e6).toFixed(2):(f.size/1e6).toFixed(1)} MB.`);})},'Save as one tall picture'));
     if(canSave())all.append(h('button',{type:'button',id:'saveAll',onclick:()=>run(async()=>{const fs=await makeAll();let last='';for(let i=0;i<fs.length;i++){say(`Saving picture ${i+1} of ${fs.length}…`);last=await saveFile(fs[i],fs[i].name);if(/Not saved|isn’t available|too big/.test(last))break;await new Promise(r=>setTimeout(r,DL?0:350));}say(/Saved/.test(last)?`Saved ${fs.length} pictures.`:last);})},`Save all ${PAGES.length}`),
-      h('button',{type:'button',id:'saveZip',onclick:()=>run(async()=>{const fs=await makeAll();say('Putting the ZIP together…');const zip=await makeZip(fs.map(f=>({name:f.name,blob:f})));say(await saveFile(zip,`captions-${SAVECODE}.zip`)+` ${(zip.size/1e6).toFixed(1)} MB.`);})},'Save all as ZIP'));
+      h('button',{type:'button',id:'saveZip',onclick:()=>run(async()=>{const fs=await makeAll();say('Putting the ZIP together…');const zip=await makeZip(fs.map(f=>({name:f.name,blob:f})));say(await saveFile(zip,seqClean()?`${seqClean().replace(/#+/g,'').replace(/\s{2,}/g,' ').replace(/[\s_-]+$/,'').trim()||'captions'}.zip`:`captions-${SAVECODE}.zip`)+` ${(zip.size/1e6).toFixed(1)} MB.`);})},'Save all as ZIP'));
     if(share)all.append(h('button',{type:'button',onclick:()=>run(async()=>{const fs=await makeAll();say('');try{await navigator.share({files:fs});say('Shared.');}catch(err){say(err&&err.name==='AbortError'?'':'Sharing didn’t work here. Save them instead.');}})},'Share all'));
     p.append(h('span',{class:'flabel'},'Every picture in this project'),all,segF('cgap','Gap between pictures in the tall picture',GAPS,GAPS.map(g=>g[0]).find(v=>Math.abs(v-(S.gap==null?.02:+S.gap))<1e-6)??.02,v=>{S.gap=v;save();renderSave();}));}
   if(!canSave())p.append(h('p',{class:'help'},'Saving isn’t available here. Open the Photo Tools website or app to save.'));}
@@ -1386,7 +1396,7 @@ async function makeTall(){stash();try{await Promise.race([Promise.all(PAGES.flat
   let fmt=S.fmt;const type=fmt==='jpg'?'image/jpeg':fmt==='webp'?'image/webp':'image/png';g.fillStyle='#FFFFFF';g.fillRect(0,0,out.width,out.height);
   let y=0;PAGES.forEach((pg,i)=>{const c=document.createElement('canvas');c.width=W;c.height=H[i];const gc=c.getContext('2d');drawBg2(gc,W,H[i],pg);VIEW={w:W,h:H[i]};try{inOrder(pg.texts).forEach(T=>drawText(gc,T));}finally{VIEW=null;}g.drawImage(c,0,y);y+=H[i]+gp;});
   let blob=await new Promise(r=>out.toBlob(r,type,S.q));if(!blob)throw new Error('the picture is too big for this browser; try fewer pictures');if(blob.type==='image/jpeg')blob=await cleanJpeg(blob);
-  const ext=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg';return new File([blob],`comic-${rndCode()}.${ext}`,{type:blob.type});}
+  const ext=blob.type==='image/png'?'png':blob.type==='image/webp'?'webp':'jpg';return new File([blob],seqClean()?`${seqClean().replace(/#+/g,'').replace(/\s{2,}/g,' ').replace(/[\s_-]+$/,'').trim()||'comic'}-all.${ext}`:`comic-${rndCode()}.${ext}`,{type:blob.type});}
 /* ================= project files: the pictures, their text, your speakers and looks, and the fonts of your own they use ================= */
 const blobToData=b=>new Promise(res=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>res(null);r.readAsDataURL(b);});
 async function dataToBlob(d){try{return await(await fetch(d)).blob();}catch(e){return null;}}
@@ -1395,7 +1405,7 @@ async function saveProject(){stash();say('Putting the project together…');
   const fonts={};for(const pg of PAGES)for(const t of pg.texts){if(!/^own-/.test(t.font)||fonts[t.font])continue;const rec=await FDB.tx('readonly',x=>x.get(t.font.slice(4)));if(rec)fonts[t.font]={name:rec.name,data:await blobToData(rec.blob)};}
   const pages=[];for(const pg of PAGES)pages.push({bg:pg.bg,name:pg.name,texts:cleanTexts(pg.texts),img:pg.bg.kind==='img'&&pg.blob?await blobToData(pg.blob):null});
   const used=propsUsed(),props=[];for(const P of PROPS.values())if(P.tray||used.has(P.id))props.push({id:P.id,name:P.name,tray:!!P.tray,data:await blobToData(P.blob)});
-  const doc={app:'caption-maker',version:1,savedAt:new Date().toISOString(),settings:{fmt:S.fmt,q:S.q,maxSide:S.maxSide,gap:S.gap},cur:CUR,pages,speakers:SPK,looks:LOOKS_MINE,fonts,props};
+  const doc={app:'caption-maker',version:1,savedAt:new Date().toISOString(),settings:{fmt:S.fmt,q:S.q,maxSide:S.maxSide,gap:S.gap,seqName:S.seqName||'',seqStart:S.seqStart==null?1:S.seqStart},cur:CUR,pages,speakers:SPK,looks:LOOKS_MINE,fonts,props};
   const first=PAGES.flatMap(pg=>pg.texts).map(t=>plainText(t.text))[0]||PAGES[0].name||'project',blob=new Blob([JSON.stringify(doc)],{type:'application/json'});
   const m=await saveFile(blob,`captions-${slugOf(first)||'project'}-${new Date().toISOString().slice(0,10)}.json`);say('');toast(/^Saved/.test(m)?`Project saved (${(blob.size/1e6).toFixed(1)} MB). Open it here any time to keep going.`:m);}
 async function openProject(file){let doc=null;try{doc=JSON.parse(await file.text());}catch(e){}
@@ -1410,7 +1420,7 @@ async function openProject(file){let doc=null;try{doc=JSON.parse(await file.text
   (doc.looks||[]).forEach(l=>{if(l&&l.name&&!LOOKS_MINE.some(x=>x.name===l.name))LOOKS_MINE.push(l);});DB.tx('readwrite',x=>x.put(LOOKS_MINE,'looks'));
   const pages=[];for(const q of doc.pages){const pg=newPage({bg:q.bg||undefined,name:q.name||'',texts:(q.texts||[]).map(x=>{const t=mergeDeep(DEFTEXT(),x);if(fmap[t.font])t.font=fmap[t.font];if(!FONTS[t.font])t.font='bangers';return t;})});
     pg.sel=pg.texts.length?pg.texts[pg.texts.length-1].id:null;if(q.img){const b=await dataToBlob(q.img),im=b&&await loadImg(b);if(im){pg.img=im;pg.blob=b;}else pg.bg={...pg.bg,kind:'sample'};}pages.push(pg);}
-  if(!pages.length)pages.push(newPage());PAGES=pages;PICKED.clear();PV.clear();if(doc.settings)Object.assign(S,{fmt:doc.settings.fmt||S.fmt,q:doc.settings.q||S.q,maxSide:doc.settings.maxSide||0,gap:doc.settings.gap==null?S.gap:doc.settings.gap});
+  if(!pages.length)pages.push(newPage());PAGES=pages;PICKED.clear();PV.clear();if(doc.settings)Object.assign(S,{fmt:doc.settings.fmt||S.fmt,q:doc.settings.q||S.q,maxSide:doc.settings.maxSide||0,gap:doc.settings.gap==null?S.gap:doc.settings.gap,seqName:doc.settings.seqName||S.seqName||'',seqStart:doc.settings.seqStart==null?(S.seqStart==null?1:S.seqStart):doc.settings.seqStart});
   CUR=clamp(doc.cur|0,0,PAGES.length-1);showPage(CUR,true,true);HIST=[snap()];HI=0;syncUndo();PAGES.forEach(pg=>pg.texts.forEach(t=>needFont(t.font)));renderAll();renderStrip();revealSlot(CUR);save();writeProps();say('');
   toast(`Opened “${file.name}”: ${PAGES.length} picture${PAGES.length>1?'s':''}.`);}
 $('saveProj').onclick=()=>run(saveProject);

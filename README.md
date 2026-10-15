@@ -400,6 +400,7 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 - **Duplicate** or **Remove** the picture you're on. Undo works per picture.
 - **Pick several pictures** with the box on each one (or Shift-click, or **Pick all**), then **Remove**, **Duplicate** or **Clear** them all at once.
 - **Save all** one after another, **Save all as ZIP**, **Save as one tall picture** (every picture stacked top to bottom with the gap you choose, for posting a whole strip), or **Share all** on phones.
+- **File name** (in Save): type a name and every picture is saved numbered in order, `chapter 1-01.png`, `chapter 1-02.png` and so on, in Save all, the ZIP (named `chapter 1.zip`) and Save picture (which uses that picture's number). Put `#` where the number should go (`page # final` → `page 01 final`), and **Start at** another number if you like. Leave it empty to name them after the pictures you opened.
 
 ### Pictures on top (props and expressions)
 - **+ Picture on top** puts a picture on top of the one you're working on: a prop, a face, an expression, a sticker. It isn't added to your set of pictures. See-through PNGs keep their see-through parts; big pictures are made smaller (up to 2000 pixels).
