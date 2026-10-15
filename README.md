@@ -401,6 +401,13 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 - **Pick several pictures** with the box on each one (or Shift-click, or **Pick all**), then **Remove**, **Duplicate** or **Clear** them all at once.
 - **Save all** one after another, **Save all as ZIP**, **Save as one tall picture** (every picture stacked top to bottom with the gap you choose, for posting a whole strip), or **Share all** on phones.
 
+### Pictures on top (props and expressions)
+- **+ Picture on top** puts a picture on top of the one you're working on: a prop, a face, an expression, a sticker. It isn't added to your set of pictures. See-through PNGs keep their see-through parts; big pictures are made smaller (up to 2000 pixels).
+- Move it, resize it from the corner and turn it on the picture, like text. Its own settings: size, see-through, flip across or upside down, and a shadow. ▲ ▼ put it in front of or behind text.
+- **Props and expressions:** everything you add waits in a tray under the picture to use again on any picture (tap it). Add several at once (or drop them on the tray) to fill the tray without placing them. ✕ takes one out of the tray; it stays on the pictures it's already on.
+- **Swap for:** with a picture on top picked, tap another prop to swap it in, in the same place and size. Handy for changing a character's expression.
+- Copy it to other pictures like text (Ctrl+C, Ctrl+V, or Copy this text to…). The tray is kept in the browser and in project files.
+
 ### Projects
 - **Save project** keeps everything in one file to finish later: the pictures, all their text, your speakers and saved looks, and any of your own fonts the text uses. **Open project** (or drop the file on the page) brings it all back, on this device or another one. The last project you worked on is also kept in the browser.
 
