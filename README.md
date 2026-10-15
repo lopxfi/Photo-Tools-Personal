@@ -393,14 +393,20 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 - **Keep inside a safe margin:** text can't be dragged off the edge.
 - **Move text off faces** (this picture, or every picture): an on-device face finder looks for faces and moves any text covering one to the nearest free spot. Bubble tails keep pointing where they did. The first time it gets the face finder (about 14 MB), then it works offline in the app.
 
-### A set of pictures
-- **Several pictures in one project**, each with its own text: **+ Add pictures** in the strip under the picture (or add several at once, or drop them). Each new picture starts with a text in the current look, ready to type. Tap a picture in the strip to work on it.
+### A set of pictures (the comic)
+- **The comic box:** every picture in the project shows top to bottom in one big box that scrolls up and down, like reading a comic. The one with the purple frame is the one you're working on; tap any other to work on it right there. **Full width** or **Whole picture** (fits each one in the box), and the **Gap** between them (none, small, large).
+- **Several pictures in one project**, each with its own text: **+ Add pictures** at the bottom of the box (or add several at once, or drop them). Each new picture starts with a text in the current look, ready to type.
 - **Copy text between pictures:** pick a text, then **Copy this text to…** every other picture or one of them (it keeps its place and look), or copy all the text on a picture to all the others. Ctrl+C a text, switch pictures, Ctrl+V works too.
-- **Duplicate**, move (◀ ▶) or remove a picture. Undo works per picture.
-- **Save all** one after another, **Save all as ZIP**, or **Share all** on phones. The whole project is kept in the browser.
+- Over each picture: move it up or down (▲ ▼), duplicate it (⧉) or remove it (✕). Undo works per picture.
+- **Pick several pictures** with their checkboxes (or **Pick all**), then **Remove**, **Duplicate** or **Clear** them all at once.
+- **Save all** one after another, **Save all as ZIP**, **Save as one tall picture** (every picture stacked with the gap you chose, for posting a whole strip), or **Share all** on phones.
+
+### Projects
+- **Save project** keeps everything in one file to finish later: the pictures, all their text, your speakers and saved looks, and any of your own fonts the text uses. **Open project** (or drop the file on the page) brings it all back, on this device or another one. The last project you worked on is also kept in the browser.
 
 ### Text
 - **As many pieces of text as you like.** Tap one on the picture to pick it, double-tap to type. **+ Text** adds another in the same look.
+- **Several at once:** Shift-click (or Ctrl-click) text on the picture or in the list, or turn on **Select** and tap them (easier on a phone). **All** (or Ctrl+A) picks every text on the picture. Then **Delete** removes them all, dragging one moves them together, and arrow keys nudge them all. Tap an empty spot to go back to one.
 - **On the picture:** drag to move (it snaps to the middle), pull the square corner to resize, turn it with the round handle (it snaps to 0°, 45° and 90°), and drag the yellow dot to point a bubble's tail. Arrow keys nudge it.
 - **Undo and redo** (↶ ↷, or Ctrl+Z).
 
@@ -432,7 +438,7 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 ### Saving
 - PNG, JPG or WebP (with quality), at full size or 2048 or 1080 pixels. A see-through canvas saves as a PNG with only your text, for putting on top of a video or another picture.
 - **Save picture**, **Share** on phones, or **Copy** to paste it anywhere. Saved pictures carry no hidden data from the original.
-- Your work, your looks and your fonts are kept in the browser.
+- Your work, your looks and your fonts are kept in the browser. Save a project file too if you want a copy to keep or move to another device.
 
 ---
 
