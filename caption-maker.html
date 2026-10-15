@@ -153,26 +153,23 @@ canvas#cv.picking{cursor:crosshair!important}
 .dim{opacity:.45;pointer-events:none}
 /* the picture */
 .stage{display:flex;flex-direction:column;gap:10px;min-width:0;position:sticky;top:16px}
-.comic{position:relative;height:max(420px,calc(100vh - 250px));overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:14px;border-radius:12px;display:flex;flex-direction:column;align-items:center;
-  background:var(--stage) conic-gradient(var(--check) 25%,transparent 0 50%,var(--check) 0 75%,transparent 0) 0 0/22px 22px}
-.comic.drop{outline:3px dashed var(--accent);outline-offset:-8px}
-.slot{width:100%;max-width:var(--slotw,860px);display:flex;flex-direction:column;flex:none}
-.slot+.slot,.comic .addslot{margin-top:var(--gap,16px)}
-.slothd{display:flex;align-items:center;gap:6px;padding:4px 2px 6px;font-size:12px;color:var(--muted)}
-.slothd b{font:600 12px/1 var(--f-body);color:var(--ink)}
-.slothd label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap;flex-shrink:0}
-.slothd>span:not(.sp){white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.slothd button{flex-shrink:0}
-.slothd input{accent-color:var(--accent);width:16px;height:16px}
-.slothd .sp{flex:1}
-.slothd button{padding:4px 8px;font-size:12px;border-color:transparent;background:rgba(0,0,0,.25);color:#fff}
-.slothd button:hover{background:rgba(0,0,0,.45)}
-.slot .pv{display:block;width:100%;height:auto;border-radius:4px;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.18);outline:2px solid transparent;outline-offset:2px}
-.slot .pv:hover{outline-color:color-mix(in srgb,var(--accent) 60%,transparent)}
-.slot.on .slothd b{color:var(--accent)}
-.slot.picked .pv,.slot.picked canvas#cv{outline:3px solid #FF4D4D;outline-offset:2px}
-.comic.fith .slot{max-width:min(var(--slotw,860px),calc((100vh - 330px) * var(--ar,1)))}
-.comic .addslot{flex:none;width:100%;max-width:var(--slotw,860px);min-height:90px;justify-content:center;border-style:dashed;font-size:14px}
+/* every picture in the project: a big box of small pictures that scrolls up and down */
+.picsbox{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.pics{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile,128px),1fr));gap:8px;align-content:start;height:420px;min-height:150px;max-height:90vh;overflow-y:auto;overflow-x:hidden;resize:vertical;overscroll-behavior:contain;padding:2px 4px 2px 2px}
+.pics .pg{position:relative;display:flex;flex-direction:column;gap:4px;padding:4px;border:1px solid var(--line);border-radius:9px;background:var(--bg);cursor:pointer;min-width:0;user-select:none}
+.pics .pg:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
+.pics .pg[aria-current="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.pics .pg.picked{border-color:#FF4D4D;box-shadow:0 0 0 2px #FF4D4D}
+.pics .pg canvas{width:100%;aspect-ratio:4/3;height:auto;object-fit:contain;display:block;border-radius:5px;background:var(--stage) conic-gradient(var(--check) 25%,transparent 0 50%,var(--check) 0 75%,transparent 0) 0 0/10px 10px}
+.pics .pg span{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pics .pg b{position:absolute;top:8px;right:8px;font:600 11px/1 var(--f-body);background:rgba(0,0,0,.65);color:#fff;border-radius:5px;padding:3px 5px}
+.pics .pg[aria-current="true"] b{background:var(--accent);color:var(--accent-ink)}
+.pics .pg input{position:absolute;top:7px;left:7px;width:18px;height:18px;margin:0;accent-color:#FF4D4D;cursor:pointer}
+.pics .pg.dragging{opacity:.35}
+.pics .pg.dropto{outline:2px dashed var(--accent);outline-offset:2px}
+.pics .addpg{flex-direction:column;justify-content:center;min-height:96px;font-size:13px;text-align:center;border-style:dashed}
+.comicbar .cur{display:flex;align-items:center;gap:5px;color:var(--muted)}
+.comicbar .cur button{padding:5px 9px;font-size:12px}
 .comicbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
 .comicbar .seg button{padding:5px 9px;font-size:12px}
 .comicbar .picksel{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:8px;background:color-mix(in srgb,#FF4D4D 16%,transparent)}
@@ -181,7 +178,7 @@ canvas#cv.picking{cursor:crosshair!important}
 .canvas-wrap{position:relative;display:grid;place-items:center;padding:16px;border-radius:12px;min-height:320px;
   background:var(--stage) conic-gradient(var(--check) 25%,transparent 0 50%,var(--check) 0 75%,transparent 0) 0 0/22px 22px}
 .canvas-wrap.drop{outline:3px dashed var(--accent);outline-offset:-8px}
-canvas#cv{display:block;width:100%;height:auto;touch-action:none;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,.18);outline:2px solid var(--accent);outline-offset:2px}
+canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;height:auto;touch-action:none;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
 .tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .tools button,.tools .btn{font-size:13px;padding:8px 11px}
 .layers{display:flex;gap:6px;flex-wrap:wrap}
@@ -252,8 +249,9 @@ canvas#cv{display:block;width:100%;height:auto;touch-action:none;border-radius:4
   .stage{position:static}
   .opts{position:static;max-height:none}
   .canvas-wrap{padding:8px;min-height:200px}
-  .comic{height:72vh;padding:8px}
-  .comic.fith .slot{max-width:min(100%,calc((72vh - 70px) * var(--ar,1)))}
+  canvas#cv{max-height:56vh}
+  .pics{height:62vh;gap:6px}
+  .picsbox{padding:8px}
   textarea,input[type=text],input[type=number],select{font-size:16px}
   .seg button,.row button{padding:10px 12px;font-size:14px}
   .field input[type=range]{height:30px}
@@ -279,9 +277,8 @@ canvas#cv{display:block;width:100%;height:auto;touch-action:none;border-radius:4
 
 <main class="app">
   <section class="stage" aria-label="Picture">
-    <div class="comicbar" id="comicBar"></div>
-    <div class="comic" id="drop" aria-label="Your pictures, top to bottom. Tap one to work on it.">
-      <canvas id="cv" width="1080" height="1080" aria-label="The picture you’re working on, with its text. Drag text to move it, its corner to resize it, the round handle above it to turn it."></canvas>
+    <div class="canvas-wrap" id="drop">
+      <canvas id="cv" width="1080" height="1080" aria-label="Your picture with its text. Drag text to move it, its corner to resize it, the round handle above it to turn it."></canvas>
     </div>
     <div class="tools">
       <button type="button" id="addText" class="primary">+ Text</button>
@@ -298,8 +295,12 @@ canvas#cv{display:block;width:100%;height:auto;touch-action:none;border-radius:4
     </div>
     <div class="layers" id="layers" role="group" aria-label="Your text"></div>
     <div class="copyrow" id="copyRow"></div>
+    <div class="picsbox" role="region" aria-label="Pictures in this project">
+      <div class="comicbar" id="comicBar"></div>
+      <div class="pics" id="strip"></div>
+    </div>
     <div class="under">
-      <p class="help">Drag text to move it. Pull the corner to resize, the round handle to turn it, and the dot at a bubble’s tail to point it. Double-tap text to type. Shift-click (or Select) to pick several.</p>
+      <p class="help">Drag text to move it. Pull the corner to resize, the round handle to turn it, and the dot at a bubble’s tail to point it. Double-tap text to type. Shift-click (or Select) to pick several. Tap a picture in the box below to work on it.</p>
     </div>
   </section>
 
@@ -1158,9 +1159,9 @@ function renderSave(){const p=$('saveF');p.innerHTML='';
     if(canSave())all.append(h('button',{type:'button',id:'saveAll',onclick:()=>run(async()=>{const fs=await makeAll();let last='';for(let i=0;i<fs.length;i++){say(`Saving picture ${i+1} of ${fs.length}…`);last=await saveFile(fs[i],fs[i].name);if(/Not saved|isn’t available|too big/.test(last))break;await new Promise(r=>setTimeout(r,DL?0:350));}say(/Saved/.test(last)?`Saved ${fs.length} pictures.`:last);})},`Save all ${PAGES.length}`),
       h('button',{type:'button',id:'saveZip',onclick:()=>run(async()=>{const fs=await makeAll();say('Putting the ZIP together…');const zip=await makeZip(fs.map(f=>({name:f.name,blob:f})));say(await saveFile(zip,`captions-${SAVECODE}.zip`)+` ${(zip.size/1e6).toFixed(1)} MB.`);})},'Save all as ZIP'));
     if(share)all.append(h('button',{type:'button',onclick:()=>run(async()=>{const fs=await makeAll();say('');try{await navigator.share({files:fs});say('Shared.');}catch(err){say(err&&err.name==='AbortError'?'':'Sharing didn’t work here. Save them instead.');}})},'Share all'));
-    p.append(h('span',{class:'flabel'},'Every picture in this project'),all);}
+    p.append(h('span',{class:'flabel'},'Every picture in this project'),all,segF('cgap','Gap between pictures in the tall picture',GAPS,GAPS.map(g=>g[0]).find(v=>Math.abs(v-(S.gap==null?.02:+S.gap))<1e-6)??.02,v=>{S.gap=v;save();renderSave();}));}
   if(!canSave())p.append(h('p',{class:'help'},'Saving isn’t available here. Open the Photo Tools website or app to save.'));}
-/* every picture stacked into one tall picture, the way the comic box shows them (as wide as the widest, up to 2000 pixels; shorter if it would be too tall for a browser to make) */
+/* every picture stacked into one tall picture, top to bottom (as wide as the widest, up to 2000 pixels; shorter if it would be too tall for a browser to make) */
 async function makeTall(){stash();try{await Promise.race([Promise.all(PAGES.flatMap(pg=>pg.texts.map(t=>document.fonts.load(fontStr(t,40),plainText(t.text)||'A')))),new Promise(r=>setTimeout(r,3000))]);}catch(e){}
   let W=Math.min(2000,Math.max(...PAGES.map(pg=>pg.bg.w||1080)));const gap=S.gap==null?.02:+S.gap,hs=()=>PAGES.map(pg=>Math.round(W*(pg.bg.h||1080)/(pg.bg.w||1080))),tot=()=>hs().reduce((a,b)=>a+b,0)+Math.round(gap*W)*(PAGES.length-1);
   if(tot()>32000)W=Math.floor(W*32000/tot());const H=hs(),gp=Math.round(gap*W),out=document.createElement('canvas');out.width=W;out.height=tot();const g=out.getContext('2d');
@@ -1205,45 +1206,55 @@ async function makeZip(entries){const parts=[],central=[];let off=0;const time=0
     central.push(new Uint8Array(ch.buffer),name);off+=30+name.length+data.length;}
   const cs=central.reduce((a,q)=>a+q.length,0),end=new DataView(new ArrayBuffer(22));end.setUint32(0,0x06054b50,true);end.setUint16(8,entries.length,true);end.setUint16(10,entries.length,true);end.setUint32(12,cs,true);end.setUint32(16,off,true);
   return new Blob([...parts,...central,new Uint8Array(end.buffer)],{type:'application/zip'});}
-/* ---------- the comic: every picture top to bottom in one big scrolling box; the one you tap is the one you edit ---------- */
+/* ---------- the picture box: every picture in the project as a small picture, in a big box that scrolls up and down; tap one to work on it ---------- */
 function drawBg2(c,w,hh,pg){if(pg.bg.kind==='img'&&pg.img){c.drawImage(pg.img,0,0,w,hh);return;}if(pg.bg.kind==='color'){c.fillStyle=pg.bg.color;c.fillRect(0,0,w,hh);return;}if(pg.bg.kind==='clear')return;sampleBg(c,w,hh);}
-function thumbOf(pg){const W0=pg.bg.w||1080,H0=pg.bg.h||1080,k=Math.min(240/W0,168/H0),c=document.createElement('canvas');c.width=Math.max(8,Math.round(W0*k));c.height=Math.max(8,Math.round(H0*k));const g=c.getContext('2d');
-  drawBg2(g,c.width,c.height,pg);VIEW={w:c.width,h:c.height};try{pg.texts.forEach(T=>drawText(g,T));}catch(e){}VIEW=null;return c;}
 let stripT=0;const renderStripSoon=()=>{clearTimeout(stripT);stripT=setTimeout(renderStrip,300);};
 const PV=new Map(),PICKED=new Set();
-const COMIC=(()=>{const d={fit:'width'};try{return{...d,...JSON.parse(localStorage.getItem('cm-comic')||'{}')};}catch(e){return d;}})();
+const COMIC=(()=>{const d={tile:'m',h:0};try{return{...d,...JSON.parse(localStorage.getItem('cm-comic')||'{}')};}catch(e){return d;}})();
 const saveComic=()=>{try{localStorage.setItem('cm-comic',JSON.stringify(COMIC));}catch(e){}};
 const GAPS=[[0,'None'],[.02,'Small'],[.06,'Large']];
-/* a page drawn at the size it shows in the box (kept until the page changes) */
+const TILES={s:[96,'Small'],m:[128,'Medium'],l:[180,'Large']};
+/* a small copy of a page (kept until the page changes) */
 function previewOf(pg,w){const W0=pg.bg.w||1080,H0=pg.bg.h||1080,hh=Math.max(8,Math.round(w*H0/W0)),sig=JSON.stringify([pg.bg,cleanTexts(pg.texts)])+'|'+(pg.blob?pg.blob.size:0)+'|'+w;
   const hit=PV.get(pg.id);if(hit&&hit.sig===sig)return hit.c;const c=document.createElement('canvas');c.width=w;c.height=hh;const g=c.getContext('2d');drawBg2(g,w,hh,pg);
   VIEW={w,h:hh};try{pg.texts.forEach(T=>drawText(g,T));}catch(e){}VIEW=null;PV.set(pg.id,{sig,c});return c;}
-function slotWidth(){const el=$('drop');return Math.max(200,Math.min(860,(el.clientWidth||860)-28));}
-function renderStrip(){const box=$('drop');if(!box)return;stash();const top=box.scrollTop,gap=S.gap==null?.02:+S.gap,sw=slotWidth(),pw=Math.min(1400,Math.round(sw*(devicePixelRatio||1)));
-  [...PICKED].forEach(id=>{if(!PAGES.some(pg=>pg.id===id))PICKED.delete(id);});
-  box.classList.toggle('fith',COMIC.fit==='height');box.style.setProperty('--gap',Math.round(gap*sw)+'px');
+function setPicked(id,on){if(on)PICKED.add(id);else PICKED.delete(id);const t=document.querySelector(`#strip .pg[data-id="${id}"]`);if(t){t.classList.toggle('picked',on);const c=t.querySelector('input');if(c)c.checked=on;}renderComicBar();}
+function renderStrip(){const box=$('strip');if(!box)return;stash();const top=box.scrollTop,tw=Math.round((TILES[COMIC.tile]||TILES.m)[0]*(innerWidth<600?.72:1)),pw=Math.round(Math.min(360,tw*1.7)*Math.min(2,devicePixelRatio||1));
+  box.style.setProperty('--tile',tw+'px');[...PICKED].forEach(id=>{if(!PAGES.some(pg=>pg.id===id))PICKED.delete(id);});
   const frag=document.createDocumentFragment();
-  PAGES.forEach((pg,i)=>{const on=i===CUR,ar=(pg.bg.w||1080)/(pg.bg.h||1080),pick=h('input',{type:'checkbox','aria-label':`Pick picture ${i+1}`,checked:PICKED.has(pg.id),onchange:e=>{if(e.target.checked)PICKED.add(pg.id);else PICKED.delete(pg.id);renderComicBar();slot.classList.toggle('picked',e.target.checked);}});
-    const btn=(lab,title,fn,id,dis)=>h('button',{type:'button',title,'aria-label':`${title}: picture ${i+1}`,id:on?id:null,disabled:!!dis,onclick:e=>{e.stopPropagation();fn();}},lab);
-    const slot=h('div',{class:'slot'+(on?' on':'')+(PICKED.has(pg.id)?' picked':''),'data-i':i,style:`--ar:${ar}`},
-      h('div',{class:'slothd'},h('label',{},pick,h('b',{},`Picture ${i+1}`)),pg.name?h('span',{},'· '+pg.name.slice(0,28)):null,on?h('span',{},'· editing'):null,h('span',{class:'sp'}),
-        btn('▲','Move up',()=>pageMove(i,-1),'pgLeft',i===0),btn('▼','Move down',()=>pageMove(i,1),'pgRight',i===PAGES.length-1),btn('⧉','Duplicate',()=>pageDup(i),'pgDup'),btn('✕','Remove',()=>{if(confirm(`Remove picture ${i+1} and its text?`))pageRemove([pg.id]);},'pgDel')));
-    if(on)slot.append(cv);else{const c=previewOf(pg,pw);c.classList.add('pv');c.setAttribute('role','button');c.tabIndex=0;c.setAttribute('aria-label',`Picture ${i+1}: tap to work on it`);c.onclick=()=>showPage(i);c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showPage(i);}};slot.append(c);}
-    frag.append(slot);});
+  PAGES.forEach((pg,i)=>{const on=i===CUR,picked=PICKED.has(pg.id),label=(pg.texts[0]&&plainText(pg.texts[0].text).split('\n')[0])||pg.name||'No text';
+    const pick=h('input',{type:'checkbox',checked:picked,title:'Pick this picture','aria-label':`Pick picture ${i+1}`,onclick:e=>e.stopPropagation(),onchange:e=>setPicked(pg.id,e.target.checked)});
+    const th=previewOf(pg,pw);
+    const tile=h('div',{class:'pg'+(picked?' picked':''),role:'button',tabindex:'0',draggable:'true','data-i':i,'data-id':pg.id,'aria-current':String(on),'aria-label':`Picture ${i+1}${pg.name?': '+pg.name:''}`,title:`${pg.name||'Picture '+(i+1)}. Tap to work on it, drag to move it.`,
+      onclick:e=>{if(e.shiftKey||e.ctrlKey||e.metaKey){setPicked(pg.id,!PICKED.has(pg.id));return;}if(i!==CUR)showPage(i);showEditor();},
+      onkeydown:e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();showPage(i);}},
+      ondragstart:e=>{e.dataTransfer.setData('text/x-cm-page',String(i));e.dataTransfer.effectAllowed='move';tile.classList.add('dragging');},
+      ondragend:()=>{tile.classList.remove('dragging');box.querySelectorAll('.dropto').forEach(x=>x.classList.remove('dropto'));},
+      ondragover:e=>{if(![...e.dataTransfer.types].includes('text/x-cm-page'))return;e.preventDefault();e.dataTransfer.dropEffect='move';tile.classList.add('dropto');},
+      ondragleave:()=>tile.classList.remove('dropto'),
+      ondrop:e=>{const from=e.dataTransfer.getData('text/x-cm-page');if(from==='')return;e.preventDefault();e.stopPropagation();tile.classList.remove('dropto');pageMoveTo(+from,i);}},
+      pick,th,h('b',{},String(i+1)),h('span',{},label));
+    frag.append(tile);});
   const add=h('input',{type:'file',id:'stripAdd',accept:'image/*',multiple:true});add.onchange=()=>{const fs=[...add.files];add.value='';if(fs.length)addPictures(fs);};
-  frag.append(h('label',{class:'btn addslot',for:'stripAdd',title:'Add pictures to the end'},'+ Add pictures',add));
+  frag.append(h('label',{class:'btn addpg',for:'stripAdd',title:'Add pictures to the end'},'+ Add pictures',add));
   box.replaceChildren(frag);box.scrollTop=top;renderComicBar();renderCopy();}
-/* the bar over the box: how many, how big, the gap, and what to do with the pictures you picked */
-function renderComicBar(){const el=$('comicBar');if(!el)return;el.innerHTML='';const n=[...PICKED].length;
+/* the bar over the box: how many, how big they show, the picture you're on, and what to do with the ones you picked */
+function renderComicBar(){const el=$('comicBar');if(!el)return;el.innerHTML='';const n=[...PICKED].length,i=CUR;
+  const btn=(lab,title,fn,id,dis)=>h('button',{type:'button',title,'aria-label':title,id,disabled:!!dis,onclick:fn},lab);
   el.append(h('strong',{},`${PAGES.length} picture${PAGES.length>1?'s':''}`),
-    segF('cfit','Show',[['width','Full width'],['height','Whole picture']],COMIC.fit,v=>{COMIC.fit=v;saveComic();renderStrip();}).lastChild,
-    h('label',{class:'rv',for:'cgap'},'Gap'),(()=>{const sel=h('select',{id:'cgap','aria-label':'Gap between pictures',style:'width:auto;padding:5px 8px;font-size:12px'},...GAPS.map(([v,l])=>h('option',{value:v,selected:Math.abs((S.gap==null?.02:S.gap)-v)<1e-6},l)));sel.onchange=()=>{S.gap=+sel.value;save();renderStrip();};return sel;})());
+    segF('tsize','Size',Object.entries(TILES).map(([k,[,l]])=>[k,l]),COMIC.tile,v=>{COMIC.tile=v;saveComic();renderStrip();revealSlot(CUR);}).lastChild,
+    h('span',{class:'cur'},`Picture ${i+1}:`,btn('◀','Move earlier',()=>pageMove(i,-1),'pgLeft',i===0),btn('▶','Move later',()=>pageMove(i,1),'pgRight',i===PAGES.length-1),
+      btn('Duplicate','Duplicate this picture',()=>pageDup(i),'pgDup'),btn('Remove','Remove this picture',()=>{if(confirm(`Remove picture ${i+1} and its text?`))pageRemove([PAGES[i].id]);},'pgDel')));
   if(n)el.append(h('span',{class:'picksel'},`${n} picked`,h('button',{type:'button',id:'pickDel',onclick:()=>{if(confirm(`Remove ${n} picture${n>1?'s':''} and their text?`))pageRemove([...PICKED]);}},'Remove'),
     h('button',{type:'button',onclick:()=>{const ids=PAGES.filter(pg=>PICKED.has(pg.id)).map(pg=>pg.id);ids.forEach(id=>pageDup(PAGES.findIndex(pg=>pg.id===id),true));PICKED.clear();renderStrip();save();toast(`${ids.length} picture${ids.length>1?'s':''} duplicated.`);}},'Duplicate'),
     h('button',{type:'button',onclick:()=>{PICKED.clear();renderStrip();}},'Clear')));
-  else if(PAGES.length>1)el.append(h('button',{type:'button',onclick:()=>{PAGES.forEach(pg=>PICKED.add(pg.id));renderStrip();},style:'padding:5px 9px;font-size:12px'},'Pick all'));}
-function revealSlot(i){const box=$('drop'),sl=box&&box.querySelector(`.slot[data-i="${i}"]`);if(!sl)return;const b=box.getBoundingClientRect(),r=sl.getBoundingClientRect();if(r.top<b.top||r.top>b.bottom-60)box.scrollTop+=r.top-b.top-8;}
-function pageMove(i,d){const j=i+d;if(j<0||j>=PAGES.length)return;stash();[PAGES[i],PAGES[j]]=[PAGES[j],PAGES[i]];if(CUR===i)CUR=j;else if(CUR===j)CUR=i;renderStrip();save();}
+  else if(PAGES.length>1)el.append(h('button',{type:'button',id:'pickAll',title:'Pick every picture (or tick the box on each one)',onclick:()=>{PAGES.forEach(pg=>PICKED.add(pg.id));renderStrip();},style:'padding:5px 9px;font-size:12px'},'Pick all'));}
+/* after tapping a small picture: if the big picture is mostly off screen (on a phone, say), bring it into view */
+function showEditor(){const r=cv.getBoundingClientRect(),vis=Math.min(r.bottom,innerHeight)-Math.max(r.top,0);if(vis<r.height*.5)cv.scrollIntoView({block:'nearest',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
+/* scroll the box (not the page) so a picture shows */
+function revealSlot(i){const box=$('strip'),t=box&&box.querySelector(`.pg[data-i="${i}"]`);if(!t)return;const b=box.getBoundingClientRect(),r=t.getBoundingClientRect();if(r.top<b.top)box.scrollTop+=r.top-b.top-6;else if(r.bottom>b.bottom)box.scrollTop+=r.bottom-b.bottom+6;}
+function pageMove(i,d){const j=i+d;if(j<0||j>=PAGES.length)return;stash();[PAGES[i],PAGES[j]]=[PAGES[j],PAGES[i]];if(CUR===i)CUR=j;else if(CUR===j)CUR=i;renderStrip();revealSlot(CUR);save();}
+function pageMoveTo(from,to){if(from===to||from<0||from>=PAGES.length)return;stash();const curId=PAGES[CUR].id,[pg]=PAGES.splice(from,1);PAGES.splice(clamp(to,0,PAGES.length),0,pg);CUR=PAGES.findIndex(q=>q.id===curId);renderStrip();save();}
 function pageDup(i,quiet){stash();const pg=PAGES[i],c=newPage({bg:{...pg.bg},img:pg.img,blob:pg.blob,name:pg.name,texts:cleanTexts(pg.texts).map(t=>({...t,id:'t_'+rkey()}))});c.sel=c.texts.length?c.texts[c.texts.length-1].id:null;
   PAGES.splice(i+1,0,c);if(CUR>i)CUR++;if(!quiet){showPage(i+1);revealSlot(i+1);}}
 /* remove pictures (one or several); there's always at least one */
@@ -1252,7 +1263,9 @@ function pageRemove(ids){stash();const curId=PAGES[CUR]&&PAGES[CUR].id,idx=PAGES
   if(!PAGES.length){PAGES.push(newPage());CUR=0;showPage(0,true,true);addText(true);}
   else{let k=PAGES.findIndex(pg=>pg.id===curId);if(k<0)k=clamp(idx,0,PAGES.length-1);CUR=k;showPage(k,true,true);}
   MULTI.clear();HIST=[snap()];HI=0;syncUndo();renderAll();renderStrip();save();toast(`Removed ${n} picture${n>1?'s':''}.`);}
-addEventListener('resize',()=>{clearTimeout(window.__rs);window.__rs=setTimeout(()=>{if(restored)renderStrip();},200);});
+/* the box remembers how tall you pulled it */
+(()=>{const box=$('strip');if(!box)return;if(COMIC.h>=150)box.style.height=COMIC.h+'px';let first=true,t=0;
+  if(window.ResizeObserver)new ResizeObserver(()=>{if(first){first=false;return;}clearTimeout(t);t=setTimeout(()=>{if(box.style.height){COMIC.h=Math.round(box.getBoundingClientRect().height);saveComic();}},300);}).observe(box);})();
 /* ---------- copying text between pictures ---------- */
 let CLIP=null;
 function copyTo(targets,which){stash();const src=which==='all'?cleanTexts(S.texts):selT()?cleanTexts([selT()]):[];if(!src.length)return;let n=0;

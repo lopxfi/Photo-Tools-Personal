@@ -393,13 +393,13 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 - **Keep inside a safe margin:** text can't be dragged off the edge.
 - **Move text off faces** (this picture, or every picture): an on-device face finder looks for faces and moves any text covering one to the nearest free spot. Bubble tails keep pointing where they did. The first time it gets the face finder (about 14 MB), then it works offline in the app.
 
-### A set of pictures (the comic)
-- **The comic box:** every picture in the project shows top to bottom in one big box that scrolls up and down, like reading a comic. The one with the purple frame is the one you're working on; tap any other to work on it right there. **Full width** or **Whole picture** (fits each one in the box), and the **Gap** between them (none, small, large).
-- **Several pictures in one project**, each with its own text: **+ Add pictures** at the bottom of the box (or add several at once, or drop them). Each new picture starts with a text in the current look, ready to type.
+### A set of pictures
+- **Several pictures in one project**, each with its own text: **+ Add pictures** (or add several at once, or drop them). Each new picture starts with a text in the current look, ready to type.
+- **The picture box:** under the picture you're editing, every picture in the project shows small in a big box that scrolls up and down, 15 to 20 at a time. Tap one to work on it. **Small**, **Medium** or **Large** changes how big they show, and you can pull the box's corner to make it taller. Drag a small picture to move it, or use ◀ ▶ for the one you're on.
 - **Copy text between pictures:** pick a text, then **Copy this text to…** every other picture or one of them (it keeps its place and look), or copy all the text on a picture to all the others. Ctrl+C a text, switch pictures, Ctrl+V works too.
-- Over each picture: move it up or down (▲ ▼), duplicate it (⧉) or remove it (✕). Undo works per picture.
-- **Pick several pictures** with their checkboxes (or **Pick all**), then **Remove**, **Duplicate** or **Clear** them all at once.
-- **Save all** one after another, **Save all as ZIP**, **Save as one tall picture** (every picture stacked with the gap you chose, for posting a whole strip), or **Share all** on phones.
+- **Duplicate** or **Remove** the picture you're on. Undo works per picture.
+- **Pick several pictures** with the box on each one (or Shift-click, or **Pick all**), then **Remove**, **Duplicate** or **Clear** them all at once.
+- **Save all** one after another, **Save all as ZIP**, **Save as one tall picture** (every picture stacked top to bottom with the gap you choose, for posting a whole strip), or **Share all** on phones.
 
 ### Projects
 - **Save project** keeps everything in one file to finish later: the pictures, all their text, your speakers and saved looks, and any of your own fonts the text uses. **Open project** (or drop the file on the page) brings it all back, on this device or another one. The last project you worked on is also kept in the browser.
