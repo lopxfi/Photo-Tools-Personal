@@ -214,6 +214,22 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
 .fxset{display:flex;flex-direction:column;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px}
 .fxset h5{margin:0;font:600 13px/1.2 var(--f-body)}
 .fxset select{font-size:13px;padding:7px 9px}
+.fxrow .nm{display:flex;align-items:center;gap:6px}
+.fxrow .nm .chev{margin-left:auto;width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg) translate(-2px,-2px);flex:none}
+.fxrow .nm[aria-expanded="true"] .chev{transform:rotate(225deg)}
+.fxrow .ic[disabled]{opacity:.3}
+.fxbody{padding:8px;background:var(--bg);border-top:1px solid var(--line)}
+.fxbody .fxset{border:0;padding:4px}
+.fxbody .fxset h5{display:none}
+#fxAdd,#flAdd{font-size:14px}
+/* small fold-outs inside a section */
+details.sub{border:1px solid var(--line);border-radius:10px;padding:0 10px}
+details.sub>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 0;font-size:13px;font-weight:600}
+details.sub>summary::-webkit-details-marker{display:none}
+details.sub>summary .fsum{margin-left:auto;font-weight:400;color:var(--muted);font-size:12px}
+details.sub>summary::after{content:'';width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin:-3px 2px 0 0}
+details.sub[open]>summary::after{transform:rotate(225deg);margin-top:3px}
+details.sub>.subbody{display:flex;flex-direction:column;gap:12px;padding-bottom:12px}
 .copyrow select{width:auto;flex:0 1 260px;font-size:13px;padding:7px 9px}
 .copyrow .help{flex:1;min-width:140px}
 /* settings fold into dropdown sections */
@@ -364,6 +380,8 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
     <div class="field" id="boxF"></div>
     <h4 class="fhead">Picture on top</h4>
     <div class="field" id="propF"></div>
+    <h4 class="fhead">Filters</h4>
+    <div class="field" id="flF"></div>
     <h4 class="fhead">Effects</h4>
     <div class="field" id="fxF"></div>
     <h4 class="fhead">Size, place and turn</h4>
@@ -685,12 +703,12 @@ function drawPic(c,T){if(!FXRAW&&fxOn(T.fx))return drawPicFx(c,T);const L=picL(T
   if(T.box.kind!=='none'){c.save();sh();drawBox(c,T,L);c.restore();}
   if(!P||!P.img){c.fillStyle='rgba(127,127,127,.25)';c.fillRect(B.x,B.y,B.w,B.h);c.setLineDash([hh*.04,hh*.03]);c.lineWidth=Math.max(1,hh*.01);c.strokeStyle='rgba(127,127,127,.8)';c.strokeRect(B.x,B.y,B.w,B.h);c.restore();return L;}
   const fx=T.flipX?-1:1,fy=T.flipY?-1:1;
-  if(!shape){if(T.box.kind==='none')sh();c.scale(fx,fy);c.drawImage(P.img,B.x,B.y,B.w,B.h);c.restore();return L;}
+  if(!shape){if(T.box.kind==='none')sh();c.scale(fx,fy);c.drawImage(propSrc(T,P),B.x,B.y,B.w,B.h);c.restore();return L;}
   /* in a shape: fill it (for the shadow), then the picture cropped to it, zoomed and moved as you set, then its border */
   if(T.shadow.on&&T.box.kind==='none'){c.save();sh();shapePath(c,shape,B.x,B.y,B.w,B.h);c.fillStyle='#000';c.fill();c.restore();}
   c.save();shapePath(c,shape,B.x,B.y,B.w,B.h);c.clip();
   const iw=P.w,ih=P.h,z=Math.max(1,T.zoom||1),k=Math.max(B.w/iw,B.h/ih)*z,dw=iw*k,dh=ih*k,ox=-(T.panX||0)*(dw-B.w)/2,oy=-(T.panY||0)*(dh-B.h)/2;
-  c.scale(fx,fy);c.drawImage(P.img,-dw/2+ox*fx,-dh/2+oy*fy,dw,dh);c.restore();
+  c.scale(fx,fy);c.drawImage(propSrc(T,P),-dw/2+ox*fx,-dh/2+oy*fy,dw,dh);c.restore();
   if(T.sbw>0){noSh();shapePath(c,shape,B.x,B.y,B.w,B.h);c.lineJoin='round';c.lineWidth=T.sbw*hh;c.strokeStyle=T.sbc||'#FFFFFF';c.stroke();}
   c.restore();return L;}
 /* ================= layer effects, for the picture behind and pictures on top =================
@@ -758,7 +776,7 @@ function fxBuild(C,fx,u,fill,box,full){const parts=[],on=t=>fx.filter(e=>e&&e.on
   return parts;}
 const FXCACHE=new Map();
 function fxDraw(c,R,parts,alpha){c.save();parts.forEach(q=>{c.globalAlpha=alpha*q.op;c.globalCompositeOperation=q.blend;c.drawImage(q.c,R.x,R.y);});c.restore();}
-function fxCached(id,key,make){const hit=FXCACHE.get(id);if(hit&&hit.key===key)return hit.v;const v=make();FXCACHE.set(id,{key,v});if(FXCACHE.size>80)FXCACHE.delete(FXCACHE.keys().next().value);return v;}
+function fxCached(id,key,make){const hit=FXCACHE.get(id);if(hit&&hit.key===key){FXCACHE.delete(id);FXCACHE.set(id,hit);return hit.v;}const v=make();FXCACHE.set(id,{key,v});cacheTrim(FXCACHE,60e6,e=>e.v.reduce((a,q)=>a+q.c.width*q.c.height,0));return v;}
 /* a picture on top with effects: drawn plain onto its own layer first */
 let FXRAW=false;
 function drawPicFx(c,T){const L=picL(T),A=aabbOf(T);let l=A.l,t=A.t,r=A.r,b=A.b;if(hasTail(T)){const tx=T.box.tx*IW(),ty=T.box.ty*IH();l=Math.min(l,tx);r=Math.max(r,tx);t=Math.min(t,ty);b=Math.max(b,ty);}
@@ -773,7 +791,162 @@ function drawBgFx(c,w,hh,bg,img,id){const key=JSON.stringify([bg,w,hh,img?(img.c
   const parts=fxCached('bg|'+id+'|'+w+'x'+hh,key,()=>{const C=fxCan(w,hh);rawBg(C.getContext('2d'),w,hh,bg,img);return fxBuild(C,bg.fx,hh/200,bg.fxFill==null?1:bg.fxFill,{x:0,y:0,w,h:hh},true);});
   /* effects that reach outside the picture are cut off at its edges */
   c.save();c.beginPath();c.rect(0,0,w,hh);c.clip();fxDraw(c,{x:0,y:0},parts,1);c.restore();}
-function rawBg(c,w,hh,bg,img){if(bg.kind==='img'&&img){c.drawImage(img,0,0,w,hh);return;}if(bg.kind==='color'){c.fillStyle=bg.color;c.fillRect(0,0,w,hh);return;}if(bg.kind==='clear')return;sampleBg(c,w,hh);}
+function rawBg(c,w,hh,bg,img){if(flOn(bg.filters)&&bg.kind!=='clear'){const[fw,fh]=flCap(w,hh),key='b|'+(bg.kind==='img'&&img?(img.currentSrc||img.src):JSON.stringify([bg.kind,bg.color]))+'|'+fw+'x'+fh+'|'+JSON.stringify(bg.filters);
+    const f=flCached(key,()=>{const base=flCan(fw,fh);rawBg0(base.getContext('2d'),fw,fh,bg,img);return flApply(base,fw,fh,bg.filters,true);});c.drawImage(f,0,0,w,hh);return;}rawBg0(c,w,hh,bg,img);}
+function rawBg0(c,w,hh,bg,img){if(bg.kind==='img'&&img){c.drawImage(img,0,0,w,hh);return;}if(bg.kind==='color'){c.fillStyle=bg.color;c.fillRect(0,0,w,hh);return;}if(bg.kind==='clear')return;sampleBg(c,w,hh);}
+/* ================= filters: change the picture itself (before its effects), like an image editor's Filters menu =================
+   Each filter takes a canvas and gives back a new one. They run top to bottom, and the result is kept until something changes. */
+const FL_GROUPS=[['adjust','Fix and adjust'],['clean','Clean up'],['style','Style'],['distort','Distort'],['blur','Blur']];
+const FL={};
+const flDef=(id,group,name,def,ui,run)=>{FL[id]={id,group,name,def,ui,run};};
+const flCan=(w,hh)=>fxCan(w,hh);
+const flCopy=src=>{const c=flCan(src.width,src.height);c.getContext('2d').drawImage(src,0,0);return c;};
+const flData=c=>c.getContext('2d').getImageData(0,0,c.width,c.height);
+function flPut(w,hh,d){const c=flCan(w,hh);c.getContext('2d').putImageData(d,0,0);return c;}
+/* go through every pixel: fn(r,g,b,a,i) returns nothing and writes into the data */
+function flPixels(src,fn){const c=flCopy(src),g=c.getContext('2d'),im=g.getImageData(0,0,c.width,c.height),d=im.data;for(let i=0;i<d.length;i+=4)fn(d,i);g.putImageData(im,0,0);return c;}
+const lum=(r,g,b)=>.299*r+.587*g+.114*b,cl=v=>v<0?0:v>255?255:v;
+const sstep=(a,b,x)=>{const t=clamp((x-a)/((b-a)||1e-6),0,1);return t*t*(3-2*t);};
+/* move pixels: for every pixel of the result, map(x,y) says where in the picture to take it from (smoothly blended) */
+function flWarp(src,map,edge){const w=src.width,hh=src.height,S=flData(src).data,out=new ImageData(w,hh),D=out.data,q=[0,0];
+  for(let y=0;y<hh;y++)for(let x=0;x<w;x++){map(x+.5,y+.5,q);let sx=q[0]-.5,sy=q[1]-.5;const o=(y*w+x)*4;
+    if(edge){sx=clamp(sx,0,w-1);sy=clamp(sy,0,hh-1);}else if(sx<-1||sy<-1||sx>w||sy>hh)continue;
+    const x0=Math.floor(sx),y0=Math.floor(sy),fx=sx-x0,fy=sy-y0;let r=0,g=0,b=0,a=0;
+    for(let k=0;k<4;k++){const xx=x0+(k&1),yy=y0+(k>>1);if(xx<0||yy<0||xx>=w||yy>=hh)continue;const wt=(k&1?fx:1-fx)*(k>>1?fy:1-fy),i=(yy*w+xx)*4,al=S[i+3]*wt;r+=S[i]*al;g+=S[i+1]*al;b+=S[i+2]*al;a+=al;}
+    if(a>0){D[o]=r/a;D[o+1]=g/a;D[o+2]=b/a;D[o+3]=a;}}
+  return flPut(w,hh,out);}
+/* the same picture drawn many times and averaged (for motion, spin, zoom and lens blur) */
+function flAverage(src,n,draw){const c=flCan(src.width,src.height),g=c.getContext('2d');for(let i=0;i<n;i++){g.save();g.globalAlpha=1/(i+1);draw(g,i/(Math.max(1,n-1)),i);g.restore();}return c;}
+/* the picture behind has no see-through edges: blurring it shouldn't fade its edges either */
+function flSolid(c){const g=c.getContext('2d'),im=g.getImageData(0,0,c.width,c.height),d=im.data;for(let i=3;i<d.length;i+=4)if(d[i])d[i]=255;g.putImageData(im,0,0);return c;}
+/* the picture with its edges stretched out by P pixels all round, so moving or turning it never shows a gap */
+function flExtend(src,P){P=Math.ceil(P);const c=flCan(src.width+P*2,src.height+P*2),g=c.getContext('2d');g.drawImage(src,0,0,c.width,c.height);g.drawImage(src,P,P);return c;}
+const flDraw=(g,src,E,P,x,y)=>E?g.drawImage(E,x-P,y-P):g.drawImage(src,x,y);
+function flGauss(src,r,edge){return fxBlur(src,r,edge);}
+/* grow the light or dark parts: the largest (or smallest) value nearby, across then down */
+function flMaxMin(src,r,isMax){r=Math.round(r);if(r<1)return src;const w=src.width,hh=src.height,A=flData(src),d=A.data,t=new Uint8ClampedArray(d.length),pick=isMax?Math.max:Math.min;
+  for(let y=0;y<hh;y++)for(let x=0;x<w;x++){const o=(y*w+x)*4;for(let ch=0;ch<4;ch++){let v=d[o+ch];for(let k=-r;k<=r;k++){const xx=x+k;if(xx<0||xx>=w||!k)continue;v=pick(v,d[(y*w+xx)*4+ch]);}t[o+ch]=v;}}
+  const out=new ImageData(w,hh),D=out.data;
+  for(let y=0;y<hh;y++)for(let x=0;x<w;x++){const o=(y*w+x)*4;for(let ch=0;ch<4;ch++){let v=t[o+ch];for(let k=-r;k<=r;k++){const yy=y+k;if(yy<0||yy>=hh||!k)continue;v=pick(v,t[(yy*w+x)*4+ch]);}D[o+ch]=v;}}
+  return flPut(w,hh,out);}
+function flHist(d){const H=[new Uint32Array(256),new Uint32Array(256),new Uint32Array(256)];let n=0;for(let i=0;i<d.length;i+=4){if(d[i+3]<8)continue;H[0][d[i]]++;H[1][d[i+1]]++;H[2][d[i+2]]++;n++;}return{H,n};}
+function flClip(h,n,f){let s=0,lo=0,hi=255;for(let i=0;i<256;i++){s+=h[i];if(s>n*f){lo=i;break;}}s=0;for(let i=255;i>=0;i--){s+=h[i];if(s>n*f){hi=i;break;}}return[lo,Math.max(lo+1,hi)];}
+const mix=(a,b,t)=>a+(b-a)*t;
+const C_X=['cx','Middle across',0,1,.01,v=>pct(v)],C_Y=['cy','Middle up and down',0,1,.01,v=>pct(v)];
+const R=(k,l,a,b,s,f)=>['range',k,l,a,b,s,f||(v=>String(Math.round(v*100)/100))];
+
+/* ---------- fix and adjust ---------- */
+flDef('autolevels','adjust','Auto levels',{amt:1},[R('amt','Strength',0,1,.01,pct)],(src,p)=>{const A=flData(src),{H,n}=flHist(A.data);if(!n)return src;const L=H.map(h=>flClip(h,n,.005));
+  return flPixels(src,(d,i)=>{for(let c=0;c<3;c++){const[lo,hi]=L[c];d[i+c]=mix(d[i+c],cl((d[i+c]-lo)*255/(hi-lo)),p.amt);}});});
+flDef('autocontrast','adjust','Auto contrast',{amt:1},[R('amt','Strength',0,1,.01,pct)],(src,p)=>{const A=flData(src),{H,n}=flHist(A.data);if(!n)return src;const all=new Uint32Array(256);H.forEach(h=>h.forEach((v,i)=>all[i]+=v));const[lo,hi]=flClip(all,n*3,.005);
+  return flPixels(src,(d,i)=>{for(let c=0;c<3;c++)d[i+c]=mix(d[i+c],cl((d[i+c]-lo)*255/(hi-lo)),p.amt);});});
+flDef('autowb','adjust','Auto white balance',{amt:1},[R('amt','Strength',0,1,.01,pct)],(src,p)=>{const d=flData(src).data;let s=[0,0,0],n=0;for(let i=0;i<d.length;i+=4){if(d[i+3]<8)continue;s[0]+=d[i];s[1]+=d[i+1];s[2]+=d[i+2];n++;}if(!n)return src;
+  const m=s.map(v=>v/n),g=(m[0]+m[1]+m[2])/3,k=m.map(v=>g/Math.max(1,v));return flPixels(src,(d,i)=>{for(let c=0;c<3;c++)d[i+c]=mix(d[i+c],cl(d[i+c]*k[c]),p.amt);});});
+flDef('adjust','adjust','Brightness, contrast and color',{bright:0,contrast:0,sat:0,hue:0,warm:0},
+  [R('bright','Brightness',-1,1,.01,pct),R('contrast','Contrast',-1,1,.01,pct),R('sat','Saturation',-1,1,.01,pct),R('hue','Hue',-180,180,1,deg),R('warm','Warm or cool',-1,1,.01,v=>v>0?'warm '+pct(v):v<0?'cool '+pct(-v):'none')],
+  (src,p)=>{const cf=Math.tan((p.contrast*.99+1)*Math.PI/4),ha=p.hue*Math.PI/180,co=Math.cos(ha),si=Math.sin(ha);
+    /* turning the hue around the gray axis */
+    const m=[.299+.701*co+.168*si,.587-.587*co+.330*si,.114-.114*co-.497*si,.299-.299*co-.328*si,.587+.413*co+.035*si,.114-.114*co+.292*si,.299-.3*co+1.25*si,.587-.588*co-1.05*si,.114+.886*co-.203*si];
+    return flPixels(src,(d,i)=>{let r=d[i],g=d[i+1],b=d[i+2];if(p.hue){const R2=r*m[0]+g*m[1]+b*m[2],G2=r*m[3]+g*m[4]+b*m[5],B2=r*m[6]+g*m[7]+b*m[8];r=R2;g=G2;b=B2;}
+      r+=p.bright*255;g+=p.bright*255;b+=p.bright*255;r=(r-128)*cf+128;g=(g-128)*cf+128;b=(b-128)*cf+128;
+      if(p.sat){const L=lum(r,g,b),k=1+p.sat;r=L+(r-L)*k;g=L+(g-L)*k;b=L+(b-L)*k;}if(p.warm){r+=p.warm*30;b-=p.warm*30;}d[i]=cl(r);d[i+1]=cl(g);d[i+2]=cl(b);});});
+/* ---------- clean up ---------- */
+flDef('erasewhite','clean','Erase white paper',{at:.8,soft:.15},[R('at','How white counts as paper',.3,1,.01,pct),R('soft','Soft edges',0,.5,.01,pct)],
+  (src,p)=>flPixels(src,(d,i)=>{const w=Math.min(d[i],d[i+1],d[i+2])/255,keep=1-sstep(p.at-p.soft,p.at+.001,w),a=d[i+3]/255*keep;
+    if(keep<1&&keep>0){for(let c=0;c<3;c++)d[i+c]=cl((d[i+c]-255*(1-keep))/keep);}d[i+3]=a*255;}));
+flDef('matte_w','clean','Remove white matte',{},[],src=>flPixels(src,(d,i)=>{const a=d[i+3]/255;if(a<=0||a>=1)return;for(let c=0;c<3;c++)d[i+c]=cl((d[i+c]-255*(1-a))/a);}));
+flDef('matte_b','clean','Remove black matte',{},[],src=>flPixels(src,(d,i)=>{const a=d[i+3]/255;if(a<=0||a>=1)return;for(let c=0;c<3;c++)d[i+c]=cl(d[i+c]/a);}));
+/* ---------- style ---------- */
+flDef('vignette','style','Vignette',{amt:.6,size:.55,soft:.5,color:'#000000'},[R('amt','Strength',0,1,.01,pct),R('size','Size',0,1,.01,pct),R('soft','Softness',.01,1,.01,pct),['color','color','Color']],
+  (src,p)=>{const c=flCopy(src),g=c.getContext('2d'),w=c.width,hh=c.height,r=Math.hypot(w,hh)/2,gr=g.createRadialGradient(w/2,hh/2,r*p.size*(1-p.soft),w/2,hh/2,r*Math.max(.05,p.size+p.soft*(1-p.size)));
+    gr.addColorStop(0,rgba(p.color,0));gr.addColorStop(1,rgba(p.color,p.amt));g.globalCompositeOperation='source-atop';g.fillStyle=gr;g.fillRect(0,0,w,hh);return c;});
+flDef('unvignette','style','Remove vignette',{amt:.5},[R('amt','Strength',0,1.5,.01,pct)],(src,p)=>{const w=src.width,hh=src.height,R0=Math.hypot(w,hh)/2;let i=0;
+  return flPixels(src,(d,o)=>{const x=(o/4)%w,y=Math.floor(o/4/w),r=Math.hypot(x-w/2,y-hh/2)/R0,k=1+p.amt*r*r;for(let c=0;c<3;c++)d[o+c]=cl(d[o+c]*k);});});
+flDef('chroma','style','Chromatic aberration',{amt:6},[R('amt','Amount',0,30,.5,v=>v+' px')],(src,p,info)=>{const w=src.width,hh=src.height,S=flData(src).data,cx=w/2,cy=hh/2,M=Math.hypot(cx,cy),s=p.amt*info.k;
+  return flPixels(src,(d,o)=>{const x=(o/4)%w,y=Math.floor(o/4/w),dx=(x-cx)/M,dy=(y-cy)/M,take=(f,ch)=>{const xx=Math.round(clamp(x+dx*s*f,0,w-1)),yy=Math.round(clamp(y+dy*s*f,0,hh-1));return S[(yy*w+xx)*4+ch];};d[o]=take(1,0);d[o+2]=take(-1,2);});});
+flDef('emboss','style','Emboss',{amt:1,ang:135,gray:true},[R('amt','Strength',0,3,.01,v=>v.toFixed(1)),R('ang','Light from',0,360,1,deg),['check','gray','Gray (off keeps the colors)']],
+  (src,p,info)=>{const w=src.width,hh=src.height,S=flData(src).data,a=p.ang*Math.PI/180,dx=Math.round(Math.cos(a)*Math.max(1,info.k)),dy=Math.round(Math.sin(a)*Math.max(1,info.k));
+    return flPixels(src,(d,o)=>{const x=(o/4)%w,y=Math.floor(o/4/w),x1=clamp(x-dx,0,w-1),y1=clamp(y-dy,0,hh-1),x2=clamp(x+dx,0,w-1),y2=clamp(y+dy,0,hh-1),i1=(y1*w+x1)*4,i2=(y2*w+x2)*4;
+      const e=(lum(S[i1],S[i1+1],S[i1+2])-lum(S[i2],S[i2+1],S[i2+2]))*p.amt;if(p.gray){d[o]=d[o+1]=d[o+2]=cl(128+e);}else for(let c=0;c<3;c++)d[o+c]=cl(d[o+c]+e);});});
+flDef('solarize','style','Solarize',{at:.5},[R('at','From how bright',0,1,.01,pct)],(src,p)=>flPixels(src,(d,i)=>{const t=p.at*255;for(let c=0;c<3;c++)if(d[i+c]>t)d[i+c]=255-d[i+c];}));
+flDef('halftone','style','Halftone',{size:10,ang:45,mode:'mono',paper:true},[R('size','Dot size',3,60,1,v=>v+' px'),R('ang','Angle',0,90,1,deg),['seg','mode','Dots',[['mono','Black'],['color','In color']]],['check','paper','White paper behind the dots']],
+  (src,p,info)=>{const w=src.width,hh=src.height,S=flData(src).data,c=flCan(w,hh),g=c.getContext('2d'),s=Math.max(2,p.size*info.k),a=p.ang*Math.PI/180,co=Math.cos(a),si=Math.sin(a),D=Math.hypot(w,hh);
+    if(p.paper){g.fillStyle='#FFFFFF';g.fillRect(0,0,w,hh);}
+    for(let v=-D;v<D;v+=s)for(let u=-D;u<D;u+=s){const x=w/2+u*co-v*si,y=hh/2+u*si+v*co;if(x<-s||y<-s||x>w+s||y>hh+s)continue;const xi=Math.round(clamp(x,0,w-1)),yi=Math.round(clamp(y,0,hh-1)),o=(yi*w+xi)*4;if(S[o+3]<10)continue;
+      const L=lum(S[o],S[o+1],S[o+2])/255,r=s*.72*Math.sqrt(p.mode==='mono'?1-L:Math.max(.15,1-L*.6));if(r<.3)continue;g.fillStyle=p.mode==='mono'?'#000':`rgb(${S[o]},${S[o+1]},${S[o+2]})`;g.beginPath();g.arc(x,y,r,0,Math.PI*2);g.fill();}
+    g.globalCompositeOperation='destination-in';g.drawImage(src,0,0);return c;});
+flDef('voronoi','style','Crystals (Voronoi)',{size:24,lines:false},[R('size','Cell size',4,120,1,v=>v+' px'),['check','lines','Dark lines between cells']],(src,p,info)=>{const w=src.width,hh=src.height,S=flData(src).data,s=Math.max(3,p.size*info.k),gw=Math.ceil(w/s)+1,gh=Math.ceil(hh/s)+1,rnd=mulberry(11),P=new Float32Array(gw*gh*2);
+  for(let j=0;j<gh;j++)for(let i=0;i<gw;i++){P[(j*gw+i)*2]=(i+rnd())*s;P[(j*gw+i)*2+1]=(j+rnd())*s;}
+  const out=new ImageData(w,hh),D=out.data;
+  for(let y=0;y<hh;y++)for(let x=0;x<w;x++){const ci=Math.floor(x/s),cj=Math.floor(y/s);let b1=1e18,b2=1e18,bx=0,by=0;
+    for(let j=cj-1;j<=cj+1;j++)for(let i=ci-1;i<=ci+1;i++){if(i<0||j<0||i>=gw||j>=gh)continue;const px=P[(j*gw+i)*2],py=P[(j*gw+i)*2+1],dd=(px-x)**2+(py-y)**2;if(dd<b1){b2=b1;b1=dd;bx=px;by=py;}else if(dd<b2)b2=dd;}
+    const si=(Math.round(clamp(by,0,hh-1))*w+Math.round(clamp(bx,0,w-1)))*4,o=(y*w+x)*4,edge=p.lines&&Math.sqrt(b2)-Math.sqrt(b1)<1.2*info.k;
+    D[o]=edge?20:S[si];D[o+1]=edge?20:S[si+1];D[o+2]=edge?20:S[si+2];D[o+3]=S[o+3];}
+  return flPut(w,hh,out);});
+function flDither(src,levels,mono){const w=src.width,hh=src.height,c=flCopy(src),g=c.getContext('2d'),im=g.getImageData(0,0,w,hh),d=im.data,F=new Float32Array(w*hh*3);
+  for(let i=0,j=0;i<d.length;i+=4,j+=3){if(mono){const L=lum(d[i],d[i+1],d[i+2]);F[j]=F[j+1]=F[j+2]=L;}else{F[j]=d[i];F[j+1]=d[i+1];F[j+2]=d[i+2];}}
+  const st=255/(levels-1),add=(x,y,ch,e)=>{if(x<0||x>=w||y>=hh)return;F[(y*w+x)*3+ch]+=e;};
+  for(let y=0;y<hh;y++)for(let x=0;x<w;x++)for(let ch=0;ch<3;ch++){const j=(y*w+x)*3+ch,old=F[j],nv=Math.round(clamp(old,0,255)/st)*st,e=old-nv;F[j]=nv;add(x+1,y,ch,e*7/16);add(x-1,y+1,ch,e*3/16);add(x,y+1,ch,e*5/16);add(x+1,y+1,ch,e/16);}
+  for(let i=0,j=0;i<d.length;i+=4,j+=3){d[i]=F[j];d[i+1]=F[j+1];d[i+2]=F[j+2];}g.putImageData(im,0,0);return c;}
+flDef('dithermono','style','Black and white dither',{},[],src=>flDither(src,2,true));
+flDef('ditherweb','style','Web-safe dither',{},[],src=>flDither(src,6,false));
+flDef('pixelate','style','Pixelate',{size:12},[R('size','Block size',2,80,1,v=>v+' px')],(src,p,info)=>{const s=Math.max(2,p.size*info.k),sm=flCan(Math.max(1,src.width/s),Math.max(1,src.height/s)),c=flCan(src.width,src.height),g=c.getContext('2d');
+  sm.getContext('2d').drawImage(src,0,0,sm.width,sm.height);g.imageSmoothingEnabled=false;g.drawImage(sm,0,0,c.width,c.height);return c;});
+/* ---------- distort ---------- */
+flDef('twirl','distort','Twirl',{ang:180,rad:.5,cx:.5,cy:.5},[R('ang','Turn',-720,720,1,deg),R('rad','Size',.05,1,.01,pct),['range',...C_X],['range',...C_Y]],(src,p,info)=>{const w=src.width,hh=src.height,cx=p.cx*w,cy=p.cy*hh,R0=p.rad*Math.max(w,hh)/1.4,A=p.ang*Math.PI/180;
+  return flWarp(src,(x,y,q)=>{const dx=x-cx,dy=y-cy,d=Math.hypot(dx,dy);if(d>=R0){q[0]=x;q[1]=y;return;}const t=1-d/R0,a=A*t*t,co=Math.cos(a),si=Math.sin(a);q[0]=cx+dx*co-dy*si;q[1]=cy+dx*si+dy*co;},info.edge);});
+flDef('pinch','distort','Pinch / Punch',{amt:.5,rad:.5,cx:.5,cy:.5},[R('amt','Pinch (−) or punch (+)',-1,1,.01,v=>v<0?'pinch '+pct(-v):'punch '+pct(v)),R('rad','Size',.05,1,.01,pct),['range',...C_X],['range',...C_Y]],(src,p,info)=>{const w=src.width,hh=src.height,cx=p.cx*w,cy=p.cy*hh,R0=p.rad*Math.max(w,hh)/1.4;
+  return flWarp(src,(x,y,q)=>{const dx=x-cx,dy=y-cy,d=Math.hypot(dx,dy);if(d>=R0||d===0){q[0]=x;q[1]=y;return;}const r=d/R0,f=Math.pow(r,p.amt>=0?1+p.amt*1.5:1/(1-p.amt*1.5))/r;q[0]=cx+dx*f;q[1]=cy+dy*f;},info.edge);});
+flDef('sphere','distort','Spherical',{amt:.6,cx:.5,cy:.5},[R('amt','Amount',-1,1,.01,pct),['range',...C_X],['range',...C_Y]],(src,p,info)=>{const w=src.width,hh=src.height,cx=p.cx*w,cy=p.cy*hh,R0=Math.min(w,hh)/2;
+  return flWarp(src,(x,y,q)=>{const dx=(x-cx)/R0,dy=(y-cy)/R0,d=Math.hypot(dx,dy);if(d>=1||d===0){q[0]=x;q[1]=y;return;}const z=Math.asin(d)/(Math.PI/2)/d,f=1+(z-1)*p.amt;q[0]=cx+dx*R0*f;q[1]=cy+dy*R0*f;},info.edge);});
+flDef('ripple','distort','Ripple',{amp:8,wave:60,dir:'both'},[R('amp','Height',0,60,.5,v=>v+' px'),R('wave','Wavelength',8,300,1,v=>v+' px'),['seg','dir','Direction',[['across','Across'],['down','Down'],['both','Both']]]],(src,p,info)=>{const A=p.amp*info.k,L=Math.max(2,p.wave*info.k),t=2*Math.PI/L;
+  return flWarp(src,(x,y,q)=>{q[0]=x+(p.dir!=='down'?A*Math.sin(y*t):0);q[1]=y+(p.dir!=='across'?A*Math.sin(x*t):0);},info.edge);});
+flDef('lens','distort','Lens distortion',{k:.3},[R('k','Barrel (+) or pincushion (−)',-1,1,.01,v=>v>0?'barrel '+pct(v):v<0?'pincushion '+pct(-v):'none')],(src,p,info)=>{const w=src.width,hh=src.height,cx=w/2,cy=hh/2,M=Math.hypot(cx,cy),k=-p.k*.5;
+  return flWarp(src,(x,y,q)=>{const dx=(x-cx)/M,dy=(y-cy)/M,r2=dx*dx+dy*dy,f=(1+k*r2)/(1+Math.max(0,k));q[0]=cx+dx*M*f;q[1]=cy+dy*M*f;},info.edge);});
+flDef('shear','distort','Shear',{amt:.2,dir:'across'},[R('amt','Amount',-1,1,.01,pct),['seg','dir','Direction',[['across','Across'],['down','Down']]]],(src,p,info)=>{const w=src.width,hh=src.height;
+  return flWarp(src,(x,y,q)=>{if(p.dir==='across'){q[0]=x+(y-hh/2)*p.amt;q[1]=y;}else{q[0]=x;q[1]=y+(x-w/2)*p.amt;}},info.edge);});
+flDef('mirror','distort','Mirror',{mode:'lr'},[['seg','mode','Copy',[['lr','Left to right'],['rl','Right to left'],['tb','Top to bottom'],['bt','Bottom to top']]]],(src,p)=>{const c=flCopy(src),g=c.getContext('2d'),w=c.width,hh=c.height,hw=w/2,hh2=hh/2;g.save();
+  if(p.mode==='lr'){g.clearRect(hw,0,w-hw,hh);g.translate(w,0);g.scale(-1,1);g.drawImage(src,0,0,hw,hh,0,0,hw,hh);}else if(p.mode==='rl'){g.clearRect(0,0,hw,hh);g.translate(w,0);g.scale(-1,1);g.drawImage(src,hw,0,w-hw,hh,hw,0,w-hw,hh);}
+  else if(p.mode==='tb'){g.clearRect(0,hh2,w,hh-hh2);g.translate(0,hh);g.scale(1,-1);g.drawImage(src,0,0,w,hh2,0,0,w,hh2);}else{g.clearRect(0,0,w,hh2);g.translate(0,hh);g.scale(1,-1);g.drawImage(src,0,hh2,w,hh-hh2,0,hh2,w,hh-hh2);}g.restore();return c;});
+flDef('topolar','distort','Rectangular to polar',{},[],(src,p,info)=>{const w=src.width,hh=src.height,cx=w/2,cy=hh/2,M=Math.min(cx,cy);
+  return flWarp(src,(x,y,q)=>{const dx=x-cx,dy=y-cy;let a=Math.atan2(dx,-dy);if(a<0)a+=Math.PI*2;q[0]=a/(Math.PI*2)*w;q[1]=Math.hypot(dx,dy)/M*hh;},info.edge);});
+flDef('torect','distort','Polar to rectangular',{},[],(src,p,info)=>{const w=src.width,hh=src.height,cx=w/2,cy=hh/2,M=Math.min(cx,cy);
+  return flWarp(src,(x,y,q)=>{const a=x/w*Math.PI*2,r=y/hh*M;q[0]=cx+Math.sin(a)*r;q[1]=cy-Math.cos(a)*r;},info.edge);});
+/* ---------- blur ---------- */
+flDef('average','blur','Average',{},[],src=>{const d=flData(src).data;let s=[0,0,0],n=0;for(let i=0;i<d.length;i+=4){const a=d[i+3]/255;if(!a)continue;s[0]+=d[i]*a;s[1]+=d[i+1]*a;s[2]+=d[i+2]*a;n+=a;}if(!n)return src;
+  const c=flCopy(src),g=c.getContext('2d');g.globalCompositeOperation='source-in';g.fillStyle=`rgb(${s[0]/n},${s[1]/n},${s[2]/n})`;g.fillRect(0,0,c.width,c.height);return c;});
+flDef('gauss','blur','Gaussian blur',{r:6},[R('r','Amount',0,80,.5,v=>v+' px')],(src,p,info)=>flGauss(src,p.r*info.k,info.edge));
+flDef('box','blur','Box blur',{r:6},[R('r','Amount',0,60,.5,v=>v+' px')],(src,p,info)=>{const r=p.r*info.k;if(r<.5)return src;const n=Math.min(31,Math.max(3,Math.round(r)*2+1)),P=r+2,E=info.edge?flExtend(src,P):null,a=flAverage(src,n,(g,t)=>flDraw(g,src,E,P,(t-.5)*2*r,0)),E2=info.edge?flExtend(a,P):null;const o=flAverage(a,n,(g,t)=>flDraw(g,a,E2,P,0,(t-.5)*2*r));return info.edge?flSolid(o):o;});
+flDef('motion','blur','Motion blur',{dist:20,ang:0},[R('dist','Distance',0,200,1,v=>v+' px'),R('ang','Direction',0,180,1,deg)],(src,p,info)=>{const d=p.dist*info.k;if(d<1)return src;const a=p.ang*Math.PI/180,n=Math.min(48,Math.max(4,Math.round(d/1.5)));
+  const P=d/2+2,E=info.edge?flExtend(src,P):null,o=flAverage(src,n,(g,t)=>flDraw(g,src,E,P,Math.cos(a)*d*(t-.5),Math.sin(a)*d*(t-.5)));return info.edge?flSolid(o):o;});
+flDef('spin','blur','Radial (spin) blur',{ang:8,cx:.5,cy:.5},[R('ang','Spin',0,60,.5,deg),['range',...C_X],['range',...C_Y]],(src,p,info)=>{if(p.ang<.2)return src;const w=src.width,hh=src.height,cx=p.cx*w,cy=p.cy*hh,n=Math.min(48,Math.max(6,Math.round(p.ang*2)));
+  const P=Math.hypot(w,hh)*Math.sin(p.ang*Math.PI/360)+2,E=info.edge?flExtend(src,P):null,o=flAverage(src,n,(g,t)=>{g.translate(cx,cy);g.rotate((t-.5)*p.ang*Math.PI/180);g.translate(-cx,-cy);flDraw(g,src,E,P,0,0);});return info.edge?flSolid(o):o;});
+flDef('zoom','blur','Zoom blur',{amt:.15,cx:.5,cy:.5},[R('amt','Amount',0,.6,.01,pct),['range',...C_X],['range',...C_Y]],(src,p,info)=>{if(p.amt<.005)return src;const w=src.width,hh=src.height,cx=p.cx*w,cy=p.cy*hh,n=Math.min(48,Math.max(6,Math.round(p.amt*120)));
+  const o=flAverage(src,n,(g,t)=>{const s=1+p.amt*t;g.translate(cx,cy);g.scale(s,s);g.translate(-cx,-cy);g.drawImage(src,0,0);});return info.edge?flSolid(o):o;});
+flDef('bokeh','blur','Lens blur',{r:8},[R('r','Amount',0,60,.5,v=>v+' px')],(src,p,info)=>{const r=p.r*info.k;if(r<.8)return src;const pts=[[0,0]];[.5,1].forEach(f=>{const n=Math.round(8+r*f*.8);for(let i=0;i<Math.min(n,24);i++){const a=i/Math.min(n,24)*Math.PI*2;pts.push([Math.cos(a)*r*f,Math.sin(a)*r*f]);}});
+  const P=r+2,E=info.edge?flExtend(src,P):null,o=flAverage(src,pts.length,(g,t,i)=>flDraw(g,src,E,P,pts[i][0],pts[i][1]));return info.edge?flSolid(o):o;});
+flDef('glow','blur','Diffuse glow',{amt:.6,r:12,at:.6},[R('amt','Glow',0,1,.01,pct),R('r','Spread',1,80,.5,v=>v+' px'),R('at','From how bright',0,1,.01,pct)],(src,p,info)=>{const t=p.at*255,br=flPixels(src,(d,i)=>{const L=lum(d[i],d[i+1],d[i+2]),k=sstep(t-25,t+25,L);for(let c=0;c<3;c++)d[i+c]*=k;}),bl=flGauss(br,p.r*info.k,info.edge);
+  const c=flCopy(src),g=c.getContext('2d');g.globalCompositeOperation='screen';g.globalAlpha=p.amt;g.drawImage(bl,0,0);g.globalAlpha=1;g.globalCompositeOperation='destination-in';g.drawImage(src,0,0);return c;});
+flDef('tilt','blur','Depth of field (tilt-shift)',{r:10,at:.55,band:.18,soft:.2},[R('r','Blur',0,60,.5,v=>v+' px'),R('at','Sharp line, up and down',0,1,.01,pct),R('band','Sharp band',0,1,.01,pct),R('soft','Fade',0,1,.01,pct)],(src,p,info)=>{const bl=flGauss(src,p.r*info.k,info.edge),hh=src.height,c=flCopy(src),g=c.getContext('2d'),m=flCan(src.width,hh),mg=m.getContext('2d'),gr=mg.createLinearGradient(0,0,0,hh),
+    a=clamp(p.at-p.band/2,0,1),b=clamp(p.at+p.band/2,0,1),fa=clamp(a-p.soft,0,1),fb=clamp(b+p.soft,0,1);
+  gr.addColorStop(0,'#000');gr.addColorStop(fa,'#000');gr.addColorStop(a,'rgba(0,0,0,0)');gr.addColorStop(b,'rgba(0,0,0,0)');gr.addColorStop(fb,'#000');gr.addColorStop(1,'#000');mg.fillStyle=gr;mg.fillRect(0,0,m.width,hh);
+  mg.globalCompositeOperation='source-in';mg.drawImage(bl,0,0);g.drawImage(m,0,0);return c;});
+flDef('maxblur','blur','Maximum (grow light parts)',{r:3},[R('r','Amount',1,12,1,v=>v+' px')],(src,p,info)=>flMaxMin(src,p.r*info.k,true));
+flDef('minblur','blur','Minimum (grow dark parts)',{r:3},[R('r','Amount',1,12,1,v=>v+' px')],(src,p,info)=>flMaxMin(src,p.r*info.k,false));
+
+const flOn=fl=>Array.isArray(fl)&&fl.some(f=>f&&f.on&&FL[f.type]);
+const newFl=t=>({id:'fl_'+rkey(),type:t,on:true,...JSON.parse(JSON.stringify(FL[t].def))});
+const FLCACHE=new Map();
+/* run the filters on a picture; sizes are measured on a picture 1000 pixels tall so they look the same at any size.
+   Big pictures are worked on at up to 3000 pixels. */
+function flApply(src,w,hh,filters,full){let c=flCan(w,hh);c.getContext('2d').drawImage(src,0,0,w,hh);const info={k:hh/1000,edge:!!full};
+  for(const f of filters){if(!f||!f.on||!FL[f.type])continue;try{c=FL[f.type].run(c,f,info)||c;}catch(e){console.error('Filter '+f.type+' failed: '+(e&&e.message||e));}}return c;}
+/* kept results are limited by size, so big pictures don't fill the memory */
+function cacheTrim(M,budget,size){let tot=0;for(const v of M.values())tot+=size(v);for(const k of M.keys()){if(tot<=budget||M.size<=1)break;tot-=size(M.get(k));M.delete(k);}}
+function flCached(key,make){const hit=FLCACHE.get(key);if(hit){FLCACHE.delete(key);FLCACHE.set(key,hit);return hit;}const v=make();FLCACHE.set(key,v);cacheTrim(FLCACHE,30e6,c=>c.width*c.height);return v;}
+const flCap=(w,hh)=>{const k=Math.min(1,3000/Math.max(w,hh));return[Math.max(1,Math.round(w*k)),Math.max(1,Math.round(hh*k))];};
+/* a picture on top's own picture, filtered */
+function propSrc(T,P){if(!flOn(T.filters))return P.img;const[w,hh]=flCap(P.w,P.h);return flCached('p|'+P.id+'|'+JSON.stringify(T.filters),()=>flApply(P.img,w,hh,T.filters,false));}
 /* a bubble's tail for a picture: from below it toward the lower left, or above it near the bottom */
 function fixPicTail(T){T.box.tx=clamp(T.x-T.size*.45,.03,.97);T.box.ty=clamp(T.y>.6?T.y-T.size*.95:T.y+T.size*.95,.03,.97);}
 function drawText(c,T){if(T.kind==='pic')return drawPic(c,T);const L=layout(c,T);c.save();c.globalAlpha=T.opacity;if(T.box.kind==='bar')drawBar(c,T,L);
@@ -905,10 +1078,10 @@ document.addEventListener('keydown',e=>{const tag=(e.target&&e.target.tagName)||
 /* ================= undo, and keeping your work ================= */
 let HIST=[],HI=-1;
 /* the text on the picture, and the effects on the picture behind (so undo covers those too) */
-const snap=()=>{const t=S.texts.map(x=>{const o={...x};delete o._L;return o;});return JSON.stringify(fxOn(S.bg.fx)||S.bg.fxFill!=null||(S.bg.fx&&S.bg.fx.length)?{t,f:S.bg.fx||[],ff:S.bg.fxFill==null?null:S.bg.fxFill}:t);};
+const snap=()=>{const t=S.texts.map(x=>{const o={...x};delete o._L;return o;});return JSON.stringify(S.bg.fxFill!=null||(S.bg.fx&&S.bg.fx.length)||(S.bg.filters&&S.bg.filters.length)?{t,f:S.bg.fx||[],ff:S.bg.fxFill==null?null:S.bg.fxFill,fl:S.bg.filters||[]}:t);};
 function commit(){const s=snap();if(HIST[HI]!==s){HIST=HIST.slice(0,HI+1);HIST.push(s);if(HIST.length>80)HIST.shift();HI=HIST.length-1;}syncUndo();save();renderLayers();renderStripSoon();}
 let cT=0;const commitSoon=()=>{clearTimeout(cT);cT=setTimeout(()=>{cT=0;commit();},400);};
-function restoreSnap(s){const sel=S.sel,d=JSON.parse(s);if(Array.isArray(d)){S.texts=d;if(S.bg.fx&&S.bg.fx.length)S.bg.fx=[];}else{S.texts=d.t;S.bg.fx=d.f;S.bg.fxFill=d.ff==null?undefined:d.ff;}MULTI.clear();if(!S.texts.some(t=>t.id===sel))S.sel=S.texts.length?S.texts[S.texts.length-1].id:null;renderPanel();render();save();renderLayers();syncUndo();}
+function restoreSnap(s){const sel=S.sel,d=JSON.parse(s);if(Array.isArray(d)){S.texts=d;if(S.bg.fx&&S.bg.fx.length)S.bg.fx=[];if(S.bg.filters&&S.bg.filters.length)S.bg.filters=[];}else{S.texts=d.t;S.bg.fx=d.f;S.bg.fxFill=d.ff==null?undefined:d.ff;S.bg.filters=d.fl||[];}MULTI.clear();if(!S.texts.some(t=>t.id===sel))S.sel=S.texts.length?S.texts[S.texts.length-1].id:null;renderPanel();render();save();renderLayers();syncUndo();}
 /* a change still waiting to be kept is kept first, so undo takes back just that */
 function flushCommit(){if(cT){clearTimeout(cT);cT=0;commit();}}
 function undo(){flushCommit();if(HI>0){HI--;restoreSnap(HIST[HI]);}}
@@ -1142,31 +1315,58 @@ $('saveLook').onclick=()=>{const T=selT();if(!T)return;const name=(prompt('Name 
 let FXT='bg',FXSEL=null,FXSELT=null;
 function fxTarget(){const T=selT();if(FXT==='sel'&&T&&T.kind==='pic')return{kind:'pic',o:T};return{kind:'bg',o:S.bg};}
 function fxChanged(tg,full){render();if(full)commit();else commitSoon();if(full)renderFx();updateSums();}
-function fxSelectSelf(){const T=selT();if(T&&T.kind==='pic'&&FXSELT!==T.id){FXSELT=T.id;FXT='sel';FXSEL=null;}if(!(T&&T.kind==='pic'))FXSELT=null;}
+function fxSelectSelf(){const T=selT();if(T&&T.kind==='pic'&&FXSELT!==T.id){FXSELT=T.id;FXT='sel';FXSEL=null;FLSEL=null;}if(!(T&&T.kind==='pic'))FXSELT=null;}
+/* which picture the Filters and Effects sections work on */
+function targetSeg(id){const T=selT(),P=T&&T.kind==='pic'?PROPS.get(T.pic):null;
+  return P?segF(id,'On',[['sel','Picture on top: '+P.name.slice(0,18)],['bg','The picture behind']],FXT==='sel'?'sel':'bg',v=>{FXT=v;FXSEL=null;FLSEL=null;renderFl();renderFx();updateSums();})
+    :h('p',{class:'help'},'For the picture you’re working on. Pick a picture on top to give it its own.');}
+/* an "Add…" dropdown: pick one and it's added, then the dropdown goes back to its label */
+function addMenu(id,label,groups,on){const sel=h('select',{id,'aria-label':label},h('option',{value:''},label),...groups.map(([gl,items])=>h('optgroup',{label:gl},...items.map(([v,l,dis])=>h('option',{value:v,disabled:!!dis},l)))));
+  sel.onchange=()=>{const v=sel.value;sel.value='';if(v)on(v);};return sel;}
 function renderFx(){const el=$('fxF');if(!el)return;el.innerHTML='';fxSelectSelf();const T=selT(),tg=fxTarget(),o=tg.o;
   /* old single shadow on a picture on top becomes an Outer shadow */
   if(tg.kind==='pic'&&o.shadow&&o.shadow.on){o.fx=o.fx||[];o.fx.push({...newFx('oshadow'),color:o.shadow.color,op:o.shadow.op,blur:Math.round(o.shadow.blur*200),dist:Math.round(o.shadow.dist*200),ang:o.shadow.ang});o.shadow.on=false;}
-  const P=T&&T.kind==='pic'?PROPS.get(T.pic):null;
-  if(P)el.append(segF('fxt','Effects on',[['sel','Picture on top: '+P.name.slice(0,18)],['bg','The picture behind']],FXT==='sel'?'sel':'bg',v=>{FXT=v;FXSEL=null;renderFx();}));
-  else el.append(h('p',{class:'help'},'Effects on the picture you’re working on. Pick a picture on top to give it its own.'));
+  el.append(targetSeg('fxt'));
   if(tg.kind==='bg'&&o.kind==='clear'){el.append(h('p',{class:'help'},'A see-through canvas has no picture to add effects to.'));return;}
-  const fx=o.fx=Array.isArray(o.fx)?o.fx:[];
-  if(!fx.some(e=>e.id===FXSEL))FXSEL=(fx.find(e=>e.on)||fx[0]||{}).id||null;
-  const list=h('div',{class:'fxlist',role:'list'});
-  FX_TYPES.forEach(([t,name,multi])=>{const ins=fx.filter(e=>e.type===t);
-    if(!ins.length){list.append(h('div',{class:'fxrow',role:'listitem'},h('input',{type:'checkbox','aria-label':name,onchange:()=>{const e=newFx(t);fx.push(e);FXSEL=e.id;fxChanged(tg,true);}}),
-      h('button',{type:'button',class:'nm',onclick:()=>{const e=newFx(t);fx.push(e);FXSEL=e.id;fxChanged(tg,true);}},name)));return;}
-    ins.forEach((e,k)=>{const nm=name+(ins.length>1?' '+(k+1):'');
-      const box=h('input',{type:'checkbox','aria-label':nm,onchange:ev=>{e.on=ev.target.checked;FXSEL=e.id;fxChanged(tg,true);}});box.checked=!!e.on;
-      list.append(h('div',{class:'fxrow'+(e.on?' on':'')+(e.id===FXSEL?' cur':''),role:'listitem','data-fx':t},box,h('button',{type:'button',class:'nm','aria-current':String(e.id===FXSEL),onclick:()=>{FXSEL=e.id;renderFx();}},nm),
-        multi&&k===0?h('button',{type:'button',class:'ic',title:'Add another '+name.toLowerCase(),'aria-label':'Add another '+name.toLowerCase(),onclick:()=>{const n=newFx(t);fx.splice(fx.indexOf(ins[ins.length-1])+1,0,n);FXSEL=n.id;fxChanged(tg,true);}},'+'):'',
-        h('button',{type:'button',class:'ic',title:'Remove','aria-label':'Remove '+nm,onclick:()=>{fx.splice(fx.indexOf(e),1);if(FXSEL===e.id)FXSEL=null;fxChanged(tg,true);}},'✕')));});});
-  el.append(list);
-  const e=fx.find(x=>x.id===FXSEL);if(e)el.append(fxSettings(e,tg));
-  const u=tg.kind==='pic'?(o.fxScale===false?IH():picL(o).ph)/200:IH()/200;
-  el.append(rangeF('fxfill','Fill (the picture itself, not its effects)',0,1,.01,o.fxFill==null?1:o.fxFill,v=>pct(v),(v,done)=>{o.fxFill=v;fxChanged(tg,false);}));
-  if(tg.kind==='pic')el.append(checkF('fxscale','Effects grow and shrink with the picture',o.fxScale!==false,v=>{o.fxScale=v;fxChanged(tg,true);}));
-  if(fx.length)el.append(h('div',{class:'row'},h('button',{type:'button',id:'fxClear',onclick:()=>{if(!confirm('Take every effect off?'))return;o.fx=[];FXSEL=null;fxChanged(tg,true);}},'Remove all effects')));}
+  const fx=o.fx=Array.isArray(o.fx)?o.fx:[];if(FXSEL&&!fx.some(e=>e.id===FXSEL))FXSEL=null;
+  const add=t=>{const e=newFx(t),last=fx.map(x=>x.type).lastIndexOf(t);if(last>=0)fx.splice(last+1,0,e);else fx.push(e);FXSEL=e.id;fxChanged(tg,true);};
+  if(fx.length){const list=h('div',{class:'fxlist',role:'list'});
+    FX_TYPES.forEach(([t,name,multi])=>{const ins=fx.filter(e=>e.type===t);ins.forEach((e,k)=>{const nm=name+(ins.length>1?' '+(k+1):''),open=e.id===FXSEL;
+      const box=h('input',{type:'checkbox','aria-label':'Use '+nm,onchange:ev=>{e.on=ev.target.checked;fxChanged(tg,true);}});box.checked=!!e.on;
+      list.append(h('div',{class:'fxrow'+(e.on?' on':'')+(open?' cur':''),role:'listitem','data-fx':t},box,h('button',{type:'button',class:'nm','aria-expanded':String(open),onclick:()=>{FXSEL=open?null:e.id;renderFx();}},nm,h('span',{class:'chev','aria-hidden':'true'})),
+        multi&&k===ins.length-1?h('button',{type:'button',class:'ic',title:'Add another '+name.toLowerCase(),'aria-label':'Add another '+name.toLowerCase(),onclick:()=>add(t)},'+'):'',
+        h('button',{type:'button',class:'ic',title:'Remove','aria-label':'Remove '+nm,onclick:()=>{fx.splice(fx.indexOf(e),1);if(FXSEL===e.id)FXSEL=null;fxChanged(tg,true);}},'✕')));
+      if(open)list.append(h('div',{class:'fxbody'},fxSettings(e,tg)));});});
+    el.append(list);}
+  else el.append(h('p',{class:'help'},'Shadows, glows, outlines, overlays, bevels and more, drawn around and on top of the picture.'));
+  el.append(addMenu('fxAdd','+ Add an effect…',[['Effects',FX_TYPES.map(([t,n,m])=>[t,n,!m&&fx.some(e=>e.type===t)])]],add));
+  if(fx.length){const fill=o.fxFill==null?1:o.fxFill;el.append(subFold('fxmore','More',fill<1?'fill '+pct(fill):'',false,rangeF('fxfill','Fill (the picture itself, not its effects)',0,1,.01,fill,v=>pct(v),(v,done)=>{o.fxFill=v;fxChanged(tg,false);}),
+    tg.kind==='pic'?checkF('fxscale','Effects grow and shrink with the picture',o.fxScale!==false,v=>{o.fxScale=v;fxChanged(tg,true);}):'',
+    h('div',{class:'row'},h('button',{type:'button',id:'fxClear',onclick:()=>{if(!confirm('Take every effect off?'))return;o.fx=[];FXSEL=null;fxChanged(tg,true);}},'Remove all effects'))));}}
+/* ---------- the Filters section ---------- */
+let FLSEL=null,flT=0;
+function flChanged(tg,done){clearTimeout(flT);if(done){render();commit();renderFl();updateSums();renderStripSoon();}else flT=setTimeout(()=>{render();commitSoon();},140);}
+function flControl(f,spec,tg){const[kind,k,label,...r]=spec,id='fl_'+k;
+  if(kind==='range'){const[min,max,step,fmt]=r;return rangeF(id,label,min,max,step,f[k],fmt,(v,done)=>{f[k]=v;flChanged(tg,done!==false);});}
+  if(kind==='color')return colorF(id,label,f[k],(v,done)=>{f[k]=v;flChanged(tg,done!==false);});
+  if(kind==='seg')return segF(id,label,r[0],f[k],v=>{f[k]=v;flChanged(tg,true);});
+  if(kind==='check')return checkF(id,label,f[k],v=>{f[k]=v;flChanged(tg,true);});return'';}
+function renderFl(){const el=$('flF');if(!el)return;el.innerHTML='';fxSelectSelf();const tg=fxTarget(),o=tg.o;
+  el.append(targetSeg('flt'));
+  if(tg.kind==='bg'&&o.kind==='clear'){el.append(h('p',{class:'help'},'A see-through canvas has no picture to filter.'));return;}
+  const fl=o.filters=Array.isArray(o.filters)?o.filters:[];if(FLSEL&&!fl.some(f=>f.id===FLSEL))FLSEL=null;
+  if(fl.length){const list=h('div',{class:'fxlist',role:'list'});
+    fl.forEach((f,i)=>{const D=FL[f.type];if(!D)return;const open=f.id===FLSEL,box=h('input',{type:'checkbox','aria-label':'Use '+D.name,onchange:ev=>{f.on=ev.target.checked;flChanged(tg,true);}});box.checked=!!f.on;
+      const mv=d=>{const j=i+d;if(j<0||j>=fl.length)return;[fl[i],fl[j]]=[fl[j],fl[i]];flChanged(tg,true);};
+      list.append(h('div',{class:'fxrow'+(f.on?' on':'')+(open?' cur':''),role:'listitem','data-fl':f.type},box,
+        h('button',{type:'button',class:'nm','aria-expanded':String(open),onclick:()=>{FLSEL=open?null:f.id;renderFl();}},D.name,h('span',{class:'chev','aria-hidden':'true'})),
+        h('button',{type:'button',class:'ic',title:'Earlier','aria-label':'Move '+D.name+' up',disabled:i===0,onclick:()=>mv(-1)},'▲'),h('button',{type:'button',class:'ic',title:'Later','aria-label':'Move '+D.name+' down',disabled:i===fl.length-1,onclick:()=>mv(1)},'▼'),
+        h('button',{type:'button',class:'ic',title:'Remove','aria-label':'Remove '+D.name,onclick:()=>{fl.splice(i,1);if(FLSEL===f.id)FLSEL=null;flChanged(tg,true);}},'✕')));
+      if(open)list.append(h('div',{class:'fxbody'},h('div',{class:'fxset'},...(D.ui.length?D.ui.map(sp=>flControl(f,sp,tg)):[h('p',{class:'help',style:'margin:0'},'No settings. Untick it to compare.')]))));});
+    el.append(list);}
+  else el.append(h('p',{class:'help'},'Change the picture itself: fix its colors, clean up a scan, give it a style, bend it or blur it. They run top to bottom, before its effects.'));
+  el.append(addMenu('flAdd','+ Add a filter…',FL_GROUPS.map(([g,gl])=>[gl,Object.values(FL).filter(d=>d.group===g).map(d=>[d.id,d.name])]),t=>{const f=newFl(t);fl.push(f);FLSEL=f.id;flChanged(tg,true);}));
+  if(fl.length)el.append(h('div',{class:'row'},h('button',{type:'button',id:'flClear',onclick:()=>{if(!confirm('Take every filter off?'))return;o.filters=[];FLSEL=null;flChanged(tg,true);}},'Remove all filters')));}
 function fxSettings(e,tg){const box=h('div',{class:'fxset'}),o=tg.o,u=tg.kind==='pic'?(o.fxScale===false?IH():picL(o).ph)/200:IH()/200,
     set=(k,full)=>(v,done)=>{e[k]=v;if(!e.on){e.on=true;full=true;}fxChanged(tg,full&&done!==false);},px=v=>Math.round(v*u)+' px',
     blend=()=>{const sel=h('select',{'aria-label':'Blend mode',id:'fxBlend'},...BLENDS.map(([v,l])=>h('option',{value:v,selected:v===(e.blend||'source-over')},l)));sel.onchange=()=>{e.blend=sel.value;fxChanged(tg,false);};
@@ -1204,7 +1404,7 @@ function renderPanel(){const T=selT(),isPic=!!T&&T.kind==='pic';$('txt').value=T
   $('propF').innerHTML='';renderProps();
   const none=h('p',{class:'help'},'Tap some text on the picture, or press + Text.');
   ['fontF','colorF','outF','shadowF','depthF','boxF','placeF'].forEach(id=>{const el=$(id);el.innerHTML='';if(!T)el.append(none.cloneNode(true));});
-  renderPic();renderFx();renderSave();renderLayers();if(paneT!==S.sel){paneT=S.sel;renderLooks();}if(!T){render();return;}
+  renderPic();renderFl();renderFx();renderSave();renderLayers();if(paneT!==S.sel){paneT=S.sel;renderLooks();}if(!T){render();return;}
   if(isPic){renderPropPanel(T);placePanel(T);render();return;}needFont(T.font);
   /* font */
   const F=FONTS[T.font]||FONTS.bangers;
@@ -1271,7 +1471,8 @@ document.querySelectorAll('.wordbar button[data-w]').forEach(btn=>{btn.onmousedo
   wrapWords(k);};});
 $('txt').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&(e.key==='b'||e.key==='i')){e.preventDefault();wrapWords(e.key);}});
 /* what each closed section has in it */
-function updateSums(){const T=selT();{const tg=fxTarget(),fx=(tg.o&&tg.o.fx)||[];setSum('Effects',[...new Set(fx.filter(e=>e.on).map(e=>FX_NAME[e.type].toLowerCase()))].join(', '));}if(T&&T.kind==='pic'){const P=PROPS.get(T.pic);setSum('Picture on top',[P?P.name:'',T.shape&&T.shape!=='none'?T.shape:'',T.box.kind!=='none'?({oval:'round bubble',round:'rounded box'}[T.box.kind]||T.box.kind):'',T.under?'under text':''].filter(Boolean).join(' · '));setSum('Size, place and turn',`${Math.round(T.size*IH())} px tall${T.rot?' · '+T.rot+'°':''}`);}
+function updateSums(){const T=selT();{const tg=fxTarget(),fl=((tg.o&&tg.o.filters)||[]).filter(f=>f.on&&FL[f.type]);setSum('Filters',fl.length?(fl.length>2?fl.length+' filters':fl.map(f=>FL[f.type].name.toLowerCase()).join(', ')):'');}
+  {const tg=fxTarget(),fx=(tg.o&&tg.o.fx)||[];setSum('Effects',[...new Set(fx.filter(e=>e.on).map(e=>FX_NAME[e.type].toLowerCase()))].join(', '));}if(T&&T.kind==='pic'){const P=PROPS.get(T.pic);setSum('Picture on top',[P?P.name:'',T.shape&&T.shape!=='none'?T.shape:'',T.box.kind!=='none'?({oval:'round bubble',round:'rounded box'}[T.box.kind]||T.box.kind):'',T.under?'under text':''].filter(Boolean).join(' · '));setSum('Size, place and turn',`${Math.round(T.size*IH())} px tall${T.rot?' · '+T.rot+'°':''}`);}
   else if(!T){['Font','Color','Outline','Shadow and glow','3D and curve','Box and bubble','Size, place and turn'].forEach(n=>setSum(n,''));}
   else{const BK={none:'',box:'box',round:'rounded box',pill:'pill',lines:'each line',speech:'speech bubble',oval:'round bubble',thought:'thought',shout:'shout',tag:'tag',bar:'strip across'};
     setSum('Font',(FONTS[T.font]||{}).name||'');setSum('Color',T.fill==='gradient'?'two-color blend':T.fill==='none'?'outline only':'one color');setSum('Outline',T.o1.on?(T.o2.on?'two outlines':'on'):'off');
@@ -1468,31 +1669,37 @@ function renderProps(){const el=$('propsRow');if(!el)return;el.innerHTML='';cons
     h('p',{class:'help'},tray.length?'Tap one to put it on this picture. They stay here to use again.':'Pictures to put on top of this one: props, faces, expressions. They aren’t added to your pictures, and they stay here to use again. You can drop them here too.'),
     h('label',{class:'btn',for:'propAdd2',style:'padding:6px 10px;font-size:12px'},'+ Add',inp)));
   if(tray.length)el.append(h('div',{class:'ptray',role:'group','aria-label':'Your props'},...tray.map(P=>propTile(P,null,()=>placeProp(P.id),`Put ${P.name} on the picture`,true))));}
+/* a small fold-out inside a section; which ones are open is remembered */
+const SUBOPEN=(()=>{try{return new Set(JSON.parse(localStorage.getItem('cm-sub')||'["swap"]'));}catch(e){return new Set(['swap']);}})();
+function subFold(key,title,sum,dflt,...kids){const d=h('details',{class:'sub','data-sub':key},h('summary',{},title,h('span',{class:'fsum'},sum||'')),h('div',{class:'subbody'},...kids));d.open=SUBOPEN.has(key);
+  d.addEventListener('toggle',()=>{if(d.open)SUBOPEN.add(key);else SUBOPEN.delete(key);try{localStorage.setItem('cm-sub',JSON.stringify([...SUBOPEN]));}catch(e){}});return d;}
 /* the settings for a picture on top */
 function renderPropPanel(T){const el=$('propF'),P=PROPS.get(T.pic),tray=[...PROPS.values()].filter(x=>x.tray||x.id===T.pic);
   el.append(h('p',{class:'help'},P?`${P.name} · ${P.w} × ${P.h}`:'This picture is missing. Swap it for one of your props.'));
-  if(tray.length>1)el.append(h('span',{class:'flabel'},'Swap for',h('span',{class:'rv'},'keeps its place and size')),
-    h('div',{class:'ptray',role:'group','aria-label':'Swap for another prop'},...tray.map(x=>propTile(x,x.id===T.pic,()=>{if(x.id===T.pic)return;T.pic=x.id;commit();renderPanel();render();},`Swap for ${x.name}`,false))));
+  if(tray.length>1)el.append(subFold('swap','Swap for','keeps its place and size',true,
+    h('div',{class:'ptray',role:'group','aria-label':'Swap for another prop'},...tray.map(x=>propTile(x,x.id===T.pic,()=>{if(x.id===T.pic)return;T.pic=x.id;commit();renderPanel();render();},`Swap for ${x.name}`,false)))));
   el.append(segF('player','Layer',[['under','Under the text'],['over','Over the text']],T.under?'under':'over',v=>ch((T,x)=>T.under=x==='under',true)(v)),
     rangeF('psz','Size',.03,2,.001,T.size,v=>Math.round(v*IH())+' px tall',ch((T,v)=>T.size=v)),
     rangeF('pop','See-through',0,1,.01,1-T.opacity,v=>pct(v),ch((T,v)=>T.opacity=1-v)),
     h('div',{class:'row'},checkF('pfx','Flip across',T.flipX,ch((T,v)=>T.flipX=v)),checkF('pfy','Flip upside down',T.flipY,ch((T,v)=>T.flipY=v))));
   /* shape */
   const sh=T.shape||'none';
-  el.append(segF('pshape','Shape',[['none','None'],['circle','Circle'],['rounded','Rounded'],['square','Square'],['heart','Heart'],['star','Star'],['hexagon','Hexagon'],['diamond','Diamond']],sh,v=>ch((T,x)=>{T.shape=x;},true)(v)));
-  if(sh!=='none')el.append(rangeF('pzoom','Zoom in',1,4,.01,T.zoom||1,v=>Math.round(v*100)+'%',ch((T,v)=>T.zoom=v)),
+  const shb=[];shb.push(segF('pshape','Shape',[['none','None'],['circle','Circle'],['rounded','Rounded'],['square','Square'],['heart','Heart'],['star','Star'],['hexagon','Hexagon'],['diamond','Diamond']],sh,v=>ch((T,x)=>{T.shape=x;},true)(v)));
+  if(sh!=='none')shb.push(rangeF('pzoom','Zoom in',1,4,.01,T.zoom||1,v=>Math.round(v*100)+'%',ch((T,v)=>T.zoom=v)),
     h('div',{class:'grid2'},rangeF('ppx','Picture across',-1,1,.01,T.panX||0,v=>v===0?'middle':v<0?'left '+pct(-v):'right '+pct(v),ch((T,v)=>T.panX=v)),rangeF('ppy','Picture up and down',-1,1,.01,T.panY||0,v=>v===0?'middle':v<0?'up '+pct(-v):'down '+pct(v),ch((T,v)=>T.panY=v))),
     rangeF('psbw','Border',0,.08,.001,T.sbw||0,v=>v?pct(v):'none',ch((T,v)=>T.sbw=v,true)),
     (T.sbw||0)>0?colorF('psbc','Border color',T.sbc||'#FFFFFF',ch((T,v)=>T.sbc=v)):'');
+  el.append(subFold('shape','Shape',sh==='none'?'none':sh,false,...shb));
   /* a bubble around it */
   const bk=T.box.kind;
-  el.append(segF('pbub','Bubble around it',[['none','Nothing'],['thought','Thought'],['speech','Speech'],['oval','Round bubble'],['shout','Shout'],['round','Rounded box'],['box','Box']],bk,v=>ch((T,x)=>{const was=T.box.kind;T.box.kind=x;
+  const bub=[];bub.push(segF('pbub','Bubble around it',[['none','Nothing'],['thought','Thought'],['speech','Speech'],['oval','Round bubble'],['shout','Shout'],['round','Rounded box'],['box','Box']],bk,v=>ch((T,x)=>{const was=T.box.kind;T.box.kind=x;
       if(x!=='none'&&was==='none'){T.box.color=T.box.color||'#FFFFFF';if(!(T.box.bw>0))T.box.bw=.08;T.box.bc=T.box.bc||'#000000';T.box.pad=.3;T.box.op=1;T.box.tail=true;fixPicTail(T);}fixTail(T);},true)(v)));
-  if(bk!=='none'){el.append(colorF('pbcol','Bubble color',T.box.color,ch((T,v)=>T.box.color=v)),h('div',{class:'grid2'},rangeF('pbop','Solid',0,1,.01,T.box.op,v=>pct(v),ch((T,v)=>T.box.op=v)),rangeF('pbpad','Room around it',0,2,.01,T.box.pad,v=>pct(v/2),ch((T,v)=>T.box.pad=v))),
+  if(bk!=='none'){bub.push(colorF('pbcol','Bubble color',T.box.color,ch((T,v)=>T.box.color=v)),h('div',{class:'grid2'},rangeF('pbop','Solid',0,1,.01,T.box.op,v=>pct(v),ch((T,v)=>T.box.op=v)),rangeF('pbpad','Room around it',0,2,.01,T.box.pad,v=>pct(v/2),ch((T,v)=>T.box.pad=v))),
     rangeF('pbbw','Bubble border',0,.3,.005,T.box.bw,v=>v?pct(v/.3):'none',ch((T,v)=>T.box.bw=v,true)));
-    if(T.box.bw>0)el.append(colorF('pbbc','Bubble border color',T.box.bc,ch((T,v)=>T.box.bc=v)));
-    if(/speech|oval|thought/.test(bk))el.append(checkF('pbtail','Tail (drag the yellow dot to point it)',T.box.tail,ch((T,v)=>T.box.tail=v,true)));}
-  el.append(h('p',{class:'help'},'Shadows, glows, outlines and more are under Effects.'));
+    if(T.box.bw>0)bub.push(colorF('pbbc','Bubble border color',T.box.bc,ch((T,v)=>T.box.bc=v)));
+    if(/speech|oval|thought/.test(bk))bub.push(checkF('pbtail','Tail (drag the yellow dot to point it)',T.box.tail,ch((T,v)=>T.box.tail=v,true)));}
+  el.append(subFold('bubble','Bubble around it',bk==='none'?'none':({oval:'round bubble',round:'rounded box'}[bk]||bk),false,...bub));
+  el.append(h('p',{class:'help'},'Filters and Effects (shadows, glows, outlines and more) are in their own sections below.'));
   el.append(h('p',{class:'help'},'It’s on this picture only. Under the text keeps it below every text; Over lets ▲ ▼ put it in front of or behind each one. Copy it to other pictures like text.'));}
 $('propAdd').onchange=e=>{const fs=[...e.target.files];e.target.value='';if(fs.length)run(()=>addProps(fs));};
 (()=>{const el=$('propsRow');let n=0;const has=e=>e.dataTransfer&&[...e.dataTransfer.types].includes('Files');

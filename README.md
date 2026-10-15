@@ -406,16 +406,25 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 - **+ Picture on top** puts a picture on top of the one you're working on: a prop, a face, an expression, a sticker. It isn't added to your set of pictures. See-through PNGs keep their see-through parts; big pictures are made smaller (up to 2000 pixels).
 - Move it, resize it from the corner and turn it on the picture, like text. Its own settings: size, see-through, and flip across or upside down; shadows, glows, outlines and the rest are under Effects.
 - **Layer:** **Under the text** (the start for new ones) keeps it over the picture but below every text, so captions and bubbles stay on top. **Over the text** lets ▲ ▼ put it in front of or behind each text.
-- **Shape:** crop it to a circle, rounded corners, a square, a heart, a star, a hexagon or a diamond, with **Zoom in**, **Picture across / up and down** to choose what shows inside, and a border in any color.
+- **Shape** (a fold-out, like **Bubble around it** and **Swap for**): crop it to a circle, rounded corners, a square, a heart, a star, a hexagon or a diamond, with **Zoom in**, **Picture across / up and down** to choose what shows inside, and a border in any color.
 - **Bubble around it:** a thought bubble, speech bubble, round bubble, shout, rounded box or box, with its own color, how solid it is, room around the picture, a border, and a tail you point with the yellow dot (a character thinking of something, say).
 - **Props and expressions:** everything you add waits in a tray under the picture to use again on any picture (tap it). Add several at once (or drop them on the tray) to fill the tray without placing them. ✕ takes one out of the tray; it stays on the pictures it's already on.
 - **Swap for:** with a picture on top picked, tap another prop to swap it in, in the same place, size, shape and bubble. Handy for changing a character's expression.
 - Copy it to other pictures like text (Ctrl+C, Ctrl+V, or Copy this text to…). The tray is kept in the browser and in project files.
 
+### Filters (for the picture and pictures on top)
+- A **Filters** section changes the picture itself, before its effects. **+ Add a filter…** has them in groups:
+  - **Fix and adjust:** Auto levels, Auto contrast, Auto white balance, and Brightness, contrast and color (saturation, hue, warm or cool).
+  - **Clean up:** Erase white paper (takes the paper out of a scanned drawing so only the lines are left), Remove white matte, Remove black matte.
+  - **Style:** Vignette, Remove vignette, Chromatic aberration, Emboss, Solarize, Halftone (black or colored dots), Crystals (Voronoi), Black and white dither, Web-safe dither, Pixelate.
+  - **Distort:** Twirl, Pinch / Punch, Spherical, Ripple, Lens distortion, Shear, Mirror, Rectangular to polar, Polar to rectangular.
+  - **Blur:** Average, Gaussian, Box, Motion, Radial (spin), Zoom, Lens, Diffuse glow, Depth of field (tilt-shift), Maximum and Minimum.
+- Added filters are listed in the order they run; tap one's name for its settings (one open at a time), untick it to compare, ▲ ▼ to change the order, ✕ to remove it. Sizes are measured on the picture, so they look the same on a small or big picture. Undo, reloads and project files keep them.
+
 ### Effects (for the picture and pictures on top)
 - An **Effects** section like an image editor's layer effects, for the picture you're working on or for a picture on top (switch with **Effects on**): **Bevel / Emboss**, **Outline** (outside, center or inside), **3D**, **Inner shadow**, **Inner glow**, **Color overlay**, **Gradient overlay** (linear or radial, with scale, angle and position), **Outer glow**, **Outer shadow** and **Blur**.
-- Tick one to turn it on, tap its name for its settings. Most have a **blend mode** (Normal, Multiply, Screen, Overlay, Soft light and the rest) and an opacity. **+** adds another outline, inner shadow, color or gradient overlay, or outer shadow; ✕ removes one.
-- **Fill** fades the picture itself but keeps its effects (an outline with nothing inside, say). **Effects grow and shrink with the picture** keeps them in proportion when you resize a picture on top.
+- **+ Add an effect…** adds one; the ones you've added are listed with a tick to turn them off, and tapping a name opens its settings. Most have a **blend mode** (Normal, Multiply, Screen, Overlay, Soft light and the rest) and an opacity. **+** adds another outline, inner shadow, color or gradient overlay, or outer shadow; ✕ removes one.
+- Under **More**: **Fill** fades the picture itself but keeps its effects (an outline with nothing inside, say). **Effects grow and shrink with the picture** keeps them in proportion when you resize a picture on top.
 - They show in the saved pictures, the picture box and project files, and undo covers them. A dark **Inner glow** set to Multiply on the picture behind makes a vignette.
 
 ### Projects
