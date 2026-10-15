@@ -320,7 +320,7 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
       <div class="spkrow" id="spkRow"></div>
     </div>
     <h4 class="fhead">Looks</h4>
-    <div class="field"><div class="looks" id="looks"></div><div class="row"><button type="button" id="saveLook">Save this look</button></div><p class="help">A look changes the font, colors, effects and box. Your words and where they are stay the same.</p></div>
+    <div class="field"><div class="looks" id="looks"></div><div class="row"><button type="button" id="saveLook">Save this look</button><button type="button" id="moreLooks" aria-pressed="false">Show all examples</button></div><p class="help">A look changes the font, colors, effects and box. Your words and where they are stay the same. Looks you save come first.</p></div>
     <h4 class="fhead">Font</h4>
     <div class="field" id="fontF"></div>
     <h4 class="fhead">Color</h4>
@@ -976,10 +976,16 @@ const lookPreview=(o,w,hh)=>{const c=document.createElement('canvas');c.width=w;
   VIEW={w,h:hh};try{drawText(g,T);}catch(e){}VIEW=null;return c;};
 /* a bubble's tail starts somewhere sensible: below the text, or above it near the bottom of the picture */
 function fixTail(T){if(!/speech|oval|thought/.test(T.box.kind))return;const off=T.box.tx<0||T.box.tx>1||T.box.ty<0||T.box.ty>1;if(off||Math.hypot(T.box.tx-T.x,T.box.ty-T.y)<.12||Math.abs(T.box.ty-T.y)<.06){const d=T.size*1.7+.05;T.box.tx=clamp(T.x-T.size*1.3,.03,.97);T.box.ty=clamp(T.y>.6?T.y-d:T.y+d,.03,.97);}}
+/* your own looks come first; of the ready-made ones only three show unless you ask for the rest */
+const STARTER_LOOKS=['Meme','Speech','Comic caption'];
+let LOOKS_ALL=(()=>{try{return localStorage.getItem('cm-looks-all')==='1';}catch(e){return false;}})();
 function renderLooks(){const box=$('looks');box.innerHTML='';const T=selT();
-  [...LOOKS.map(l=>({...l,mine:false})),...LOOKS_MINE.map(l=>({...l,mine:true}))].forEach((l,k)=>{needFont(l.o.font);const b=h('button',{type:'button',class:l.mine?'mine':'',title:l.name,onclick:e=>{if(e.target.closest('i')){LOOKS_MINE.splice(LOOKS_MINE.indexOf(LOOKS_MINE.find(x=>x.name===l.name)),1);DB.tx('readwrite',s=>s.put(LOOKS_MINE,'looks'));renderLooks();return;}applyLook(l.o);toast(l.name+' look on.');}},
+  const built=LOOKS_ALL?LOOKS:LOOKS.filter(l=>STARTER_LOOKS.includes(l.name));
+  [...LOOKS_MINE.map(l=>({...l,mine:true})),...built.map(l=>({...l,mine:false}))].forEach((l,k)=>{needFont(l.o.font);const b=h('button',{type:'button',class:l.mine?'mine':'',title:l.name,onclick:e=>{if(e.target.closest('i')){LOOKS_MINE.splice(LOOKS_MINE.indexOf(LOOKS_MINE.find(x=>x.name===l.name)),1);DB.tx('readwrite',s=>s.put(LOOKS_MINE,'looks'));renderLooks();return;}applyLook(l.o);toast(l.name+' look on.');}},
     lookPreview(l.o,180,100),h('span',{},l.name));if(l.mine)b.append(h('i',{title:'Remove this look','aria-label':'Remove '+l.name},'✕'));if(!T)b.disabled=true;box.append(b);});
-  render();}
+  const more=$('moreLooks');if(more){more.textContent=LOOKS_ALL?'Show fewer examples':`Show all ${LOOKS.length} examples`;more.setAttribute('aria-pressed',String(LOOKS_ALL));}
+  setSum('Looks',LOOKS_MINE.length?`${LOOKS_MINE.length} of yours`:'');render();}
+$('moreLooks').onclick=()=>{LOOKS_ALL=!LOOKS_ALL;try{localStorage.setItem('cm-looks-all',LOOKS_ALL?'1':'0');}catch(e){}renderLooks();};
 $('saveLook').onclick=()=>{const T=selT();if(!T)return;const name=(prompt('Name this look','My look '+(LOOKS_MINE.length+1))||'').trim();if(!name)return;LOOKS_MINE=LOOKS_MINE.filter(x=>x.name!==name);LOOKS_MINE.push({name,o:JSON.parse(JSON.stringify(stripLook(T)))});DB.tx('readwrite',s=>s.put(LOOKS_MINE,'looks'));renderLooks();toast(`Saved “${name}”. It’s with the other looks now.`);};
 
 /* ================= the settings for the selected text ================= */
@@ -1059,7 +1065,7 @@ function updateSums(){const T=selT();if(!T){['Font','Color','Outline','Shadow an
     setSum('Font',(FONTS[T.font]||{}).name||'');setSum('Color',T.fill==='gradient'?'two-color blend':T.fill==='none'?'outline only':'one color');setSum('Outline',T.o1.on?(T.o2.on?'two outlines':'on'):'off');
     setSum('Shadow and glow',[T.shadow.on?'shadow':'',T.glow.on?'glow':''].filter(Boolean).join(', ')||'off');setSum('3D and curve',[T.depth.on?'3D':'',T.curve?'curved':''].filter(Boolean).join(', ')||'off');
     setSum('Box and bubble',BK[T.box.kind]||'nothing');setSum('Size, place and turn',`${Math.round(T.size*IH())} px${T.rot?' · '+T.rot+'°':''}`);}
-  setSum('Picture',PAGES.length>1?`picture ${CUR+1} of ${PAGES.length}`:S.bg.kind==='img'?IMGNAME:S.bg.kind==='sample'?'sample':'blank');setSum('Save',S.fmt.toUpperCase());setSum('Looks','');}
+  setSum('Picture',PAGES.length>1?`picture ${CUR+1} of ${PAGES.length}`:S.bg.kind==='img'?IMGNAME:S.bg.kind==='sample'?'sample':'blank');setSum('Save',S.fmt.toUpperCase());setSum('Looks',LOOKS_MINE.length?`${LOOKS_MINE.length} of yours`:'');}
 
 /* ================= the font picker ================= */
 /* favorites (★) and the fonts you used last, kept in this browser for every visit */

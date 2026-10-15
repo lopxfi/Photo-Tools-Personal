@@ -414,8 +414,9 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 - Every section (Looks, Font, Color, Outline, Shadow and glow, 3D and curve, Box and bubble, Size and place, Picture, Save) folds open and shut, with a note on closed ones saying what's set ("speech bubble", "two outlines"). **Open all** and **Close all** at the top; which ones are open is remembered.
 
 ### Looks
-- One tap for a whole style: Meme, Subtitle, Social (each line highlighted), Speech, Round bubble, Thought, Shout, Comic caption, Manga, Sticker, Neon, Retro 3D, Gold, Horror, Note, Lower third, Banner, Pixel, Arched, Wedding and Typewriter. Your words and where they are stay put.
-- **Save this look** keeps your own styles with the others, for the next caption in the same style.
+- One tap for a whole style. Your words and where they are stay put.
+- **Save this look** keeps your own styles, for the next caption in the same style. Yours come first.
+- Three examples show under yours: Meme, Speech and Comic caption. **Show all 21 examples** brings back the rest (Subtitle, Social, Round bubble, Thought, Shout, Manga, Sticker, Neon, Retro 3D, Gold, Horror, Note, Lower third, Banner, Pixel, Arched, Wedding and Typewriter); the choice is remembered.
 
 ### Fonts
 - About 55 free web fonts in groups (comic and manga, bold, handwriting, script, serif, clean, retro and pixel, spooky and fun), plus Impact, Arial, Georgia and Comic Sans from the device. Each shows your own words in the picker.
