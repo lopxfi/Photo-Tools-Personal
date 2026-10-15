@@ -403,9 +403,12 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 
 ### Pictures on top (props and expressions)
 - **+ Picture on top** puts a picture on top of the one you're working on: a prop, a face, an expression, a sticker. It isn't added to your set of pictures. See-through PNGs keep their see-through parts; big pictures are made smaller (up to 2000 pixels).
-- Move it, resize it from the corner and turn it on the picture, like text. Its own settings: size, see-through, flip across or upside down, and a shadow. ▲ ▼ put it in front of or behind text.
+- Move it, resize it from the corner and turn it on the picture, like text. Its own settings: size, see-through, flip across or upside down, and a shadow.
+- **Layer:** **Under the text** (the start for new ones) keeps it over the picture but below every text, so captions and bubbles stay on top. **Over the text** lets ▲ ▼ put it in front of or behind each text.
+- **Shape:** crop it to a circle, rounded corners, a square, a heart, a star, a hexagon or a diamond, with **Zoom in**, **Picture across / up and down** to choose what shows inside, and a border in any color.
+- **Bubble around it:** a thought bubble, speech bubble, round bubble, shout, rounded box or box, with its own color, how solid it is, room around the picture, a border, and a tail you point with the yellow dot (a character thinking of something, say).
 - **Props and expressions:** everything you add waits in a tray under the picture to use again on any picture (tap it). Add several at once (or drop them on the tray) to fill the tray without placing them. ✕ takes one out of the tray; it stays on the pictures it's already on.
-- **Swap for:** with a picture on top picked, tap another prop to swap it in, in the same place and size. Handy for changing a character's expression.
+- **Swap for:** with a picture on top picked, tap another prop to swap it in, in the same place, size, shape and bubble. Handy for changing a character's expression.
 - Copy it to other pictures like text (Ctrl+C, Ctrl+V, or Copy this text to…). The tray is kept in the browser and in project files.
 
 ### Projects
