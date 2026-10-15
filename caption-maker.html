@@ -200,6 +200,20 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
 .ptray .pt[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
 .ptray .pt i{position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.75);color:#fff;font:600 11px/20px var(--f-body);font-style:normal;text-align:center}
 .ptray .pt i:hover{background:#FF4D4D}
+/* layer effects: a list of effects, then the settings of the one you picked */
+.fxlist{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.fxrow{display:flex;align-items:center;gap:6px;padding:2px 6px 2px 8px;border-top:1px solid var(--line);font-size:13px;background:var(--bg)}
+.fxrow:first-child{border-top:0}
+.fxrow.on{background:var(--soft)}
+.fxrow.cur{box-shadow:inset 3px 0 0 var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--bg))}
+.fxrow input{accent-color:var(--accent);width:16px;height:16px;flex:none;margin:0}
+.fxrow .nm{flex:1;text-align:left;background:none;border:0;padding:8px 4px;font-size:13px;color:var(--ink);min-width:0;cursor:pointer;box-shadow:none}
+.fxrow .nm:hover{color:var(--accent);background:none}
+.fxrow .ic{flex:none;width:28px;height:28px;padding:0;display:grid;place-items:center;font-size:14px;background:none;border-color:transparent}
+.fxrow .ic:hover{border-color:var(--line)}
+.fxset{display:flex;flex-direction:column;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px}
+.fxset h5{margin:0;font:600 13px/1.2 var(--f-body)}
+.fxset select{font-size:13px;padding:7px 9px}
 .copyrow select{width:auto;flex:0 1 260px;font-size:13px;padding:7px 9px}
 .copyrow .help{flex:1;min-width:140px}
 /* settings fold into dropdown sections */
@@ -350,6 +364,8 @@ canvas#cv{display:block;max-width:100%;max-height:min(68vh,860px);width:auto;hei
     <div class="field" id="boxF"></div>
     <h4 class="fhead">Picture on top</h4>
     <div class="field" id="propF"></div>
+    <h4 class="fhead">Effects</h4>
+    <div class="field" id="fxF"></div>
     <h4 class="fhead">Size, place and turn</h4>
     <div class="field" id="placeF"></div>
     <h4 class="fhead">Picture</h4>
@@ -579,8 +595,7 @@ const selT=()=>S.texts.find(t=>t.id===S.sel)||null;
 /* a stand-in picture until you open one */
 function sampleBg(c,w,hh){const g=c.createLinearGradient(0,0,0,hh);g.addColorStop(0,'#2B2A6E');g.addColorStop(.6,'#C3487A');g.addColorStop(1,'#FF9A5C');c.fillStyle=g;c.fillRect(0,0,w,hh);
   c.fillStyle='rgba(255,233,176,.9)';c.beginPath();c.arc(w*.7,hh*.62,hh*.12,0,Math.PI*2);c.fill();c.fillStyle='#1E2A5A';c.beginPath();c.moveTo(0,hh);c.lineTo(w*.3,hh*.6);c.lineTo(w*.55,hh*.82);c.lineTo(w*.8,hh*.58);c.lineTo(w,hh*.75);c.lineTo(w,hh);c.fill();}
-function drawBackground(c,w,hh,forSave){if(S.bg.kind==='img'&&IMG){c.drawImage(IMG,0,0,w,hh);return;}
-  if(S.bg.kind==='color'){c.fillStyle=S.bg.color;c.fillRect(0,0,w,hh);return;}if(S.bg.kind==='clear')return;sampleBg(c,w,hh);}
+function drawBackground(c,w,hh,forSave){if(fxOn(S.bg.fx)&&S.bg.kind!=='clear'){drawBgFx(c,w,hh,S.bg,IMG,PAGES[CUR]?PAGES[CUR].id:'x');return;}rawBg(c,w,hh,S.bg,IMG);}
 
 /* ---------- laying out one piece of text: lines, or letters along a curve ---------- */
 const fontStr=(T,px)=>`${T.italic?'italic ':''}${T.bold?700:400} ${Math.max(1,px)}px ${fontCss(T.font)}`;
@@ -663,7 +678,7 @@ function shapePath(c,k,x,y,w,hh){const cx=x+w/2,cy=y+hh/2;c.beginPath();
   else if(k==='hexagon'){for(let i=0;i<6;i++){const a=i*Math.PI/3,px=cx+Math.cos(a)*w/2,py=cy+Math.sin(a)*hh/2;i?c.lineTo(px,py):c.moveTo(px,py);}}
   else if(k==='diamond'){c.moveTo(cx,y);c.lineTo(x+w,cy);c.lineTo(cx,y+hh);c.lineTo(x,cy);}
   else c.rect(x,y,w,hh);c.closePath();}
-function drawPic(c,T){const L=picL(T),P=PROPS.get(T.pic),B=L.bb,hh=L.ph,shape=T.shape&&T.shape!=='none'?T.shape:null;c.save();c.globalAlpha=T.opacity;c.translate(T.x*IW(),T.y*IH());c.rotate(T.rot*Math.PI/180);
+function drawPic(c,T){if(!FXRAW&&fxOn(T.fx))return drawPicFx(c,T);const L=picL(T),P=PROPS.get(T.pic),B=L.bb,hh=L.ph,shape=T.shape&&T.shape!=='none'?T.shape:null;c.save();c.globalAlpha=T.opacity;c.translate(T.x*IW(),T.y*IH());c.rotate(T.rot*Math.PI/180);
   const sh=()=>{if(!T.shadow.on)return;const a=T.shadow.ang*Math.PI/180,d=T.shadow.dist*hh;c.shadowColor=rgba(T.shadow.color,T.shadow.op);c.shadowBlur=T.shadow.blur*hh;c.shadowOffsetX=Math.cos(a)*d;c.shadowOffsetY=Math.sin(a)*d;};
   const noSh=()=>{c.shadowColor='transparent';c.shadowBlur=0;c.shadowOffsetX=0;c.shadowOffsetY=0;};
   /* a bubble behind it (thought, speech…): the bubble casts the shadow */
@@ -678,6 +693,87 @@ function drawPic(c,T){const L=picL(T),P=PROPS.get(T.pic),B=L.bb,hh=L.ph,shape=T.
   c.scale(fx,fy);c.drawImage(P.img,-dw/2+ox*fx,-dh/2+oy*fy,dw,dh);c.restore();
   if(T.sbw>0){noSh();shapePath(c,shape,B.x,B.y,B.w,B.h);c.lineJoin='round';c.lineWidth=T.sbw*hh;c.strokeStyle=T.sbc||'#FFFFFF';c.stroke();}
   c.restore();return L;}
+/* ================= layer effects, for the picture behind and pictures on top =================
+   Each effect is drawn on its own layer and blended onto the picture in a fixed order, like an image editor:
+   outer shadows, outer glow, 3D, the picture itself, color and gradient overlays, inner shadows, inner glow, bevel, outlines. */
+const FX_TYPES=[['bevel','Bevel / Emboss',0],['outline','Outline',1],['depth','3D',0],['ishadow','Inner shadow',1],['iglow','Inner glow',0],
+  ['color','Color overlay',1],['grad','Gradient overlay',1],['oglow','Outer glow',0],['oshadow','Outer shadow',1],['blur','Blur',0]];
+const FX_NAME=Object.fromEntries(FX_TYPES.map(([k,n])=>[k,n]));
+const FX_DEF={bevel:{size:8,soft:4,ang:225,dir:'up',hi:'#FFFFFF',hiOp:.8,lo:'#000000',loOp:.6},
+  outline:{w:4,color:'#FFFFFF',pos:'outside',op:1,blend:'source-over'},depth:{size:10,ang:45,color:'#5B3DF5',shade:true,op:1,blend:'source-over'},
+  ishadow:{color:'#000000',op:.65,blend:'multiply',blur:6,dist:4,ang:45,choke:0},iglow:{color:'#FFE14D',op:.8,blend:'screen',blur:10,choke:0},
+  color:{color:'#FF4D4D',op:.5,blend:'source-over'},grad:{kind:'linear',c1:'#000000',c2:'#FFFFFF',op:.67,blend:'source-over',ang:225,scale:1,ox:0,oy:0},
+  oglow:{color:'#FFE14D',op:.85,blend:'screen',blur:10,spread:0},oshadow:{color:'#000000',op:.6,blend:'multiply',blur:6,dist:5,ang:45,spread:0},blur:{r:4}};
+const BLENDS=[['source-over','Normal'],['multiply','Multiply'],['screen','Screen'],['overlay','Overlay'],['darken','Darken'],['lighten','Lighten'],['color-dodge','Color dodge'],['color-burn','Color burn'],
+  ['hard-light','Hard light'],['soft-light','Soft light'],['difference','Difference'],['exclusion','Exclusion'],['hue','Hue'],['saturation','Saturation'],['color','Color'],['luminosity','Luminosity']];
+const fxOn=fx=>Array.isArray(fx)&&fx.some(e=>e&&e.on);
+const newFx=t=>({id:'fx_'+rkey(),type:t,on:true,...JSON.parse(JSON.stringify(FX_DEF[t]))});
+const CANFILTER=(()=>{try{const g=document.createElement('canvas').getContext('2d');if(!('filter' in g))return false;g.filter='blur(2px)';return g.filter==='blur(2px)';}catch(e){return false;}})();
+function fxCan(w,hh){const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(w));c.height=Math.max(1,Math.ceil(hh));return c;}
+function fxTint(src,color){const c=fxCan(src.width,src.height),g=c.getContext('2d');g.drawImage(src,0,0);g.globalCompositeOperation='source-in';g.fillStyle=color;g.fillRect(0,0,c.width,c.height);return c;}
+/* only the shadow of a layer (the layer itself is drawn far off to the side) */
+function fxShadow(src,dx,dy,blur,color){const c=fxCan(src.width,src.height),g=c.getContext('2d'),B=src.width+200;g.shadowColor=color;g.shadowBlur=Math.max(0,blur);g.shadowOffsetX=dx+B;g.shadowOffsetY=dy;g.drawImage(src,-B,0);return c;}
+/* grow a shape by r pixels (copies of it in rings around itself) */
+function fxGrow(src,r,color){const t=fxTint(src,color||'#000');if(r<=.5)return t;const c=fxCan(src.width,src.height),g=c.getContext('2d'),rings=r>8?3:r>3?2:1;
+  for(let k=1;k<=rings;k++){const rr=r*k/rings,n=Math.max(8,Math.min(40,Math.round(rr*1.6)));for(let i=0;i<n;i++){const a=i/n*Math.PI*2;g.drawImage(t,Math.cos(a)*rr,Math.sin(a)*rr);}}g.drawImage(t,0,0);return c;}
+/* everything outside the shape, with room around it */
+function fxInverse(src,P){const c=fxCan(src.width+P*2,src.height+P*2),g=c.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,c.width,c.height);g.globalCompositeOperation='destination-out';g.drawImage(src,P,P);return c;}
+/* shrink a shape by r pixels */
+function fxShrink(src,r){if(r<=.5)return src;const P=Math.ceil(r)+2,inv=fxGrow(fxInverse(src,P),r),c=fxCan(src.width,src.height),g=c.getContext('2d');g.drawImage(src,0,0);g.globalCompositeOperation='destination-out';g.drawImage(inv,-P,-P);return c;}
+function fxClip(c,src){const g=c.getContext('2d');g.globalCompositeOperation='destination-in';g.drawImage(src,0,0);g.globalCompositeOperation='source-over';return c;}
+function fxInner(src,dist,ang,blur,choke,color){const P=Math.ceil(dist+blur*3+choke)+4;let inv=fxInverse(src,P);if(choke>.5)inv=fxGrow(inv,choke);const a=ang*Math.PI/180,sh=fxShadow(inv,Math.cos(a)*dist,Math.sin(a)*dist,blur*2,color);
+  const c=fxCan(src.width,src.height);c.getContext('2d').drawImage(sh,-P,-P);return fxClip(c,src);}
+function fxBlur(src,r,full){if(r<=.3)return src;const c=fxCan(src.width,src.height),g=c.getContext('2d');let base=src;
+  /* the picture behind: stretch its edges out first, so blurring doesn't fade them */
+  if(full){const P=Math.ceil(r*3),e=fxCan(src.width+P*2,src.height+P*2),eg=e.getContext('2d');eg.drawImage(src,0,0,e.width,e.height);eg.drawImage(src,P,P);base=e;g.translate(-P,-P);}
+  if(CANFILTER){g.filter=`blur(${r}px)`;g.drawImage(base,0,0);g.filter='none';}
+  else{const k=Math.max(1,r/1.5),sm=fxCan(base.width/k,base.height/k),sg=sm.getContext('2d');sg.imageSmoothingQuality='high';sg.drawImage(base,0,0,sm.width,sm.height);g.imageSmoothingQuality='high';g.drawImage(sm,0,0,base.width,base.height);}
+  return c;}
+function fxGrad(src,e,box){const c=fxCan(src.width,src.height),g=c.getContext('2d'),cx=box.x+box.w/2+e.ox*box.w/2,cy=box.y+box.h/2+e.oy*box.h/2,a=e.ang*Math.PI/180;let gr;
+  if(e.kind==='radial')gr=g.createRadialGradient(cx,cy,0,cx,cy,Math.max(1,Math.max(box.w,box.h)/2*e.scale));
+  else{const r=Math.max(1,Math.hypot(box.w,box.h)/2*e.scale),dx=Math.cos(a)*r,dy=Math.sin(a)*r;gr=g.createLinearGradient(cx-dx,cy-dy,cx+dx,cy+dy);}
+  gr.addColorStop(0,e.c1);gr.addColorStop(1,e.c2);g.fillStyle=gr;g.fillRect(0,0,c.width,c.height);return fxClip(c,src);}
+/* how far the effects reach outside the picture */
+function fxReach(fx,u){let m=0;fx.forEach(e=>{if(!e.on)return;const t=e.type;if(t==='oshadow')m=Math.max(m,(e.dist+e.blur*3+e.spread)*u);else if(t==='oglow')m=Math.max(m,(e.blur*3+e.spread)*u);
+  else if(t==='outline'&&e.pos!=='inside')m=Math.max(m,e.w*u);else if(t==='depth')m=Math.max(m,e.size*u);else if(t==='blur')m=Math.max(m,e.r*u*3);});return Math.ceil(m+3);}
+/* the layers to blend, bottom to top: [{c,op,blend}] */
+function fxBuild(C,fx,u,fill,box,full){const parts=[],on=t=>fx.filter(e=>e&&e.on&&e.type===t),put=(c,op,blend)=>parts.push({c,op:op==null?1:op,blend:blend||'source-over'});
+  const bl=on('blur')[0];if(bl)C=fxBlur(C,bl.r*u,full);
+  on('oshadow').forEach(e=>{let s=C;if(e.spread>0)s=fxGrow(C,e.spread*u);const a=e.ang*Math.PI/180,sh=fxShadow(s,Math.cos(a)*e.dist*u,Math.sin(a)*e.dist*u,e.blur*u*2,e.color);
+    const g=sh.getContext('2d');g.globalCompositeOperation='destination-out';g.drawImage(C,0,0);put(sh,e.op,e.blend);});
+  on('oglow').forEach(e=>{let s=C;if(e.spread>0)s=fxGrow(C,e.spread*u);const sh=fxShadow(s,0,0,e.blur*u*2,e.color),g=sh.getContext('2d');g.drawImage(sh,0,0);g.globalCompositeOperation='destination-out';g.drawImage(C,0,0);put(sh,e.op,e.blend);});
+  on('depth').forEach(e=>{const d=e.size*u;if(d<.5)return;const c=fxCan(C.width,C.height),g=c.getContext('2d'),a=e.ang*Math.PI/180,n=Math.min(80,Math.ceil(d)),side=fxTint(C,e.color),dark=e.shade?fxTint(C,shade(e.color,-.35)):side;
+    for(let i=n;i>=1;i--)g.drawImage(i===n?dark:side,Math.cos(a)*d*i/n,Math.sin(a)*d*i/n);g.globalCompositeOperation='destination-out';g.drawImage(C,0,0);put(c,e.op,e.blend);});
+  put(C,fill,'source-over');
+  on('color').forEach(e=>put(fxTint(C,e.color),e.op,e.blend));
+  on('grad').forEach(e=>put(fxGrad(C,e,box),e.op,e.blend));
+  on('ishadow').forEach(e=>put(fxInner(C,e.dist*u,e.ang,e.blur*u,e.choke*u,e.color),e.op,e.blend));
+  on('iglow').forEach(e=>put(fxInner(C,0,0,e.blur*u,e.choke*u,e.color),e.op,e.blend));
+  on('bevel').forEach(e=>{const d=e.size*u,sf=(e.soft+e.size*.5)*u,lt=e.dir==='down'?e.ang+180:e.ang;
+    put(fxInner(C,d,lt+180,sf,0,e.hi),e.hiOp,'screen');put(fxInner(C,d,lt,sf,0,e.lo),e.loOp,'multiply');});
+  on('outline').forEach(e=>{const w=e.w*u;if(w<.3)return;let c;
+    if(e.pos==='inside'){c=fxTint(C,e.color);const g=c.getContext('2d');g.globalCompositeOperation='destination-out';g.drawImage(fxShrink(C,w),0,0);}
+    else{const r=e.pos==='center'?w/2:w;c=fxGrow(C,r,e.color);const g=c.getContext('2d');g.globalCompositeOperation='destination-out';g.drawImage(e.pos==='center'?fxShrink(C,w/2):C,0,0);}
+    put(c,e.op,e.blend);});
+  return parts;}
+const FXCACHE=new Map();
+function fxDraw(c,R,parts,alpha){c.save();parts.forEach(q=>{c.globalAlpha=alpha*q.op;c.globalCompositeOperation=q.blend;c.drawImage(q.c,R.x,R.y);});c.restore();}
+function fxCached(id,key,make){const hit=FXCACHE.get(id);if(hit&&hit.key===key)return hit.v;const v=make();FXCACHE.set(id,{key,v});if(FXCACHE.size>80)FXCACHE.delete(FXCACHE.keys().next().value);return v;}
+/* a picture on top with effects: drawn plain onto its own layer first */
+let FXRAW=false;
+function drawPicFx(c,T){const L=picL(T),A=aabbOf(T);let l=A.l,t=A.t,r=A.r,b=A.b;if(hasTail(T)){const tx=T.box.tx*IW(),ty=T.box.ty*IH();l=Math.min(l,tx);r=Math.max(r,tx);t=Math.min(t,ty);b=Math.max(b,ty);}
+  const u=(T.fxScale===false?IH():L.ph)/200,m=fxReach(T.fx,u)+Math.ceil(L.ph*.03),ox=l-m,oy=t-m;
+  /* the layer doesn't change when the picture only moves, so dragging stays quick */
+  const rel={...T,x:0,y:0,_L:undefined,opacity:1,box:{...T.box,tx:hasTail(T)?Math.round((T.box.tx-T.x)*1e5):0,ty:hasTail(T)?Math.round((T.box.ty-T.y)*1e5):0}},key=JSON.stringify([rel,IW(),IH()]);
+  const parts=fxCached(T.id+'|'+IW()+'x'+IH(),key,()=>{const C=fxCan(r-l+m*2+2,b-t+m*2+2),g=C.getContext('2d');g.translate(-ox,-oy);const op=T.opacity;T.opacity=1;FXRAW=true;try{drawPic(g,T);}finally{FXRAW=false;T.opacity=op;}
+    return fxBuild(C,T.fx,u,T.fxFill==null?1:T.fxFill,{x:l-ox,y:t-oy,w:r-l,h:b-t},false);});
+  fxDraw(c,{x:ox,y:oy},parts,T.opacity);return L;}
+/* the picture behind with effects */
+function drawBgFx(c,w,hh,bg,img,id){const key=JSON.stringify([bg,w,hh,img?(img.currentSrc||img.src):0]);
+  const parts=fxCached('bg|'+id+'|'+w+'x'+hh,key,()=>{const C=fxCan(w,hh);rawBg(C.getContext('2d'),w,hh,bg,img);return fxBuild(C,bg.fx,hh/200,bg.fxFill==null?1:bg.fxFill,{x:0,y:0,w,h:hh},true);});
+  /* effects that reach outside the picture are cut off at its edges */
+  c.save();c.beginPath();c.rect(0,0,w,hh);c.clip();fxDraw(c,{x:0,y:0},parts,1);c.restore();}
+function rawBg(c,w,hh,bg,img){if(bg.kind==='img'&&img){c.drawImage(img,0,0,w,hh);return;}if(bg.kind==='color'){c.fillStyle=bg.color;c.fillRect(0,0,w,hh);return;}if(bg.kind==='clear')return;sampleBg(c,w,hh);}
 /* a bubble's tail for a picture: from below it toward the lower left, or above it near the bottom */
 function fixPicTail(T){T.box.tx=clamp(T.x-T.size*.45,.03,.97);T.box.ty=clamp(T.y>.6?T.y-T.size*.95:T.y+T.size*.95,.03,.97);}
 function drawText(c,T){if(T.kind==='pic')return drawPic(c,T);const L=layout(c,T);c.save();c.globalAlpha=T.opacity;if(T.box.kind==='bar')drawBar(c,T,L);
@@ -808,11 +904,14 @@ document.addEventListener('keydown',e=>{const tag=(e.target&&e.target.tagName)||
 
 /* ================= undo, and keeping your work ================= */
 let HIST=[],HI=-1;
-const snap=()=>JSON.stringify(S.texts.map(t=>{const o={...t};delete o._L;return o;}));
+/* the text on the picture, and the effects on the picture behind (so undo covers those too) */
+const snap=()=>{const t=S.texts.map(x=>{const o={...x};delete o._L;return o;});return JSON.stringify(fxOn(S.bg.fx)||S.bg.fxFill!=null||(S.bg.fx&&S.bg.fx.length)?{t,f:S.bg.fx||[],ff:S.bg.fxFill==null?null:S.bg.fxFill}:t);};
 function commit(){const s=snap();if(HIST[HI]!==s){HIST=HIST.slice(0,HI+1);HIST.push(s);if(HIST.length>80)HIST.shift();HI=HIST.length-1;}syncUndo();save();renderLayers();renderStripSoon();}
-let cT=0;const commitSoon=()=>{clearTimeout(cT);cT=setTimeout(commit,400);};
-function restoreSnap(s){const sel=S.sel;S.texts=JSON.parse(s);MULTI.clear();if(!S.texts.some(t=>t.id===sel))S.sel=S.texts.length?S.texts[S.texts.length-1].id:null;renderPanel();render();save();renderLayers();syncUndo();}
-function undo(){if(HI>0){HI--;restoreSnap(HIST[HI]);}}
+let cT=0;const commitSoon=()=>{clearTimeout(cT);cT=setTimeout(()=>{cT=0;commit();},400);};
+function restoreSnap(s){const sel=S.sel,d=JSON.parse(s);if(Array.isArray(d)){S.texts=d;if(S.bg.fx&&S.bg.fx.length)S.bg.fx=[];}else{S.texts=d.t;S.bg.fx=d.f;S.bg.fxFill=d.ff==null?undefined:d.ff;}MULTI.clear();if(!S.texts.some(t=>t.id===sel))S.sel=S.texts.length?S.texts[S.texts.length-1].id:null;renderPanel();render();save();renderLayers();syncUndo();}
+/* a change still waiting to be kept is kept first, so undo takes back just that */
+function flushCommit(){if(cT){clearTimeout(cT);cT=0;commit();}}
+function undo(){flushCommit();if(HI>0){HI--;restoreSnap(HIST[HI]);}}
 function redo(){if(HI<HIST.length-1){HI++;restoreSnap(HIST[HI]);}}
 function syncUndo(){$('undo').disabled=HI<=0;$('redo').disabled=HI>=HIST.length-1;}
 $('undo').onclick=undo;$('redo').onclick=redo;
@@ -1039,6 +1138,60 @@ function renderLooks(){const box=$('looks');box.innerHTML='';const T=selT();
 $('moreLooks').onclick=()=>{LOOKS_ALL=!LOOKS_ALL;try{localStorage.setItem('cm-looks-all',LOOKS_ALL?'1':'0');}catch(e){}renderLooks();};
 $('saveLook').onclick=()=>{const T=selT();if(!T)return;const name=(prompt('Name this look','My look '+(LOOKS_MINE.length+1))||'').trim();if(!name)return;LOOKS_MINE=LOOKS_MINE.filter(x=>x.name!==name);LOOKS_MINE.push({name,o:JSON.parse(JSON.stringify(stripLook(T)))});DB.tx('readwrite',s=>s.put(LOOKS_MINE,'looks'));renderLooks();toast(`Saved “${name}”. It’s with the other looks now.`);};
 
+/* ================= the Effects section: for the picture on top you picked, or the picture behind ================= */
+let FXT='bg',FXSEL=null,FXSELT=null;
+function fxTarget(){const T=selT();if(FXT==='sel'&&T&&T.kind==='pic')return{kind:'pic',o:T};return{kind:'bg',o:S.bg};}
+function fxChanged(tg,full){render();if(full)commit();else commitSoon();if(full)renderFx();updateSums();}
+function fxSelectSelf(){const T=selT();if(T&&T.kind==='pic'&&FXSELT!==T.id){FXSELT=T.id;FXT='sel';FXSEL=null;}if(!(T&&T.kind==='pic'))FXSELT=null;}
+function renderFx(){const el=$('fxF');if(!el)return;el.innerHTML='';fxSelectSelf();const T=selT(),tg=fxTarget(),o=tg.o;
+  /* old single shadow on a picture on top becomes an Outer shadow */
+  if(tg.kind==='pic'&&o.shadow&&o.shadow.on){o.fx=o.fx||[];o.fx.push({...newFx('oshadow'),color:o.shadow.color,op:o.shadow.op,blur:Math.round(o.shadow.blur*200),dist:Math.round(o.shadow.dist*200),ang:o.shadow.ang});o.shadow.on=false;}
+  const P=T&&T.kind==='pic'?PROPS.get(T.pic):null;
+  if(P)el.append(segF('fxt','Effects on',[['sel','Picture on top: '+P.name.slice(0,18)],['bg','The picture behind']],FXT==='sel'?'sel':'bg',v=>{FXT=v;FXSEL=null;renderFx();}));
+  else el.append(h('p',{class:'help'},'Effects on the picture you’re working on. Pick a picture on top to give it its own.'));
+  if(tg.kind==='bg'&&o.kind==='clear'){el.append(h('p',{class:'help'},'A see-through canvas has no picture to add effects to.'));return;}
+  const fx=o.fx=Array.isArray(o.fx)?o.fx:[];
+  if(!fx.some(e=>e.id===FXSEL))FXSEL=(fx.find(e=>e.on)||fx[0]||{}).id||null;
+  const list=h('div',{class:'fxlist',role:'list'});
+  FX_TYPES.forEach(([t,name,multi])=>{const ins=fx.filter(e=>e.type===t);
+    if(!ins.length){list.append(h('div',{class:'fxrow',role:'listitem'},h('input',{type:'checkbox','aria-label':name,onchange:()=>{const e=newFx(t);fx.push(e);FXSEL=e.id;fxChanged(tg,true);}}),
+      h('button',{type:'button',class:'nm',onclick:()=>{const e=newFx(t);fx.push(e);FXSEL=e.id;fxChanged(tg,true);}},name)));return;}
+    ins.forEach((e,k)=>{const nm=name+(ins.length>1?' '+(k+1):'');
+      const box=h('input',{type:'checkbox','aria-label':nm,onchange:ev=>{e.on=ev.target.checked;FXSEL=e.id;fxChanged(tg,true);}});box.checked=!!e.on;
+      list.append(h('div',{class:'fxrow'+(e.on?' on':'')+(e.id===FXSEL?' cur':''),role:'listitem','data-fx':t},box,h('button',{type:'button',class:'nm','aria-current':String(e.id===FXSEL),onclick:()=>{FXSEL=e.id;renderFx();}},nm),
+        multi&&k===0?h('button',{type:'button',class:'ic',title:'Add another '+name.toLowerCase(),'aria-label':'Add another '+name.toLowerCase(),onclick:()=>{const n=newFx(t);fx.splice(fx.indexOf(ins[ins.length-1])+1,0,n);FXSEL=n.id;fxChanged(tg,true);}},'+'):'',
+        h('button',{type:'button',class:'ic',title:'Remove','aria-label':'Remove '+nm,onclick:()=>{fx.splice(fx.indexOf(e),1);if(FXSEL===e.id)FXSEL=null;fxChanged(tg,true);}},'✕')));});});
+  el.append(list);
+  const e=fx.find(x=>x.id===FXSEL);if(e)el.append(fxSettings(e,tg));
+  const u=tg.kind==='pic'?(o.fxScale===false?IH():picL(o).ph)/200:IH()/200;
+  el.append(rangeF('fxfill','Fill (the picture itself, not its effects)',0,1,.01,o.fxFill==null?1:o.fxFill,v=>pct(v),(v,done)=>{o.fxFill=v;fxChanged(tg,false);}));
+  if(tg.kind==='pic')el.append(checkF('fxscale','Effects grow and shrink with the picture',o.fxScale!==false,v=>{o.fxScale=v;fxChanged(tg,true);}));
+  if(fx.length)el.append(h('div',{class:'row'},h('button',{type:'button',id:'fxClear',onclick:()=>{if(!confirm('Take every effect off?'))return;o.fx=[];FXSEL=null;fxChanged(tg,true);}},'Remove all effects')));}
+function fxSettings(e,tg){const box=h('div',{class:'fxset'}),o=tg.o,u=tg.kind==='pic'?(o.fxScale===false?IH():picL(o).ph)/200:IH()/200,
+    set=(k,full)=>(v,done)=>{e[k]=v;if(!e.on){e.on=true;full=true;}fxChanged(tg,full&&done!==false);},px=v=>Math.round(v*u)+' px',
+    blend=()=>{const sel=h('select',{'aria-label':'Blend mode',id:'fxBlend'},...BLENDS.map(([v,l])=>h('option',{value:v,selected:v===(e.blend||'source-over')},l)));sel.onchange=()=>{e.blend=sel.value;fxChanged(tg,false);};
+      return h('div',{class:'field'},h('label',{for:'fxBlend'},'Blend mode'),sel);},
+    op=(k='op',label='Opacity')=>rangeF('fx'+k,label,0,1,.01,e[k],v=>pct(v),set(k));
+  box.append(h('h5',{},FX_NAME[e.type]));
+  const t=e.type;
+  if(t==='oshadow'||t==='ishadow')box.append(blend(),op(),colorF('fxc','Color',e.color,set('color')),h('div',{class:'grid2'},rangeF('fxblur','Softness',0,60,.5,e.blur,px,set('blur')),rangeF('fxdist','Distance',0,60,.5,e.dist,px,set('dist')),
+      rangeF('fxang','Direction',0,360,1,e.ang,deg,set('ang')),t==='oshadow'?rangeF('fxspread','Spread',0,30,.5,e.spread,px,set('spread')):rangeF('fxchoke','Choke',0,30,.5,e.choke,px,set('choke'))));
+  else if(t==='oglow'||t==='iglow')box.append(blend(),op(),colorF('fxc','Color',e.color,set('color')),h('div',{class:'grid2'},rangeF('fxblur','Size',0,60,.5,e.blur,px,set('blur')),
+      t==='oglow'?rangeF('fxspread','Spread',0,30,.5,e.spread,px,set('spread')):rangeF('fxchoke','Choke',0,30,.5,e.choke,px,set('choke'))));
+  else if(t==='outline')box.append(blend(),op(),colorF('fxc','Color',e.color,set('color')),rangeF('fxw','Thickness',0,40,.5,e.w,px,set('w')),segF('fxpos','Where',[['outside','Outside'],['center','Center'],['inside','Inside']],e.pos,v=>{e.pos=v;fxChanged(tg,true);}));
+  else if(t==='depth')box.append(blend(),op(),colorF('fxc','Side color',e.color,set('color')),h('div',{class:'grid2'},rangeF('fxsize','Depth',0,60,.5,e.size,px,set('size')),rangeF('fxang','Direction',0,360,1,e.ang,deg,set('ang'))),
+      checkF('fxshade','Darker back edge',e.shade,v=>{e.shade=v;fxChanged(tg,false);}));
+  else if(t==='color')box.append(blend(),op(),colorF('fxc','Color',e.color,set('color')));
+  else if(t==='grad')box.append(blend(),op(),segF('fxkind','Type',[['linear','Linear'],['radial','Radial']],e.kind,v=>{e.kind=v;fxChanged(tg,true);}),
+      h('div',{class:'grid2'},colorF('fxc1','From',e.c1,set('c1')),colorF('fxc2','To',e.c2,set('c2'))),
+      h('div',{class:'grid2'},rangeF('fxscale','Scale',.1,3,.01,e.scale,v=>pct(v),set('scale')),e.kind==='linear'?rangeF('fxang','Angle',0,360,1,e.ang,deg,set('ang')):h('span',{}),
+        rangeF('fxox','Across',-1,1,.01,e.ox,v=>pct(v),set('ox')),rangeF('fxoy','Up and down',-1,1,.01,e.oy,v=>pct(v),set('oy'))));
+  else if(t==='bevel')box.append(segF('fxdir','Raised or pressed in',[['up','Raised'],['down','Pressed in']],e.dir,v=>{e.dir=v;fxChanged(tg,true);}),
+      h('div',{class:'grid2'},rangeF('fxsize','Size',0,40,.5,e.size,px,set('size')),rangeF('fxsoft','Softness',0,30,.5,e.soft,px,set('soft')),rangeF('fxang','Light from',0,360,1,e.ang,deg,set('ang'))),
+      h('div',{class:'grid2'},colorF('fxhi','Highlight',e.hi,set('hi')),colorF('fxlo','Shadow',e.lo,set('lo'))),
+      h('div',{class:'grid2'},rangeF('fxhiOp','Highlight strength',0,1,.01,e.hiOp,v=>pct(v),set('hiOp')),rangeF('fxloOp','Shadow strength',0,1,.01,e.loOp,v=>pct(v),set('loOp'))));
+  else if(t==='blur')box.append(rangeF('fxr','Amount',0,40,.5,e.r,px,set('r')));
+  return box;}
 /* ================= the settings for the selected text ================= */
 let paneT=null;
 const ch=(fn,fin)=>(v,done)=>{const T=selT();if(!T)return;fn(T,v);render();if(done!==false){commit();if(fin)renderPanel();}else commitSoon();};
@@ -1051,7 +1204,7 @@ function renderPanel(){const T=selT(),isPic=!!T&&T.kind==='pic';$('txt').value=T
   $('propF').innerHTML='';renderProps();
   const none=h('p',{class:'help'},'Tap some text on the picture, or press + Text.');
   ['fontF','colorF','outF','shadowF','depthF','boxF','placeF'].forEach(id=>{const el=$(id);el.innerHTML='';if(!T)el.append(none.cloneNode(true));});
-  renderPic();renderSave();renderLayers();if(paneT!==S.sel){paneT=S.sel;renderLooks();}if(!T){render();return;}
+  renderPic();renderFx();renderSave();renderLayers();if(paneT!==S.sel){paneT=S.sel;renderLooks();}if(!T){render();return;}
   if(isPic){renderPropPanel(T);placePanel(T);render();return;}needFont(T.font);
   /* font */
   const F=FONTS[T.font]||FONTS.bangers;
@@ -1118,7 +1271,7 @@ document.querySelectorAll('.wordbar button[data-w]').forEach(btn=>{btn.onmousedo
   wrapWords(k);};});
 $('txt').addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&(e.key==='b'||e.key==='i')){e.preventDefault();wrapWords(e.key);}});
 /* what each closed section has in it */
-function updateSums(){const T=selT();if(T&&T.kind==='pic'){const P=PROPS.get(T.pic);setSum('Picture on top',[P?P.name:'',T.shape&&T.shape!=='none'?T.shape:'',T.box.kind!=='none'?({oval:'round bubble',round:'rounded box'}[T.box.kind]||T.box.kind):'',T.under?'under text':''].filter(Boolean).join(' · '));setSum('Size, place and turn',`${Math.round(T.size*IH())} px tall${T.rot?' · '+T.rot+'°':''}`);}
+function updateSums(){const T=selT();{const tg=fxTarget(),fx=(tg.o&&tg.o.fx)||[];setSum('Effects',[...new Set(fx.filter(e=>e.on).map(e=>FX_NAME[e.type].toLowerCase()))].join(', '));}if(T&&T.kind==='pic'){const P=PROPS.get(T.pic);setSum('Picture on top',[P?P.name:'',T.shape&&T.shape!=='none'?T.shape:'',T.box.kind!=='none'?({oval:'round bubble',round:'rounded box'}[T.box.kind]||T.box.kind):'',T.under?'under text':''].filter(Boolean).join(' · '));setSum('Size, place and turn',`${Math.round(T.size*IH())} px tall${T.rot?' · '+T.rot+'°':''}`);}
   else if(!T){['Font','Color','Outline','Shadow and glow','3D and curve','Box and bubble','Size, place and turn'].forEach(n=>setSum(n,''));}
   else{const BK={none:'',box:'box',round:'rounded box',pill:'pill',lines:'each line',speech:'speech bubble',oval:'round bubble',thought:'thought',shout:'shout',tag:'tag',bar:'strip across'};
     setSum('Font',(FONTS[T.font]||{}).name||'');setSum('Color',T.fill==='gradient'?'two-color blend':T.fill==='none'?'outline only':'one color');setSum('Outline',T.o1.on?(T.o2.on?'two outlines':'on'):'off');
@@ -1329,9 +1482,7 @@ function renderPropPanel(T){const el=$('propF'),P=PROPS.get(T.pic),tray=[...PROP
     rangeF('pbbw','Bubble border',0,.3,.005,T.box.bw,v=>v?pct(v/.3):'none',ch((T,v)=>T.box.bw=v,true)));
     if(T.box.bw>0)el.append(colorF('pbbc','Bubble border color',T.box.bc,ch((T,v)=>T.box.bc=v)));
     if(/speech|oval|thought/.test(bk))el.append(checkF('pbtail','Tail (drag the yellow dot to point it)',T.box.tail,ch((T,v)=>T.box.tail=v,true)));}
-  el.append(checkF('pshon','Shadow',T.shadow.on,ch((T,v)=>T.shadow.on=v,true)));
-  if(T.shadow.on)el.append(h('div',{class:'grid2'},rangeF('pshd','Distance',0,.2,.002,T.shadow.dist,v=>pct(v),ch((T,v)=>T.shadow.dist=v)),rangeF('pshb','Softness',0,.3,.002,T.shadow.blur,v=>pct(v),ch((T,v)=>T.shadow.blur=v)),
-      rangeF('psha','Direction',0,360,1,T.shadow.ang,deg,ch((T,v)=>T.shadow.ang=v)),rangeF('psho','Strength',0,1,.01,T.shadow.op,v=>pct(v),ch((T,v)=>T.shadow.op=v))),colorF('pshc','Shadow color',T.shadow.color,ch((T,v)=>T.shadow.color=v)));
+  el.append(h('p',{class:'help'},'Shadows, glows, outlines and more are under Effects.'));
   el.append(h('p',{class:'help'},'It’s on this picture only. Under the text keeps it below every text; Over lets ▲ ▼ put it in front of or behind each one. Copy it to other pictures like text.'));}
 $('propAdd').onchange=e=>{const fs=[...e.target.files];e.target.value='';if(fs.length)run(()=>addProps(fs));};
 (()=>{const el=$('propsRow');let n=0;const has=e=>e.dataTransfer&&[...e.dataTransfer.types].includes('Files');
@@ -1340,7 +1491,7 @@ $('propAdd').onchange=e=>{const fs=[...e.target.files];e.target.value='';if(fs.l
   el.addEventListener('drop',async e=>{if(!has(e))return;e.preventDefault();e.stopPropagation();n=0;el.classList.remove('drop');dragN=0;dropEl.classList.remove('drop');$('fmodal').querySelector('.sheet').classList.remove('drop');
     const fs=await filesFromDrop(e.dataTransfer);if(fs.length)run(()=>addProps(fs));});})();
 /* ---------- the picture box: every picture in the project as a small picture, in a big box that scrolls up and down; tap one to work on it ---------- */
-function drawBg2(c,w,hh,pg){if(pg.bg.kind==='img'&&pg.img){c.drawImage(pg.img,0,0,w,hh);return;}if(pg.bg.kind==='color'){c.fillStyle=pg.bg.color;c.fillRect(0,0,w,hh);return;}if(pg.bg.kind==='clear')return;sampleBg(c,w,hh);}
+function drawBg2(c,w,hh,pg){if(fxOn(pg.bg.fx)&&pg.bg.kind!=='clear'){drawBgFx(c,w,hh,pg.bg,pg.img,pg.id);return;}rawBg(c,w,hh,pg.bg,pg.img);}
 let stripT=0;const renderStripSoon=()=>{clearTimeout(stripT);stripT=setTimeout(renderStrip,300);};
 const PV=new Map(),PICKED=new Set();
 const COMIC=(()=>{const d={tile:'m',h:0};try{return{...d,...JSON.parse(localStorage.getItem('cm-comic')||'{}')};}catch(e){return d;}})();
