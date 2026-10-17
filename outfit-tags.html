@@ -429,6 +429,7 @@ pre.out{font-family:var(--f-mono)}
       </div>
     </div>
     <div class="row tight"><button id="clearKey" class="small" title="Forget the saved API key">Forget key</button></div>
+    <p class="tiny" id="bridgeNote" hidden></p>
     <details>
       <summary>Where your photo goes</summary>
       <p class="tiny">Unlike the other tools, this one sends the photo you pick to an AI model so it can read the outfit. On this site that's the provider you choose above, using your API key, which stays in this browser and goes only to that provider. Inside Claude it uses your Claude account instead. “Check tags” and character checks look the tags up on Danbooru. Calls with your own key are billed to that key's account.</p>
@@ -1164,6 +1165,7 @@ window.OTI = (() => {
   // Storage goes through the provider when it supplies one (the extension uses chrome.storage), else localStorage.
   const defaultStore = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => localStorage.setItem(k, v) };
   const store = () => (P() && P().store) || defaultStore;
+  const previews = () => (P() && P().previews) || C.previews;
 
   // ======================= state =======================
   let image = null;       // { dataUrl, mediaType, blob, w, h, name, thumb }
@@ -1350,7 +1352,7 @@ window.OTI = (() => {
         item.excluded = new Set(C.unverifiedIdentity(item.result));
         item.status = "done"; ok++;
         item.entryId = addEntry({ name: item.name, thumb: item.image.thumb, source: "photo", model: r.servedBy, result: item.result, sourceName: item.fileName, sourceUrl: item.sourceUrl || (item.context && item.context.url ? "https://" + item.context.url : "") }).id;
-        C.previews.put(item.entryId, item.image.preview || item.image.dataUrl);
+        previews().put(item.entryId, item.image.preview || item.image.dataUrl);
         // Show the first finished outfit, and keep showing whatever the user picked after that.
         if (selected === item || !selected || !selected.result) select(item); else { renderQueue(); renderCatalog(); }
       } catch (e) {
@@ -1613,7 +1615,7 @@ window.OTI = (() => {
   let mapHot = null, mapOriginal = null, mapFor = null;
   async function mapPicture() {
     if (selected && selected.result === result && selected.image) return selected.image.preview || selected.image.dataUrl;
-    if (current) return await C.previews.get(current.id);
+    if (current) return await previews().get(current.id);
     return null;
   }
   async function renderMap() {
@@ -1720,7 +1722,7 @@ window.OTI = (() => {
   function readHeader() { return { name: $("outfitName").value.trim() || "outfit", labels: $("outfitLabels").value.split(",").map(x => x.trim().toLowerCase()).filter(Boolean), notes: $("outfitNotes").value.trim(), status: $("statusSel").value }; }
   function bindCatalogUI() {
     $("saveUpdate").addEventListener("click", () => { if (!current) return; Object.assign(current, readHeader(), { result: clone(result) }); saveCatalog(); renderCatalog(); setStatus(`Updated “${current.name}”.`, "ok"); });
-    $("saveNew").addEventListener("click", () => { if (!result) return; const meta = readHeader(); const e = addEntry(Object.assign(meta, { name: current && meta.name === current.name ? meta.name + " (remix)" : meta.name, thumb: current?.thumb || image?.thumb || "", source: current ? "remix" : "photo", parentId: current?.id || null, fav: current?.fav || false, result: clone(result), sourceName: current?.sourceName || image?.name || "", sourceUrl: current?.sourceUrl || "" })); (async () => { const pic = await mapPicture(); if (pic) C.previews.put(e.id, pic); })(); current = e; headerFor = undefined; render(); setStatus(`Saved “${e.name}”.`, "ok"); });
+    $("saveNew").addEventListener("click", () => { if (!result) return; const meta = readHeader(); const e = addEntry(Object.assign(meta, { name: current && meta.name === current.name ? meta.name + " (remix)" : meta.name, thumb: current?.thumb || image?.thumb || "", source: current ? "remix" : "photo", parentId: current?.id || null, fav: current?.fav || false, result: clone(result), sourceName: current?.sourceName || image?.name || "", sourceUrl: current?.sourceUrl || "" })); (async () => { const pic = await mapPicture(); if (pic) previews().put(e.id, pic); })(); current = e; headerFor = undefined; render(); setStatus(`Saved “${e.name}”.`, "ok"); });
     $("favBtn").addEventListener("click", () => { if (!current) { $("favBtn").textContent = $("favBtn").textContent === "★" ? "☆" : "★"; return; } current.fav = !current.fav; saveCatalog(); $("favBtn").textContent = current.fav ? "★" : "☆"; renderCatalog(); });
     $("statusSel").addEventListener("change", () => { if (current) { current.status = $("statusSel").value; saveCatalog(); renderCatalog(); } });
     $("deleteBtn").addEventListener("click", () => { if (!current) return; $("deleteYes").hidden = false; setTimeout(() => { $("deleteYes").hidden = true; }, 4000); });
@@ -1749,7 +1751,7 @@ window.OTI = (() => {
   let picking = false, picked = new Set(), sureCard = null;
   function deleteEntries(list) {
     const gone = new Set(list); if (!gone.size) return;
-    gone.forEach(e => C.previews.delete(e.id));
+    gone.forEach(e => previews().delete(e.id));
     catalog = catalog.filter(e => !gone.has(e)); saveCatalog();
     picked = new Set([...picked].filter(e => !gone.has(e)));
     if (current && gone.has(current)) { current = null; headerFor = undefined; render(); } else renderCatalog();
@@ -1852,7 +1854,60 @@ const HANDOFF={name:'pt-handoff',
   $("model").addEventListener("change", () => ls(LS.model, $("model").value)); $("baseUrl").addEventListener("change", () => ls(LS.baseUrl, $("baseUrl").value));
   $("apiKey").addEventListener("change", () => ls(LS.key, $("apiKey").value)); $("effort").addEventListener("change", () => ls(LS.effort, $("effort").value));
   $("clearKey").addEventListener("click", () => { $("apiKey").value = ""; try { localStorage.removeItem(LS.key); } catch {} OTI.setStatus("API key forgotten.", "ok"); });
-  const settings = () => ({ provider: $("provider").value, apiKey: $("apiKey").value.trim(), model: $("model").value.trim(), baseUrl: $("baseUrl").value.trim(), effort: $("effort").value });
+  // With the Outfit Tag extension installed, its key, model and effort fill in whatever is left blank here.
+  const extSettings = () => (bridge && bridge.cache["oti.settings"]) || {};
+  const settings = () => { const x = $("provider").value === "anthropic" ? extSettings() : {}; return { provider: $("provider").value, apiKey: $("apiKey").value.trim() || x.apiKey || "", model: $("model").value.trim() || ($("apiKey").value.trim() ? "" : x.model || ""), baseUrl: $("baseUrl").value.trim(), effort: $("effort").value }; };
+
+  // ---------- the Outfit Tag extension, when it is installed ----------
+  // Its content script answers on this page; then the catalog, pictures and a few choices live in the
+  // extension's storage, shared with the right-click panel and the extension's own copy of the tool.
+  let bridge = null;
+  const KEYS = ["oti.history", "oti.fmt", "oti.minConf", "oti.preset", "oti.presetOverrides", "oti.settings"];
+  function connectBridge() {
+    if (inClaude || !document.documentElement.dataset.otiBridge) return Promise.resolve(null);
+    return new Promise((resolve) => {
+      const send = (m) => window.postMessage(Object.assign({ otiPage: true }, m), location.origin);
+      const waits = new Map(); let n = 0;
+      const onMsg = (ev) => {
+        if (ev.source !== window || !ev.data || !ev.data.otiBridge) return;
+        const m = ev.data;
+        if (m.type === "snapshot" && !bridge) {
+          clearTimeout(timer);
+          const cache = Object.assign({}, m.data);
+          const ask = (op, id, data) => new Promise(res => { const reqId = ++n; waits.set(reqId, res); send({ type: "preview", op, id, data, reqId }); setTimeout(() => { if (waits.delete(reqId)) res(null); }, 10000); });
+          bridge = { cache, version: m.version, send, previews: { put: (id, data) => ask("put", id, data), get: (id) => ask("get", id), delete: (id) => ask("delete", id) } };
+          resolve(bridge);
+        } else if (m.type === "preview") { const res = waits.get(m.reqId); if (res) { waits.delete(m.reqId); res(m.data ?? null); } }
+        else if (m.type === "changed" && bridge) {
+          if (bridge.cache[m.key] === m.value) return;
+          bridge.cache[m.key] = m.value;
+          if (m.key === "oti.history" && window.OTI) OTI.reloadCatalog();
+          if (m.key === "oti.settings") noteBridge();
+        }
+      };
+      window.addEventListener("message", onMsg);
+      const timer = setTimeout(() => resolve(null), 3000);
+      send({ type: "hello" });
+    });
+  }
+  function noteBridge() {
+    const x = extSettings(), own = !!$("apiKey").value.trim();
+    $("bridgeNote").hidden = !bridge;
+    if (bridge) $("bridgeNote").textContent = "The Outfit Tag extension is installed, so this page shares its catalog" + (!own && x.apiKey ? " and uses its API key." : own ? ". The key entered here is used instead of the extension's." : ". Add an API key here or in the extension.");
+  }
+  // Outfits saved on this page before the extension came along move over once; the copy here stays as a backup.
+  async function mergeLocalCatalog() {
+    if (!bridge || ls("oti.mergedIntoExtension")) return;
+    let mine = []; try { mine = JSON.parse(ls("oti.history") || "[]"); } catch {}
+    let shared = []; try { shared = JSON.parse(bridge.cache["oti.history"] || "[]"); } catch {}
+    const have = new Set(shared.map(e => e.id)), add = mine.filter(e => e && e.id && !have.has(e.id));
+    if (add.length) {
+      bridge.cache["oti.history"] = JSON.stringify(shared.concat(add)); bridge.send({ type: "set", key: "oti.history", value: bridge.cache["oti.history"] });
+      for (const e of add) { const pic = await OTI_CORE.previews.get(e.id).catch(() => null); if (pic) await bridge.previews.put(e.id, pic); }
+      OTI.setStatus(`Moved ${add.length} outfit${add.length > 1 ? "s" : ""} saved on this site into the extension's catalog.`, "ok");
+    }
+    ls("oti.mergedIntoExtension", "1");
+  }
 
   async function anthropic({ image, prompt, schema }) {
     const s = settings(), content = [];
@@ -1934,9 +1989,17 @@ const HANDOFF={name:'pt-handoff',
     lookupTags: inClaude ? undefined : danbooru,
     download: inClaude ? async (filename, data) => { if (!downloads) throw { code: "unavailable" }; await downloads.save({ filename, data }); } : undefined
   };
-  OTI.init();
-  // Photos passed in from another tool or from the phone's Share menu.
-  HANDOFF.take().then(files => { const imgs = files.filter(f => (f.type || "").startsWith("image/")); if (imgs.length) OTI.loadFiles(imgs); });
+  connectBridge().then(async (b) => {
+    if (b) {
+      window.OTI_PROVIDER.store = { get: (k) => KEYS.includes(k) ? (b.cache[k] ?? null) : ls(k), set: (k, v) => { if (!KEYS.includes(k)) return ls(k, v); b.cache[k] = v; b.send({ type: "set", key: k, value: v }); } };
+      window.OTI_PROVIDER.previews = b.previews;
+      $("apiKey").addEventListener("input", noteBridge);
+    }
+    OTI.init();
+    if (b) { noteBridge(); await mergeLocalCatalog(); OTI.reloadCatalog(); }
+    // Photos passed in from another tool or from the phone's Share menu.
+    HANDOFF.take().then(files => { const imgs = files.filter(f => (f.type || "").startsWith("image/")); if (imgs.length) OTI.loadFiles(imgs); });
+  });
 })();
 
 </script>

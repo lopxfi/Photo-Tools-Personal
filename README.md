@@ -674,7 +674,7 @@ Reads the outfit in a photo or a piece of anime art and turns it into tags and p
 - **Remix:** delete or add tags, swap in a garment from another saved outfit, add or remove pieces, and save it as a copy.
 - **Check tags:** fixes common misspellings and, on the website, shows how often each tag is used on Danbooru.
 
-A Chrome and Brave extension that reads any image from the right-click menu, with the same catalog and prompts, lives in the [Outfit-Idenitfy](https://github.com/lopxfi/Outfit-Idenitfy) repository. This page is built from that repository's code with its `build_phototools.py`.
+With the extension installed, this page and the extension share one catalog (and the page can use the extension's API key), so an outfit read from the right-click menu shows up here and the other way round. Before that, each keeps its own. A Chrome and Brave extension that reads any image from the right-click menu lives in the [Outfit-Idenitfy](https://github.com/lopxfi/Outfit-Idenitfy) repository. This page is built from that repository's code with its `build_phototools.py`.
 
 ---
 
