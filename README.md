@@ -650,7 +650,7 @@ Puts pictures, videos, text, music and your voice together and makes a new video
 
 ## Outfit Tags
 
-Reads the outfit in a photo or a piece of anime art and turns it into tags and prompts for AI image generators such as Illustrious, NoobAI, Pony, NovelAI and Flux. **Unlike the other tools, it sends the photo you pick to an AI model to read it.**
+Reads the outfit in a photo or a piece of anime art and turns it into tags and prompts for AI image generators such as Illustrious, NoobAI, Pony, NovelAI and Flux. Tabs under the title switch between the tags, a map of the picture, new outfit ideas, the catalog and settings; the photo panel stays put. **Unlike the other tools, it sends the photo you pick to an AI model to read it.**
 
 ### Reading a photo
 - **Up to 5 at once:** drop, pick or paste them, or share them from your gallery. They're read one after another, and photo tabs above the tags switch between them.
@@ -658,6 +658,8 @@ Reads the outfit in a photo or a piece of anime art and turns it into tags and p
   - On the website: Claude, with your own Anthropic API key, or any OpenAI-compatible model. The key stays in your browser and goes only to that provider. Reading one photo costs about 5 to 10 cents on Claude Opus, billed to the key's account.
   - Inside Claude: your Claude account, with no key needed. The first read asks you to allow it.
 - **Tags by garment:** each piece of clothing gets its own group of Danbooru tags, with how sure it is, plus hair, face, style and framing.
+- **The whole picture, if you want it:** choose "Everything" to also get background, composition, lighting, colors and visual aesthetic as their own groups, and untick the ones you don't need.
+- **Map:** the picture with a label pointing at the hair and each garment. The positions are the model's guess, so drag a dot if one is off; on phones the dots are numbered instead.
 - **Characters, series and named outfits:** fictional characters, their series and named outfits (like a particular school's uniform), with what gave them away. It never identifies real people; for cosplay it names the character being worn.
 - **Checked on Danbooru** (website only): name order is fixed (`miku_hatsune` becomes `hatsune_miku`), near misses are corrected, and names Danbooru doesn't know are flagged and left out of the prompt until you put them back.
 
@@ -667,7 +669,7 @@ Reads the outfit in a photo or a piece of anime art and turns it into tags and p
 - **Copy:** the whole prompt, the negative prompt, just the outfit, or any one group. Tap a tag to open its Danbooru wiki page; **×** leaves it out of the prompt.
 
 ### Your outfits
-- **Catalog:** every read is kept with a thumbnail. Name it, add labels and notes, star it, mark it "to try" or "done", and search everything. Export and import it to move it between devices.
+- **Catalog:** every read is kept with a thumbnail and where it came from. Name it, add labels and notes, star it, mark it "to try" or "done", and search everything. Export and import it to move it between devices.
 - **Three new outfits:** three fresh takes on any outfit (a restyle, a different genre, a different season), or your own direction like "make it winter".
 - **Remix:** delete or add tags, swap in a garment from another saved outfit, add or remove pieces, and save it as a copy.
 - **Check tags:** fixes common misspellings and, on the website, shows how often each tag is used on Danbooru.

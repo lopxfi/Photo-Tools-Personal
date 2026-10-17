@@ -78,7 +78,7 @@ pre.out{font-family:var(--f-mono)}
 .switch a:hover{color:var(--ink)}
 .switch a[aria-current="page"]{background:var(--ink);color:var(--bg)}
 .switch a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  main { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 20px; }
+  main { max-width: 1240px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 20px; }
   @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
   .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
   .panel h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 12px; }
@@ -158,6 +158,44 @@ pre.out{font-family:var(--f-mono)}
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
   .sentence-note { margin-top: 6px; font-size: 12.5px; color: var(--warn); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   #presetEdit { margin-top: 6px; }
+
+  .tabs { grid-column: 1 / -1; display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+  .tabs button { border: 1px solid transparent; background: none; color: var(--muted); padding: 7px 14px; border-radius: 999px; font-weight: 600; }
+  .tabs button:hover { color: var(--ink); background: var(--chip-off); }
+  .tabs button.on { background: var(--chip); color: var(--chip-ink); border-color: var(--line); }
+  .tabs .count { font-weight: normal; opacity: 0.8; }
+  .parts { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; }
+  .chk { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--muted); margin: 0; }
+  .small-chk { margin-left: auto; }
+  #pasteBox { min-height: 40px; border: 1px dashed var(--line); border-radius: 8px; padding: 8px 10px; background: var(--bg); color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .map { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 230px; gap: 14px; align-items: start; }
+  .mapImg { position: relative; min-width: 0; }
+  .mapImg img { display: block; max-width: 100%; max-height: 72vh; width: auto; border-radius: 8px; }
+  .mapDot { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: var(--accent); border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,.4); cursor: grab; touch-action: none; display: grid; place-items: center; font-size: 9px; font-weight: 700; color: var(--accent-ink); }
+  .mapDot.hot, .mapDot:hover { transform: scale(1.35); }
+  .mapDot.hair { background: var(--warn); }
+  .mapBox { position: absolute; border: 1.5px dashed var(--accent); border-radius: 4px; pointer-events: none; opacity: 0.7; }
+  .mapBox.hair { border-color: var(--warn); }
+  .mapLabels { position: relative; min-width: 0; }
+  .mapLabel { position: absolute; left: 0; right: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; font-size: 12.5px; line-height: 1.3; cursor: default; }
+  .mapLabel b { display: block; font-size: 13px; }
+  .mapLabel .tiny { color: var(--muted); }
+  .mapLabel.hot { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .mapLabel .n { display: none; }
+  #mapSvg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  #mapSvg line { stroke: var(--accent); stroke-width: 1.5; opacity: 0.75; }
+  #mapSvg line.hair { stroke: var(--warn); }
+  #mapSvg line.hot { stroke-width: 2.5; opacity: 1; }
+  @media (max-width: 700px) {
+    .map { grid-template-columns: 1fr; }
+    .mapLabels { display: flex; flex-direction: column; gap: 6px; }
+    .mapLabel { position: static; }
+    .mapLabel .n { display: inline-block; min-width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 11px; text-align: center; line-height: 18px; margin-right: 6px; }
+    #mapSvg { display: none; }
+  }
+  .card .csrc { font-size: 11.5px; color: var(--muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card .csrc a { color: var(--accent); text-decoration: none; }
+  .tab.stack > * + * { margin-top: 12px; }
   .remixbar { display: none; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 8px; background: var(--chip); color: var(--chip-ink); font-size: 13px; flex-wrap: wrap; }
   .remixbar.on { display: flex; }
   .current { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--bg); }
@@ -196,21 +234,151 @@ pre.out{font-family:var(--f-mono)}
 
 
 <main>
-  <!-- LEFT: input -->
-  <section class="panel stack">
-    <h2>1. Photos <span id="queueCount" class="qcount"></span></h2>
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <button type="button" data-tab="tags" class="on" aria-pressed="true">Tags</button>
+    <button type="button" data-tab="map" aria-pressed="false">Map</button>
+    <button type="button" data-tab="ideas" aria-pressed="false">New outfits</button>
+    <button type="button" data-tab="catalog" aria-pressed="false">Catalog <span class="count" id="catCount"></span></button>
+    <button type="button" data-tab="settings" aria-pressed="false">Settings</button>
+  </nav>
+
+  <!-- LEFT: photos, always visible -->
+  <section class="panel stack" id="photos">
+    <h2>Photos <span id="queueCount" class="qcount"></span></h2>
     <label class="drop" id="drop" for="file">
       <div id="dropText">Drop up to 5 images here, paste from clipboard (<kbd>Ctrl</kbd>+<kbd>V</kbd>), or<br><span class="pick">Choose images</span></div>
       <input type="file" id="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/*" title="Choose images">
     </label>
     <div class="queue" id="queue"></div>
     <div class="row tight"><button class="small" id="pickBtn" type="button">Choose images…</button><button class="small" id="clearQueue" type="button" hidden>Clear queue</button><span class="hint" id="imgInfo"></span></div>
+    <details>
+      <summary>Phone fallback: paste an image here</summary>
+      <div id="pasteBox" contenteditable="true" data-placeholder="Copy a photo (Photos → Share → Copy), then long-press and paste into this box."></div>
+    </details>
     <div>
-      <label for="pasteBox">Phone fallback: long-press and paste an image here</label>
-      <div id="pasteBox" contenteditable="true" data-placeholder="Copy a photo (Photos → Share → Copy), then paste into this box."></div>
+      <label for="focus">What to read</label>
+      <select id="focus">
+        <option value="outfit">Outfit only</option>
+        <option value="full" selected>Outfit and character: hair, face, body, framing</option>
+        <option value="scene">Everything: outfit, character and the whole picture</option>
+      </select>
+      <div class="parts" id="sceneParts" hidden>
+        <label class="chk"><input type="checkbox" id="partBackground" checked> background</label>
+        <label class="chk"><input type="checkbox" id="partComposition" checked> composition</label>
+        <label class="chk"><input type="checkbox" id="partLighting" checked> lighting</label>
+        <label class="chk"><input type="checkbox" id="partColors" checked> colors</label>
+        <label class="chk"><input type="checkbox" id="partAesthetic" checked> visual aesthetic</label>
+      </div>
+    </div>
+    <div>
+      <label for="notes">Extra instructions (optional)</label>
+      <textarea id="notes" placeholder="e.g. 'treat as anime style', 'ignore the background', 'this is from Genshin Impact'"></textarea>
+    </div>
+    <div class="row tight">
+      <button class="primary" id="run" disabled>Interpret outfit</button>
+      <button id="stop" class="small" hidden>Stop</button>
+    </div>
+    <div class="status" id="status">Waiting for an image.</div>
+  </section>
+
+  <!-- RIGHT: the selected section -->
+  <section class="panel stack" id="results">
+    <div class="qsel" id="queueSel" role="group" aria-label="Outfits in the queue" hidden></div>
+
+    <div class="tab" data-tab="tags">
+      <div class="row tight" id="outputControls" hidden>
+        <div><label for="preset">Generator</label><select id="preset"></select></div>
+        <div><label for="fmt">Format</label><select id="fmt"><option value="danbooru">tags, underscores</option><option value="spaces">tags, spaces</option><option value="weighted">tags, weighted by confidence</option><option value="hybrid">hybrid: tags + one sentence</option><option value="prose">prose: sentences only</option></select></div>
+        <div><label>Min confidence</label><select id="minConf"><option value="0">all</option><option value="0.5">≥ 0.5</option><option value="0.7">≥ 0.7</option><option value="0.9">≥ 0.9</option></select></div>
+        <div style="align-self:end"><button class="small" id="copyPrompt">Copy prompt</button> <button class="small" id="copyNeg">Copy negative</button> <button class="small" id="copyOutfit" title="Clothing and accessories only, no subject, hair or scene">Copy outfit only</button> <button class="small" id="copyJson">Copy JSON</button> <button class="small" id="dlJson">Download JSON</button></div>
+      </div>
+      <div id="empty" class="tiny" style="text-align:center;padding:40px 0">Results will show up here as grouped, toggleable tags.</div>
+      <div id="out" hidden class="stack">
+        <div class="current" id="currentHeader">
+          <div class="tiny" id="currentState"></div>
+          <div class="row">
+            <div><label for="outfitName">Name</label><input type="text" id="outfitName" placeholder="e.g. rainy day street look"></div>
+            <div><label for="outfitLabels">Labels (comma separated)</label><input type="text" id="outfitLabels" placeholder="gothic, summer, needs work"></div>
+            <div style="flex:0 1 110px"><label for="statusSel">Status</label><select id="statusSel"><option value="new">new</option><option value="try">to try</option><option value="done">done</option></select></div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <div><label for="outfitNotes">Notes</label><input type="text" id="outfitNotes" placeholder="what worked, what to change"></div>
+          </div>
+          <div class="row tight" style="margin-top:8px">
+            <button class="small" id="favBtn" title="Favorite">☆</button>
+            <button class="small" id="saveUpdate">Update this outfit</button>
+            <button class="small" id="saveNew">Save as new outfit</button>
+            <button class="small" id="remixBtn">Remix</button>
+            <button class="small" id="checkBtn" title="Fix alias spellings and look tags up on Danbooru">Check tags</button>
+            <button class="small" id="deleteBtn">Delete</button><button class="small" id="deleteYes" hidden style="color:var(--bad)">Really delete?</button>
+          </div>
+        </div>
+        <div class="remixbar" id="remixBar">Remix mode: × deletes a tag, type into “+ add tag”, swap a garment from the catalog, add or remove garments, then <b>Update</b> or <b>Save as copy</b>.</div>
+        <div class="legend">
+          <span><i style="background:var(--chip)"></i>Danbooru tag</span>
+          <span><i style="background:var(--chip-custom)"></i>custom phrase</span>
+          <span><i style="background:var(--ok)"></i><i style="background:var(--warn)"></i><i style="background:var(--bad)"></i>post count after “Check tags”</span>
+          <span>tag opens its wiki · × drops it from the prompt</span>
+        </div>
+        <div><label>Prompt</label><pre class="out" id="prompt"></pre>
+          <div class="sentence-note" id="sentenceNote" hidden><span id="sentenceMsg"></span> <button class="small" id="sentenceBtn" type="button">Rewrite it</button></div>
+          <details id="presetEdit" hidden><summary>Generator text: prefix, suffix and negative</summary>
+            <div class="stack" style="margin-top:8px">
+              <div><label for="presetPrefix">Prefix (before the tags)</label><input type="text" id="presetPrefix"></div>
+              <div><label for="presetSuffix">Suffix (after the tags)</label><input type="text" id="presetSuffix"></div>
+              <div><label for="presetNegative">Negative prompt (before the outfit's own)</label><textarea id="presetNegative"></textarea></div>
+              <div class="row tight"><span class="tiny" id="presetNote"></span><button class="small" id="presetReset" type="button" hidden>Reset to defaults</button></div>
+            </div>
+          </details>
+        </div>
+        <div><label>Model's description</label><div id="desc" class="tiny" style="color:var(--ink)"></div></div>
+        <div id="groups"></div>
+        <div><label>Negative prompt</label><pre class="out" id="neg"></pre></div>
+        <details><summary>Raw JSON</summary><pre class="out" id="raw"></pre></details>
+      </div>
     </div>
 
-    <h2 style="margin-top:20px">2. Model</h2>
+    <div class="tab" data-tab="map" hidden>
+      <div class="tiny" id="mapEmpty" style="text-align:center;padding:40px 0">The picture with a label pointing at each garment shows up here after a read.</div>
+      <div id="mapWrap" hidden class="stack">
+        <div class="row tight">
+          <span class="tiny" id="mapNote">Positions come from the model and are approximate. Drag a dot to fix it, then save the outfit.</span>
+          <button class="small" id="mapReset" type="button" hidden>Undo moves</button>
+          <label class="chk small-chk"><input type="checkbox" id="mapBoxes"> show boxes</label>
+        </div>
+        <div class="map" id="map">
+          <div class="mapImg" id="mapImg"><img id="mapImage" alt="The outfit photo"></div>
+          <div class="mapLabels" id="mapLabels"></div>
+          <svg id="mapSvg" aria-hidden="true"></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab" data-tab="ideas" hidden>
+      <div class="tiny" id="ideasEmpty" style="text-align:center;padding:40px 0">Read or open an outfit first, then design new ones from it here.</div>
+      <div id="ideasWrap" hidden>
+        <div class="row">
+          <div><label for="variantDir">Direction (optional)</label><input type="text" id="variantDir" placeholder="e.g. make it winter, more gothic, idol stage outfit, keep the colors"></div>
+          <div style="flex:0 1 auto"><button class="small primary" id="variantsBtn">Design 3 variants</button></div>
+        </div>
+        <div id="variantsOut"></div>
+      </div>
+    </div>
+
+    <div class="tab" data-tab="catalog" hidden>
+      <h3 style="margin:0 0 8px;font-size:14px">Catalog <span class="meta" id="catMeta"></span></h3>
+      <div class="row tight" style="margin-bottom:8px">
+        <input type="search" id="catSearch" placeholder="search name, labels, notes, source, tags" style="flex:1 1 180px">
+        <span id="catViews"><button class="small on" data-view="all">all</button> <button class="small" data-view="fav">★</button> <button class="small" data-view="try">to try</button> <button class="small" data-view="done">done</button></span>
+        <button class="small" id="exportCat">Export</button>
+        <label class="small" style="margin:0"><input type="file" id="importCat" accept="application/json" hidden><button class="small" type="button" id="importBtn">Import</button></label>
+      </div>
+      <div class="catalog" id="catalog"></div>
+      <p class="tiny">Saved in this browser only. Export to keep a backup or move between devices; exports carry the tags and thumbnails, not the full pictures.</p>
+    </div>
+
+    <div class="tab stack" data-tab="settings" hidden>
+      <h3 style="margin:0;font-size:14px">Model</h3>
     <div id="claudeMode" hidden>
       <div class="row">
         <div><label for="tier">Claude model</label>
@@ -245,98 +413,11 @@ pre.out{font-family:var(--f-mono)}
         <div><label for="effort">Effort</label><select id="effort"><option value="low">Low (fastest)</option><option value="medium" selected>Medium</option><option value="high">High (most careful)</option></select></div>
       </div>
     </div>
-    <div class="row">
-      <div><label for="focus">Focus</label><select id="focus"><option value="full">Full: outfit, hair, body and framing</option><option value="outfit">Outfit only</option></select></div>
-    </div>
-    <div>
-      <label for="notes">Extra instructions (optional)</label>
-      <textarea id="notes" placeholder="e.g. 'treat as anime style', 'ignore the background', 'this is from Genshin Impact'"></textarea>
-    </div>
-    <div class="row tight">
-      <button class="primary" id="run" disabled>Interpret outfit</button>
-      <button id="stop" class="small" hidden>Stop</button>
-      <button id="clearKey" class="small" title="Forget the saved API key">Forget key</button>
-    </div>
-    <div class="status" id="status">Waiting for a photo.</div>
+    <div class="row tight"><button id="clearKey" class="small" title="Forget the saved API key">Forget key</button></div>
     <details>
       <summary>Where your photo goes</summary>
       <p class="tiny">Unlike the other tools, this one sends the photo you pick to an AI model so it can read the outfit. On this site that's the provider you choose above, using your API key, which stays in this browser and goes only to that provider. Inside Claude it uses your Claude account instead. “Check tags” and character checks look the tags up on Danbooru. Calls with your own key are billed to that key's account.</p>
     </details>
-  </section>
-
-  <!-- RIGHT: output -->
-  <section class="panel stack" id="results">
-    <h2>3. Tags</h2>
-    <div class="qsel" id="queueSel" role="group" aria-label="Outfits in the queue" hidden></div>
-    <div class="row tight" id="outputControls" hidden>
-      <div><label for="preset">Generator</label><select id="preset"></select></div>
-      <div><label for="fmt">Format</label><select id="fmt"><option value="danbooru">tags, underscores</option><option value="spaces">tags, spaces</option><option value="weighted">tags, weighted by confidence</option><option value="hybrid">hybrid: tags + one sentence</option><option value="prose">prose: sentences only</option></select></div>
-      <div><label>Min confidence</label><select id="minConf"><option value="0">all</option><option value="0.5">≥ 0.5</option><option value="0.7">≥ 0.7</option><option value="0.9">≥ 0.9</option></select></div>
-      <div style="align-self:end"><button class="small" id="copyPrompt">Copy prompt</button> <button class="small" id="copyNeg">Copy negative</button> <button class="small" id="copyOutfit" title="Clothing and accessories only, no subject/hair/framing">Copy outfit only</button> <button class="small" id="copyJson">Copy JSON</button> <button class="small" id="dlJson">Download JSON</button></div>
-    </div>
-    <div id="empty" class="tiny" style="text-align:center;padding:40px 0">Results will show up here as grouped, toggleable tags.</div>
-    <div id="out" hidden class="stack">
-      <div class="current" id="currentHeader">
-        <div class="tiny" id="currentState"></div>
-        <div class="row">
-          <div><label for="outfitName">Name</label><input type="text" id="outfitName" placeholder="e.g. rainy day street look"></div>
-          <div><label for="outfitLabels">Labels (comma separated)</label><input type="text" id="outfitLabels" placeholder="gothic, summer, needs work"></div>
-          <div style="flex:0 1 110px"><label for="statusSel">Status</label><select id="statusSel"><option value="new">new</option><option value="try">to try</option><option value="done">done</option></select></div>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <div><label for="outfitNotes">Notes</label><input type="text" id="outfitNotes" placeholder="what worked, what to change"></div>
-        </div>
-        <div class="row tight" style="margin-top:8px">
-          <button class="small" id="favBtn" title="Favorite">☆</button>
-          <button class="small" id="saveUpdate">Update this outfit</button>
-          <button class="small" id="saveNew">Save as new outfit</button>
-          <button class="small" id="remixBtn">Remix</button>
-          <button class="small" id="checkBtn" title="Fix alias spellings and look tags up on Danbooru">Check tags</button>
-          <button class="small" id="deleteBtn">Delete</button><button class="small" id="deleteYes" hidden style="color:var(--bad)">Really delete?</button>
-        </div>
-      </div>
-      <div class="remixbar" id="remixBar">Remix mode: × deletes a tag, type into “+ add tag”, swap a garment from the catalog, add or remove garments, then <b>Update</b> or <b>Save as copy</b>.</div>
-      <div class="legend">
-        <span><i style="background:var(--chip)"></i>Danbooru tag</span>
-        <span><i style="background:var(--chip-custom)"></i>custom phrase</span>
-        <span><i style="background:var(--ok)"></i><i style="background:var(--warn)"></i><i style="background:var(--bad)"></i>post count after “Check tags”</span>
-        <span>tag opens its wiki · × drops it from the prompt</span>
-      </div>
-      <div><label>Prompt</label><pre class="out" id="prompt"></pre>
-        <div class="sentence-note" id="sentenceNote" hidden><span id="sentenceMsg"></span> <button class="small" id="sentenceBtn" type="button">Rewrite it</button></div>
-        <details id="presetEdit" hidden><summary>Generator text: prefix, suffix and negative</summary>
-          <div class="stack" style="margin-top:8px">
-            <div><label for="presetPrefix">Prefix (before the tags)</label><input type="text" id="presetPrefix"></div>
-            <div><label for="presetSuffix">Suffix (after the tags)</label><input type="text" id="presetSuffix"></div>
-            <div><label for="presetNegative">Negative prompt (before the outfit's own)</label><textarea id="presetNegative"></textarea></div>
-            <div class="row tight"><span class="tiny" id="presetNote"></span><button class="small" id="presetReset" type="button" hidden>Reset to defaults</button></div>
-          </div>
-        </details>
-      </div>
-      <div><label>Model's description</label><div id="desc" class="tiny" style="color:var(--ink)"></div></div>
-      <div id="groups"></div>
-      <div><label>Negative prompt</label><pre class="out" id="neg"></pre></div>
-      <div class="group">
-        <h3>New outfits from this one</h3>
-        <div class="row">
-          <div><label for="variantDir">Direction (optional)</label><input type="text" id="variantDir" placeholder="e.g. make it winter, more gothic, idol stage outfit, keep the colors"></div>
-          <div style="flex:0 1 auto"><button class="small primary" id="variantsBtn">Design 3 variants</button></div>
-        </div>
-        <div id="variantsOut"></div>
-      </div>
-      <details><summary>Raw JSON</summary><pre class="out" id="raw"></pre></details>
-    </div>
-
-    <div class="group">
-      <h3>Catalog <span class="meta" id="catMeta"></span></h3>
-      <div class="row tight" style="margin-bottom:8px">
-        <input type="search" id="catSearch" placeholder="search name, labels, notes, tags" style="flex:1 1 180px">
-        <span id="catViews"><button class="small on" data-view="all">all</button> <button class="small" data-view="fav">★</button> <button class="small" data-view="try">to try</button> <button class="small" data-view="done">done</button></span>
-        <button class="small" id="exportCat">Export</button>
-        <label class="small" style="margin:0"><input type="file" id="importCat" accept="application/json" hidden><button class="small" type="button" id="importBtn">Import</button></label>
-      </div>
-      <div class="catalog" id="catalog"></div>
-      <p class="tiny">Saved in this browser only. Export to keep a backup or move between devices.</p>
     </div>
   </section>
 </main>
@@ -352,6 +433,8 @@ window.OUTFIT_TAGS = {
     "underwear_swimwear", "uniforms_costumes", "hair", "eyes", "body",
     "patterns", "materials", "colors", "style", "pose_framing"
   ],
+  // Scene groups (Danbooru tag groups beyond attire): read when the user asks for the whole picture.
+  sceneCategories: ["background", "composition", "lighting", "color_theme", "visual_aesthetic"],
 
   vocab: {
     tops: [
@@ -527,6 +610,65 @@ window.OUTFIT_TAGS = {
       "contrapposto", "outdoors", "indoors", "simple_background", "white_background",
       "street", "city", "night", "day", "photo_background", "realistic", "photorealistic",
       "anime_style", "illustration"
+    ],
+    background: [
+      "simple_background", "white_background", "black_background", "grey_background", "gradient_background",
+      "transparent_background", "blurry_background", "photo_background", "outdoors", "indoors", "street", "city",
+      "cityscape", "rooftop", "alley", "classroom", "hallway", "bedroom", "living_room", "kitchen", "bathroom",
+      "library", "cafe", "restaurant", "shop", "train_station", "train_interior", "bus_interior", "car_interior",
+      "office", "hospital", "shrine", "temple", "church", "castle", "ruins", "beach", "ocean", "lake", "river",
+      "waterfall", "pool", "poolside", "forest", "bamboo_forest", "garden", "field", "flower_field", "wheat_field",
+      "meadow", "mountain", "cliff", "desert", "snow", "sky", "cloudy_sky", "night_sky", "starry_sky", "sunset",
+      "sunrise", "rain", "fog", "underwater", "space", "stage", "concert", "festival", "amusement_park",
+      "park", "playground", "school", "gym", "locker_room", "onsen", "bath", "window", "curtains", "bed",
+      "couch", "chair", "desk", "table", "shelf", "bookshelf", "wall", "brick_wall", "fence", "road",
+      "crosswalk", "bridge", "stairs", "lamppost", "neon_lights", "sign", "graffiti", "tree", "cherry_blossoms",
+      "autumn_leaves", "petals", "falling_petals", "flowers", "grass", "plant", "potted_plant", "balloon",
+      "confetti", "sparkles", "bubbles", "light_particles", "lens_flare", "christmas_tree", "umbrella_(background)"
+    ],
+    composition: [
+      "full_body", "upper_body", "cowboy_shot", "portrait", "close-up", "face", "wide_shot", "very_wide_shot",
+      "feet_out_of_frame", "head_out_of_frame", "out_of_frame", "cropped_legs", "cropped_torso",
+      "from_above", "from_below", "from_side", "from_behind", "straight-on", "dutch_angle", "dynamic_angle",
+      "fisheye", "foreshortening", "perspective", "vanishing_point", "pov", "first-person_view",
+      "depth_of_field", "bokeh", "motion_blur", "motion_lines", "speed_lines", "letterboxed", "pillarboxed",
+      "border", "rounded_corners", "symmetry", "asymmetrical", "rule_of_thirds", "centered", "off-center",
+      "negative_space", "silhouette", "reflection", "mirror", "through_window", "split_screen", "multiple_views",
+      "zoom_layer", "close-up_inset", "panel_layout", "comic", "4koma", "diptych", "triptych", "looking_at_viewer",
+      "looking_away", "looking_back", "looking_to_the_side", "looking_down", "looking_up", "eye_contact",
+      "standing", "sitting", "walking", "running", "kneeling", "lying", "leaning", "leaning_forward",
+      "dynamic_pose", "contrapposto", "action_pose", "jumping", "floating", "flying"
+    ],
+    lighting: [
+      "backlighting", "rim_lighting", "sidelighting", "front_lighting", "top_lighting", "underlighting",
+      "soft_lighting", "hard_lighting", "dramatic_lighting", "cinematic_lighting", "natural_lighting",
+      "sunlight", "dappled_sunlight", "moonlight", "lamplight", "candlelight", "neon_lighting", "stage_lights",
+      "spotlight", "glowing", "glow", "light_rays", "sunbeam", "god_rays", "caustics", "lens_flare", "bloom",
+      "shadow", "shaded_face", "cast_shadow", "volumetric_lighting", "chiaroscuro", "high_contrast",
+      "low_contrast", "overexposure", "underexposure", "bright", "dim", "dark", "night", "day", "evening",
+      "golden_hour", "blue_hour", "twilight", "dusk", "dawn", "overcast", "silhouette", "reflective_light"
+    ],
+    color_theme: [
+      "monochrome", "greyscale", "sepia", "limited_palette", "partially_colored", "spot_color", "duotone",
+      "two-tone", "pastel_colors", "muted_colors", "vivid_colors", "saturated", "desaturated", "high_contrast",
+      "low_contrast", "warm_colors", "cool_colors", "warm_tones", "cool_tones", "neon_palette", "earth_tones",
+      "pink_theme", "red_theme", "orange_theme", "yellow_theme", "green_theme", "blue_theme", "purple_theme",
+      "black_theme", "white_theme", "brown_theme", "aqua_theme", "gradient", "rainbow", "iridescent",
+      "color_contrast", "complementary_colors", "analogous_colors", "triadic_colors", "dark_palette",
+      "light_palette", "film_grain", "chromatic_aberration", "color_halftone", "glitch", "halftone"
+    ],
+    visual_aesthetic: [
+      "anime_screencap", "anime_coloring", "flat_color", "cel_shading", "soft_shading", "painterly",
+      "impressionism", "watercolor_(medium)", "oil_painting_(medium)", "acrylic_paint_(medium)", "marker_(medium)",
+      "colored_pencil_(medium)", "graphite_(medium)", "ink_(medium)", "sketch", "lineart", "no_lineart",
+      "thick_lineart", "thin_lineart", "monochrome_lineart", "pixel_art", "1990s_(style)", "1980s_(style)",
+      "2000s_(style)", "retro_artstyle", "ligne_claire", "art_nouveau", "art_deco", "ukiyo-e", "sumi-e",
+      "nihonga", "pop_art", "vaporwave", "synthwave", "cyberpunk", "dieselpunk", "steampunk", "lofi",
+      "dreamy", "ethereal", "surreal", "abstract", "minimalism", "maximalism", "collage", "mixed_media",
+      "photorealistic", "realistic", "semi-realistic", "3d", "chibi", "cute", "kawaii", "dark", "gloomy",
+      "horror", "eerie", "whimsical", "nostalgic", "melancholy", "serene", "cozy", "fashion_illustration",
+      "magazine_cover", "poster_(medium)", "album_cover", "postcard", "polaroid", "film_photography",
+      "cinematic", "screenshot", "traditional_media", "digital_media", "shikishi"
     ]
   },
 
@@ -597,15 +739,36 @@ self.OTI_CORE = (() => {
   const T = self.OUTFIT_TAGS;
 
   // ======================= schemas =======================
-  const ITEM_SCHEMA = {
-    type: "object", additionalProperties: false,
-    required: ["category", "item", "color", "material", "pattern", "tags", "confidence"],
+  const ITEM_PROPS = {
+    category: { type: "string", enum: T.categories },
+    item: { type: "string", description: "Short human name, e.g. 'oversized black leather jacket'." },
+    color: { type: "string" }, material: { type: "string" }, pattern: { type: "string" },
+    tags: { type: "array", items: { type: "string" }, description: "Danbooru-style tags for this item, most specific first." },
+    confidence: { type: "number", description: "0 to 1." }
+  };
+  // Where something is in the picture, as fractions of its width and height (0 = left/top edge, 1 = right/bottom edge).
+  const REGION_SCHEMA = {
+    type: "object", additionalProperties: false, required: ["x", "y", "w", "h"],
+    description: "Bounding box of this item in the image: x, y of the top-left corner and w, h, all as fractions 0..1 of the image width and height. Zeros when it is not visible.",
+    properties: { x: { type: "number" }, y: { type: "number" }, w: { type: "number" }, h: { type: "number" } }
+  };
+  // Variants have no picture, so their items carry no region.
+  const ITEM_SCHEMA = { type: "object", additionalProperties: false, required: Object.keys(ITEM_PROPS), properties: ITEM_PROPS };
+  const IMAGE_ITEM_SCHEMA = { type: "object", additionalProperties: false, required: [...Object.keys(ITEM_PROPS), "region"], properties: { ...ITEM_PROPS, region: REGION_SCHEMA } };
+  const SCENE_GROUPS = [
+    { key: "background_tags", group: "background", label: "Background", part: "background", vocab: "background" },
+    { key: "framing_tags", group: "framing", label: "Composition / framing", part: "composition", vocab: "composition" },
+    { key: "lighting_tags", group: "lighting", label: "Lighting", part: "lighting", vocab: "lighting" },
+    { key: "color_tags", group: "colors", label: "Colors", part: "colors", vocab: "color_theme" },
+    { key: "aesthetic_tags", group: "aesthetic", label: "Visual aesthetic", part: "aesthetic", vocab: "visual_aesthetic" }
+  ];
+  const SCENE_SCHEMA = {
+    type: "object", additionalProperties: false, required: ["background_tags", "lighting_tags", "color_tags", "aesthetic_tags"],
     properties: {
-      category: { type: "string", enum: T.categories },
-      item: { type: "string", description: "Short human name, e.g. 'oversized black leather jacket'." },
-      color: { type: "string" }, material: { type: "string" }, pattern: { type: "string" },
-      tags: { type: "array", items: { type: "string" }, description: "Danbooru-style tags for this item, most specific first." },
-      confidence: { type: "number", description: "0 to 1." }
+      background_tags: { type: "array", items: { type: "string" }, description: "Setting and background elements." },
+      lighting_tags: { type: "array", items: { type: "string" }, description: "Light direction, quality, time of day, effects." },
+      color_tags: { type: "array", items: { type: "string" }, description: "Overall palette and color treatment of the picture." },
+      aesthetic_tags: { type: "array", items: { type: "string" }, description: "Medium, rendering style and visual mood of the picture as a whole." }
     }
   };
   const IDENT_ITEM = {
@@ -630,20 +793,22 @@ self.OTI_CORE = (() => {
   };
   const SCHEMA = {
     type: "object", additionalProperties: false,
-    required: ["description", "subject", "identity", "outfit", "style_tags", "framing_tags", "negative_prompt", "caption", "prose"],
+    required: ["description", "subject", "identity", "outfit", "scene", "style_tags", "framing_tags", "negative_prompt", "caption", "prose"],
     properties: {
       description: { type: "string", description: "Two or three sentences describing the outfit in plain language." },
       subject: {
-        type: "object", additionalProperties: false, required: ["count_tag", "body_tags", "hair_tags", "face_tags"],
+        type: "object", additionalProperties: false, required: ["count_tag", "body_tags", "hair_tags", "face_tags", "hair_region"],
         properties: {
           count_tag: { type: "string", description: "1girl, 1boy, 2girls, 1other, or empty if not a person." },
-          body_tags: { type: "array", items: { type: "string" } }, hair_tags: { type: "array", items: { type: "string" } }, face_tags: { type: "array", items: { type: "string" } }
+          body_tags: { type: "array", items: { type: "string" } }, hair_tags: { type: "array", items: { type: "string" } }, face_tags: { type: "array", items: { type: "string" } },
+          hair_region: REGION_SCHEMA
         }
       },
       identity: IDENTITY_SCHEMA,
-      outfit: { type: "array", description: "One entry per garment or accessory, head to toe.", items: ITEM_SCHEMA },
+      outfit: { type: "array", description: "One entry per garment or accessory, head to toe.", items: IMAGE_ITEM_SCHEMA },
+      scene: SCENE_SCHEMA,
       style_tags: { type: "array", items: { type: "string" } },
-      framing_tags: { type: "array", items: { type: "string" } },
+      framing_tags: { type: "array", items: { type: "string" }, description: "Composition: framing, camera angle, pose, depth of field." },
       negative_prompt: { type: "array", items: { type: "string" } },
       caption: { type: "string", description: "One sentence on what tags cannot express: layering, fit, how garments are worn." },
       prose: { type: "string", description: "2-4 plain-English sentences describing subject and outfit for natural-language image models." }
@@ -679,15 +844,29 @@ self.OTI_CORE = (() => {
     "One outfit entry per garment or accessory, head to toe. Include layering, fit (oversized, cropped, fitted), length and sleeve tags.",
     "The tags are for anime-style image generation (Illustrious / NoobAI / NovelAI), so translate real-world garments into the tags those models know."
   ];
+  // focus: "outfit" | "full" | "scene", or { subject, background, composition, lighting, colors, aesthetic } booleans.
+  function focusParts(focus) {
+    if (focus && typeof focus === "object") return Object.assign({ subject: true, background: false, composition: true, lighting: false, colors: false, aesthetic: false }, focus);
+    const all = focus === "scene";
+    return { subject: focus !== "outfit", background: all, composition: focus !== "outfit", lighting: all, colors: all, aesthetic: all };
+  }
   function interpretPrompt(focus, notes, context) {
+    const f = focusParts(focus);
+    const sceneOn = SCENE_GROUPS.filter(g => g.key !== "framing_tags" && f[g.part]).map(g => g.key);
+    const sceneOff = SCENE_GROUPS.filter(g => g.key !== "framing_tags" && !f[g.part]).map(g => g.key);
     return [
       "You are an expert fashion annotator for anime-style AI image generation.",
       "Look at the photo and break the outfit down into Danbooru-style tags.",
       "Rules:", ...RULES.map(r => "- " + r),
       "- Set confidence honestly: hidden, cropped or ambiguous items get lower confidence.",
-      focus === "outfit"
-        ? "- Focus on clothing and accessories only. Leave subject.hair_tags, subject.face_tags and subject.body_tags as empty arrays and framing_tags minimal."
-        : "- Also tag hair (length, style, color), face features and makeup, body type as far as visible, and framing/pose/setting.",
+      f.subject
+        ? "- Also tag hair (length, style, color), face features and makeup, and body type as far as visible."
+        : "- Focus on clothing and accessories only. Leave subject.hair_tags, subject.face_tags and subject.body_tags as empty arrays.",
+      f.composition
+        ? "- framing_tags: composition of the picture: framing (full_body, upper_body, cowboy_shot…), camera angle, pose, depth of field and other composition devices."
+        : "- framing_tags: at most the framing tag (full_body, upper_body…), nothing else.",
+      sceneOn.length ? "- scene: fill " + sceneOn.join(", ") + " with Danbooru tags for the picture as a whole, from the vocabulary where it fits: background and setting; lighting (direction, quality, time of day, effects); color_tags (palette and color treatment); aesthetic_tags (medium, rendering style, visual mood). Leave " + (sceneOff.join(", ") || "nothing") + " empty." : "- scene: leave every array empty; only the outfit is wanted.",
+      "- region: for every outfit item, and for subject.hair_region, give the bounding box in the image as fractions of its width and height (x, y of the top-left corner, w, h), as accurately as you can; it is used to draw labels pointing at each item. Use zeros for anything not visible.",
       "- identity: when you recognize a FICTIONAL character, its series, or a named or iconic outfit, give the Danbooru tags (character tags like hatsune_miku, copyright tags like vocaloid, outfit tags like tokiwadai_school_uniform or plugsuit). Use Danbooru's spelling and name order (family name first for Japanese names, series qualifier in parentheses when Danbooru uses one, e.g. saber_(fate)). Base it on real evidence such as signature design details, emblems, logos or text, and say what it was. If you are not reasonably sure, leave the arrays empty rather than guess.",
       "- If a real person is cosplaying, you may name the fictional character being cosplayed (set cosplay to true), but never identify, name or describe the identity of any real person, and never guess an age as a number.",
       "- negative_prompt: 3 to 8 tags for things a generator would likely add wrongly.",
@@ -726,15 +905,26 @@ self.OTI_CORE = (() => {
   }
 
   const norm = (arr) => (Array.isArray(arr) ? arr : []).map(T.normalize).filter(Boolean);
-  function normalizeResult(j) {
+  // A box as fractions of the image, or null when the model gave none (all zeros or too small to mean anything).
+  function region(r) {
+    if (!r || typeof r !== "object") return null;
+    const n = (v) => Math.max(0, Math.min(1, Number(v) || 0));
+    const b = { x: n(r.x), y: n(r.y), w: n(r.w), h: n(r.h) };
+    if (b.w < 0.01 || b.h < 0.01) return null;
+    if (b.x + b.w > 1) b.w = 1 - b.x;
+    if (b.y + b.h > 1) b.h = 1 - b.y;
+    return b;
+  }
+  function normalizeResult(j, focus) {
     const subject = j.subject || {};
     const r = {
       description: j.description || "",
-      subject: { count_tag: T.normalize(subject.count_tag || ""), body_tags: norm(subject.body_tags), hair_tags: norm(subject.hair_tags), face_tags: norm(subject.face_tags) },
+      subject: { count_tag: T.normalize(subject.count_tag || ""), body_tags: norm(subject.body_tags), hair_tags: norm(subject.hair_tags), face_tags: norm(subject.face_tags), hair_region: region(subject.hair_region) },
       outfit: (Array.isArray(j.outfit) ? j.outfit : []).map(o => ({
         category: T.categories.includes(o.category) ? o.category : "accessories", item: o.item || "", color: o.color || "", material: o.material || "", pattern: o.pattern || "",
-        tags: norm(o.tags), confidence: Math.max(0, Math.min(1, Number(o.confidence) || 0))
+        tags: norm(o.tags), confidence: Math.max(0, Math.min(1, Number(o.confidence) || 0)), region: region(o.region)
       })),
+      scene: Object.fromEntries(SCENE_GROUPS.filter(g => g.key !== "framing_tags").map(g => [g.key, focus && !focusParts(focus)[g.part] ? [] : norm((j.scene || {})[g.key])])),  // drop groups that were not asked for, even if the model filled them
       style_tags: norm(j.style_tags), framing_tags: norm(j.framing_tags), negative_prompt: norm(j.negative_prompt)
     };
     // Identity becomes three tag lists, so chips, remix and copy treat them like any other tags.
@@ -776,7 +966,7 @@ self.OTI_CORE = (() => {
   function presetOf(id, overrides) { return Object.assign({}, PRESETS[id] || PRESETS.none, (overrides || {})[id] || {}); }
 
   // ======================= sentences =======================
-  const NON_OUTFIT = ["subject", "character", "hair", "face", "framing"];
+  const NON_OUTFIT = ["subject", "character", "hair", "face", "framing", "background", "lighting", "colors", "aesthetic"];
   const sp = (t) => String(t).replace(/_/g, " ");
   // Signature of the tags a sentence describes, so edits can be detected.
   function tagSig(res, excluded) { return orderedTags(res).map(x => x.tag).filter(t => !(excluded && excluded.has(t))).sort().join(","); }
@@ -796,6 +986,11 @@ self.OTI_CORE = (() => {
     const out = [who + (body.length ? ` (${body.join(", ")})` : "") + (looks.length ? ` with ${listJoin(looks)}` : "") + (items.length ? `, wearing ${listJoin(items)}` : "") + "."];
     const style = res.style_tags.filter(keep).map(sp), framing = res.framing_tags.filter(keep).map(sp);
     if (style.length) out.push(cap(listJoin(style)) + " style.");
+    const sc = res.scene || {}, bg = (sc.background_tags || []).filter(keep).map(sp), light = (sc.lighting_tags || []).filter(keep).map(sp);
+    const col = (sc.color_tags || []).filter(keep).map(sp), aes = (sc.aesthetic_tags || []).filter(keep).map(sp);
+    if (bg.length) out.push("Background: " + listJoin(bg) + ".");
+    if (light.length || col.length) out.push(cap(listJoin([...light, ...col])) + ".");
+    if (aes.length) out.push(cap(listJoin(aes)) + " look.");
     if (framing.length) out.push(cap(framing.join(", ")) + ".");
     return out.join(" ");
   }
@@ -849,7 +1044,13 @@ self.OTI_CORE = (() => {
     res.subject.body_tags.forEach(t => add(t, 1, "subject")); res.subject.hair_tags.forEach(t => add(t, 1, "hair")); res.subject.face_tags.forEach(t => add(t, 1, "face"));
     (res.named_outfit_tags || []).forEach(t => add(t, idConf(t), "named outfit"));
     res.outfit.forEach(o => o.tags.forEach(t => add(t, o.confidence, o.item || o.category)));
-    res.style_tags.forEach(t => add(t, 0.8, "style")); res.framing_tags.forEach(t => add(t, 1, "framing"));
+    res.style_tags.forEach(t => add(t, 0.8, "style"));
+    const sc = res.scene || {};
+    (sc.background_tags || []).forEach(t => add(t, 0.9, "background"));
+    (sc.lighting_tags || []).forEach(t => add(t, 0.9, "lighting"));
+    (sc.color_tags || []).forEach(t => add(t, 0.9, "colors"));
+    (sc.aesthetic_tags || []).forEach(t => add(t, 0.9, "aesthetic"));
+    res.framing_tags.forEach(t => add(t, 1, "framing"));
     return out;
   }
 
@@ -899,7 +1100,31 @@ self.OTI_CORE = (() => {
 
   // Identity tags Danbooru has never heard of: shown, but left out of the prompt until the user puts them back.
   function unverifiedIdentity(res) { return Object.entries(res.identity_check || {}).filter(([, c]) => c.status === "missing").map(([t]) => t); }
-  return { ITEM_SCHEMA, IDENTITY_SCHEMA, unverifiedIdentity, SCHEMA, VARIANTS_SCHEMA, SENTENCE_SCHEMA, swapName, verifyIdentity, contextLines, RULES, PRESETS, NON_OUTFIT, interpretPrompt, variantsPrompt, sentencePrompt, normalizeResult, orderedTags, presetOf, emph, tagSig, sentencesFor, composeProse, formatPrompt };
+  // ======================= full-size previews (IndexedDB) =======================
+  // The catalog entry keeps a 128px thumbnail; the picture itself (for the annotated map) lives here, keyed by entry id.
+  const previews = (() => {
+    const open = () => new Promise((res, rej) => {
+      if (typeof indexedDB === "undefined") return rej(new Error("no IndexedDB"));
+      const r = indexedDB.open("oti", 1);
+      r.onupgradeneeded = () => { r.result.createObjectStore("previews"); };
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    });
+    const tx = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => { const t = db.transaction("previews", mode), st = t.objectStore("previews"); const q = fn(st); t.oncomplete = () => { db.close(); res(q && q.result); }; t.onerror = () => { db.close(); rej(t.error); }; }); };
+    return {
+      put: (id, dataUrl) => tx("readwrite", st => st.put(dataUrl, id)).catch(() => false),
+      get: (id) => tx("readonly", st => st.get(id)).catch(() => null),
+      delete: (id) => tx("readwrite", st => st.delete(id)).catch(() => false)
+    };
+  })();
+  // Points worth labelling on the picture: hair and every outfit item with a region.
+  function annotations(res) {
+    const out = [];
+    if (res.subject && res.subject.hair_region && res.subject.hair_tags.length) out.push({ key: "hair", label: "Hair", tags: res.subject.hair_tags, region: res.subject.hair_region });
+    (res.outfit || []).forEach((o, i) => { if (o.region) out.push({ key: "o" + i, label: o.item || o.category, tags: o.tags, region: o.region, item: o }); });
+    return out;
+  }
+
+  return { ITEM_SCHEMA, IMAGE_ITEM_SCHEMA, REGION_SCHEMA, SCENE_GROUPS, IDENTITY_SCHEMA, unverifiedIdentity, focusParts, region, previews, annotations, SCHEMA, VARIANTS_SCHEMA, SENTENCE_SCHEMA, swapName, verifyIdentity, contextLines, RULES, PRESETS, NON_OUTFIT, interpretPrompt, variantsPrompt, sentencePrompt, normalizeResult, orderedTags, presetOf, emph, tagSig, sentencesFor, composeProse, formatPrompt };
 })();
 
 </script>
@@ -972,7 +1197,10 @@ window.OTI = (() => {
         const mediaType = "image/jpeg"; const dataUrl = c.toDataURL(mediaType, 0.9);
         const t = document.createElement("canvas"); t.width = t.height = 128; const side = Math.min(w, h);
         t.getContext("2d").drawImage(c, (w - side) / 2, (h - side) / 2, side, side, 0, 0, 128, 128);
-        c.toBlob((blob) => resolve({ dataUrl, mediaType, blob, base64: dataUrl.split(",")[1], w, h, name: file.name, thumb: t.toDataURL("image/jpeg", 0.7) }), mediaType, 0.9);
+        // a smaller copy is kept with the catalog entry so the map can draw labels on it later
+        const ps = Math.min(1, 768 / Math.max(w, h)); const p = document.createElement("canvas"); p.width = Math.round(w * ps); p.height = Math.round(h * ps);
+        p.getContext("2d").drawImage(c, 0, 0, p.width, p.height);
+        c.toBlob((blob) => resolve({ dataUrl, mediaType, blob, base64: dataUrl.split(",")[1], w, h, name: file.name, thumb: t.toDataURL("image/jpeg", 0.7), preview: p.toDataURL("image/jpeg", 0.82) }), mediaType, 0.9);
       };
       img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("decode failed")); };
       img.src = url;
@@ -988,13 +1216,13 @@ window.OTI = (() => {
   let selected = null;   // the queue item shown in the results, or null (e.g. a catalog entry is open)
   let busy = false;
 
-  async function loadFile(file, context) {
+  async function loadFile(file, context, sourceUrl) {
     if (!file || !file.type || !file.type.startsWith("image/")) { setStatus("That file is not an image.", "bad"); return false; }
     if (queue.length >= QUEUE_MAX) { setStatus(`The queue holds ${QUEUE_MAX} outfits. Remove one to add another.`, "warn"); return false; }
     setStatus("Loading image…");
     try {
       const img = await prepareImage(file);
-      const item = { id: "q" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), image: img, name: (file.name || "outfit").replace(/\.[^.]+$/, ""), status: "waiting", result: null, entryId: null, excluded: new Set(), error: "", context: context || null };
+      const item = { id: "q" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), image: img, name: (file.name || "outfit").replace(/\.[^.]+$/, ""), status: "waiting", result: null, entryId: null, excluded: new Set(), error: "", context: context || null, fileName: file.name || "", sourceUrl: sourceUrl || "" };
       queue.push(item);
       $("imgInfo").textContent = `${file.name} · ${img.w}×${img.h} · ${Math.round(img.blob.size / 1024)} KB`;
       if (!busy && (!selected || !selected.result)) select(item); else renderQueue();
@@ -1008,6 +1236,21 @@ window.OTI = (() => {
     const room = QUEUE_MAX - queue.length;
     for (const f of list.slice(0, Math.max(0, room))) await loadFile(f);
     if (list.length > room) setStatus(`Added ${Math.max(0, room)} of ${list.length}: the queue holds ${QUEUE_MAX} outfits.`, "warn");
+  }
+  // What to read: the select plus, for "everything", the ticked parts of the picture.
+  function focusValue() {
+    const f = $("focus").value;
+    if (f !== "scene") return f;
+    return { subject: true, background: $("partBackground").checked, composition: $("partComposition").checked, lighting: $("partLighting").checked, colors: $("partColors").checked, aesthetic: $("partAesthetic").checked };
+  }
+  function bindFocus() {
+    const parts = ["partBackground", "partComposition", "partLighting", "partColors", "partAesthetic"];
+    $("focus").value = ls("oti.focus") || "full";
+    try { const saved = JSON.parse(ls("oti.sceneParts") || "null"); if (saved) parts.forEach(p => { $(p).checked = saved[p] !== false; }); } catch {}
+    const sync = () => { $("sceneParts").hidden = $("focus").value !== "scene"; };
+    $("focus").addEventListener("change", () => { ls("oti.focus", $("focus").value); sync(); });
+    parts.forEach(p => $(p).addEventListener("change", () => ls("oti.sceneParts", JSON.stringify(Object.fromEntries(parts.map(q => [q, $(q).checked]))))));
+    sync();
   }
   function runLabel() {
     const n = queue.filter(q => q.status === "waiting" || q.status === "failed").length;
@@ -1029,6 +1272,7 @@ window.OTI = (() => {
   }
   function showPending(item) {
     $("out").hidden = true; $("outputControls").hidden = true; $("empty").hidden = false;
+    $("mapWrap").hidden = true; $("mapEmpty").hidden = false; $("ideasWrap").hidden = true; $("ideasEmpty").hidden = false;
     if (!item) { $("empty").textContent = "Results will show up here as grouped, toggleable tags."; return; }
     const msg = item.status === "reading" ? "Reading this outfit…" : item.status === "failed" ? "Failed: " + item.error : `Not read yet. Click “${runLabel()}”.`;
     $("empty").innerHTML = `<img src="${item.image.dataUrl}" alt="" style="max-height:260px;max-width:100%;border-radius:8px;display:block;margin:0 auto 8px"><span>${esc(msg)}</span>`;
@@ -1085,12 +1329,13 @@ window.OTI = (() => {
       item.status = "reading"; item.error = ""; renderQueue();
       setStatus(todo.length > 1 ? `Reading ${i + 1} of ${todo.length}… (10–60 s each)` : "Thinking… (usually 10–60 s)");
       try {
-        const r = await P().interpret({ image: item.image, prompt: interpretPrompt($("focus").value, $("notes").value.trim(), item.context), schema: SCHEMA, fresh: !!regenerate });
-        item.result = normalizeResult(r.json); item.excluded = new Set(); servedBy = r.servedBy;
+        const r = await P().interpret({ image: item.image, prompt: interpretPrompt(focusValue(), $("notes").value.trim(), item.context), schema: SCHEMA, fresh: !!regenerate });
+        item.result = normalizeResult(r.json, focusValue()); item.excluded = new Set(); servedBy = r.servedBy;
         await verifyIdentityOf(item.result);
         item.excluded = new Set(C.unverifiedIdentity(item.result));
         item.status = "done"; ok++;
-        item.entryId = addEntry({ name: item.name, thumb: item.image.thumb, source: "photo", model: r.servedBy, result: item.result }).id;
+        item.entryId = addEntry({ name: item.name, thumb: item.image.thumb, source: "photo", model: r.servedBy, result: item.result, sourceName: item.fileName, sourceUrl: item.sourceUrl || (item.context && item.context.url ? "https://" + item.context.url : "") }).id;
+        C.previews.put(item.entryId, item.image.preview || item.image.dataUrl);
         // Show the first finished outfit, and keep showing whatever the user picked after that.
         if (selected === item || !selected || !selected.result) select(item); else { renderQueue(); renderCatalog(); }
       } catch (e) {
@@ -1319,8 +1564,14 @@ window.OTI = (() => {
     });
     if (remix) { const addG = document.createElement("div"); addG.className = "group"; const sel = document.createElement("select"); T.categories.forEach(c => { const op = document.createElement("option"); op.value = c; op.textContent = c.replace(/_/g, " "); sel.appendChild(op); }); const r = document.createElement("div"); r.className = "row"; r.append(sel, btn("+ add garment", () => { result.outfit.push({ category: sel.value, item: "new " + sel.value.replace(/_/g, " "), color: "", material: "", pattern: "", tags: [], confidence: 0.9 }); render(); })); addG.appendChild(r); g.appendChild(addG); }
     addGroup("Style", "", result.style_tags, null, (i) => result.style_tags.splice(i, 1));
-    addGroup("Framing / setting", "", result.framing_tags, null, (i) => result.framing_tags.splice(i, 1));
+    if (!result.scene) result.scene = { background_tags: [], lighting_tags: [], color_tags: [], aesthetic_tags: [] };
+    C.SCENE_GROUPS.forEach(g => {
+      const list = g.key === "framing_tags" ? result.framing_tags : (result.scene[g.key] = result.scene[g.key] || []);
+      addGroup(g.label, "", list, null, (i) => list.splice(i, 1));
+    });
     $("neg").textContent = f.negative;
+    $("ideasWrap").hidden = false; $("ideasEmpty").hidden = true;
+    renderMap();
     $("raw").textContent = JSON.stringify(result, null, 2);
     renderCurrentHeader(); renderCatalog();
   }
@@ -1328,6 +1579,87 @@ window.OTI = (() => {
     const out = [];
     catalog.forEach(e => { if (e.id === excludeId) return; (e.result.outfit || []).forEach((o, i) => { if (o.category === category) out.push([`${o.item || category} — ${e.name}`, `${e.id}:${i}`]); }); });
     return out;
+  }
+
+  // ======================= tabs =======================
+  let tab = "tags";
+  function showTab(name) {
+    tab = name; ls("oti.tab", name);
+    document.querySelectorAll("#tabs button").forEach(b => { const on = b.dataset.tab === name; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on ? "true" : "false"); });
+    document.querySelectorAll(".tab").forEach(t => { t.hidden = t.dataset.tab !== name; });
+    if (name === "map") renderMap();
+  }
+  function bindTabs() {
+    document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => showTab(b.dataset.tab)));
+    const saved = ls("oti.tab"); showTab(saved && document.querySelector(`#tabs button[data-tab="${saved}"]`) ? saved : "tags");
+  }
+
+  // ======================= map: the picture with a label on each item =======================
+  let mapHot = null, mapOriginal = null, mapFor = null;
+  async function mapPicture() {
+    if (selected && selected.result === result && selected.image) return selected.image.preview || selected.image.dataUrl;
+    if (current) return await C.previews.get(current.id);
+    return null;
+  }
+  async function renderMap() {
+    if (!result || tab !== "map") return;
+    const key = current ? current.id : selected ? selected.id : null;
+    if (mapFor !== key) { mapOriginal = null; mapHot = null; mapFor = key; $("mapReset").hidden = true; }
+    const pic = await mapPicture();
+    if (!pic) { $("mapWrap").hidden = true; $("mapEmpty").hidden = false; $("mapEmpty").textContent = "The full picture was not kept for this outfit (it was saved before pictures were kept, imported, or designed without a photo), so there is nothing to draw on."; return; }
+    const ann = C.annotations(result);
+    $("mapWrap").hidden = false; $("mapEmpty").hidden = true;
+    const img = $("mapImage");
+    if (img.src !== pic) { img.src = pic; if (!img.complete) await new Promise(r => { img.onload = r; img.onerror = r; }); }
+    layoutMap(ann);
+  }
+  function layoutMap(ann) {
+    const img = $("mapImage"), wrap = $("mapImg"), labels = $("mapLabels"), svg = $("mapSvg"), map = $("map");
+    wrap.querySelectorAll(".mapDot, .mapBox").forEach(n => n.remove()); labels.innerHTML = ""; svg.innerHTML = "";
+    if (!ann.length) { labels.innerHTML = '<p class="tiny">The model gave no positions for this outfit. Regenerate to get them.</p>'; return; }
+    const iw = img.clientWidth, ih = img.clientHeight, showBoxes = $("mapBoxes").checked, narrow = matchMedia("(max-width: 700px)").matches;
+    const mapBox = map.getBoundingClientRect(), imgBox = img.getBoundingClientRect(), labBox = labels.getBoundingClientRect();
+    const pts = ann.map((a, i) => ({ a, i, cx: (a.region.x + a.region.w / 2) * iw, cy: (a.region.y + a.region.h / 2) * ih }));
+    // dots and optional boxes on the picture
+    pts.forEach(p => {
+      if (showBoxes) { const b = document.createElement("div"); b.className = "mapBox" + (p.a.key === "hair" ? " hair" : ""); b.style.left = p.a.region.x * iw + "px"; b.style.top = p.a.region.y * ih + "px"; b.style.width = p.a.region.w * iw + "px"; b.style.height = p.a.region.h * ih + "px"; wrap.appendChild(b); }
+      const d = document.createElement("div"); d.className = "mapDot" + (p.a.key === "hair" ? " hair" : "") + (mapHot === p.a.key ? " hot" : "");
+      d.style.left = p.cx + "px"; d.style.top = p.cy + "px"; d.textContent = narrow ? String(p.i + 1) : ""; d.title = p.a.label + " · drag to move";
+      d.addEventListener("pointerenter", () => hot(p.a.key)); d.addEventListener("pointerleave", () => hot(null));
+      d.addEventListener("pointerdown", (e) => startDrag(e, p.a, d));
+      wrap.appendChild(d);
+    });
+    // labels down the side, in picture order, pushed apart so they never overlap
+    const order = [...pts].sort((x, y) => x.cy - y.cy);
+    const els = order.map(p => { const l = document.createElement("div"); l.className = "mapLabel" + (mapHot === p.a.key ? " hot" : ""); l.innerHTML = `<b><span class="n">${p.i + 1}</span>${esc(p.a.label)}</b><span class="tiny">${esc(p.a.tags.slice(0, 5).join(", "))}${p.a.item && p.a.item.confidence != null ? " · " + p.a.item.confidence.toFixed(2) : ""}</span>`; l.addEventListener("pointerenter", () => hot(p.a.key)); l.addEventListener("pointerleave", () => hot(null)); labels.appendChild(l); return l; });
+    if (narrow) return;
+    const gap = 6; let y = 0; const tops = [];
+    order.forEach((p, k) => { const h = els[k].offsetHeight; const want = Math.max(y, p.cy - h / 2); tops.push(want); y = want + h + gap; });
+    const over = y - gap - Math.max(ih, labels.offsetHeight);                      // keep the column inside the picture's height
+    if (over > 0) for (let k = tops.length - 1, floor = Infinity; k >= 0; k--) { const h = els[k].offsetHeight; tops[k] = Math.min(tops[k], floor - gap - h); floor = tops[k]; }
+    labels.style.minHeight = ih + "px";
+    order.forEach((p, k) => {
+      els[k].style.top = Math.max(0, tops[k]) + "px";
+      const x1 = imgBox.left - mapBox.left + p.cx, y1 = imgBox.top - mapBox.top + p.cy, x2 = labBox.left - mapBox.left, y2 = Math.max(0, tops[k]) + els[k].offsetHeight / 2;
+      const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+      line.setAttribute("x1", x1); line.setAttribute("y1", y1); line.setAttribute("x2", x2); line.setAttribute("y2", y2); line.setAttribute("class", (p.a.key === "hair" ? "hair" : "") + (mapHot === p.a.key ? " hot" : "")); line.dataset.key = p.a.key; svg.appendChild(line);
+    });
+  }
+  function hot(key) { if (mapHot === key) return; mapHot = key; layoutMap(C.annotations(result)); }
+  function startDrag(e, a, dot) {
+    e.preventDefault(); dot.setPointerCapture(e.pointerId);
+    if (!mapOriginal) mapOriginal = clone({ hair: result.subject.hair_region, outfit: result.outfit.map(o => o.region) });
+    const img = $("mapImage"), rect = () => img.getBoundingClientRect();
+    const move = (ev) => { const r = rect(); const fx = Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)), fy = Math.max(0, Math.min(1, (ev.clientY - r.top) / r.height));
+      a.region.x = Math.max(0, Math.min(1 - a.region.w, fx - a.region.w / 2)); a.region.y = Math.max(0, Math.min(1 - a.region.h, fy - a.region.h / 2));
+      dot.style.left = (a.region.x + a.region.w / 2) * r.width + "px"; dot.style.top = (a.region.y + a.region.h / 2) * r.height + "px"; };
+    const up = () => { dot.removeEventListener("pointermove", move); dot.removeEventListener("pointerup", up); $("mapReset").hidden = false; layoutMap(C.annotations(result)); setStatus("Moved “" + a.label + "”. Click “Update this outfit” on the Tags tab to keep the new position.", "ok"); };
+    dot.addEventListener("pointermove", move); dot.addEventListener("pointerup", up);
+  }
+  function bindMap() {
+    $("mapBoxes").addEventListener("change", () => layoutMap(C.annotations(result)));
+    $("mapReset").addEventListener("click", () => { if (!mapOriginal) return; result.subject.hair_region = mapOriginal.hair; result.outfit.forEach((o, i) => { o.region = mapOriginal.outfit[i] || o.region; }); mapOriginal = null; $("mapReset").hidden = true; layoutMap(C.annotations(result)); });
+    let t = null; new ResizeObserver(() => { clearTimeout(t); t = setTimeout(() => { if (tab === "map" && result && !$("mapWrap").hidden) layoutMap(C.annotations(result)); }, 60); }).observe($("map"));
   }
 
   // ======================= catalog =======================
@@ -1355,7 +1687,7 @@ window.OTI = (() => {
     catalog.push(e); while (catalog.length > 150) { const v = catalog.findIndex(x => !x.fav); if (v < 0) break; catalog.splice(v, 1); }
     saveCatalog(); return e;
   }
-  function openEntry(e) { if (selected) { selected.excluded = excluded; selected = null; renderQueue(); } current = e; headerFor = undefined; result = clone(e.result); excluded = new Set(C.unverifiedIdentity(result)); remix = false; lookup = new Map(); variants = []; $("variantsOut").innerHTML = ""; render(); setStatus(`Opened “${e.name}”.`, "ok"); }
+  function openEntry(e) { if (selected) { selected.excluded = excluded; selected = null; renderQueue(); } current = e; headerFor = undefined; result = clone(e.result); excluded = new Set(C.unverifiedIdentity(result)); remix = false; lookup = new Map(); variants = []; $("variantsOut").innerHTML = ""; if (tab === "catalog" || tab === "settings") showTab("tags"); render(); setStatus(`Opened “${e.name}”.`, "ok"); }
   let headerFor = undefined; // which entry the header inputs were last filled from
   function renderCurrentHeader() {
     const h = $("currentHeader"); h.hidden = false;
@@ -1365,7 +1697,7 @@ window.OTI = (() => {
       if (headerFor !== key) { $("outfitLabels").value = ""; $("outfitNotes").value = ""; $("favBtn").textContent = "☆"; $("statusSel").value = "new"; }
       headerFor = key; return;
     }
-    $("currentState").textContent = `In catalog · ${new Date(current.ts).toLocaleDateString()}${current.source !== "photo" ? " · " + current.source : ""}`;
+    $("currentState").innerHTML = `In catalog · ${new Date(current.ts).toLocaleDateString()}${current.source !== "photo" ? " · " + esc(current.source) : ""}${sourceHtml(current, " · ")}`;
     $("saveNew").textContent = "Save as copy"; $("saveUpdate").hidden = false; $("favBtn").textContent = current.fav ? "★" : "☆";
     if (headerFor !== key) { $("outfitName").value = current.name; $("outfitLabels").value = current.labels.join(", "); $("outfitNotes").value = current.notes; $("statusSel").value = current.status; }
     headerFor = key;
@@ -1373,32 +1705,38 @@ window.OTI = (() => {
   function readHeader() { return { name: $("outfitName").value.trim() || "outfit", labels: $("outfitLabels").value.split(",").map(x => x.trim().toLowerCase()).filter(Boolean), notes: $("outfitNotes").value.trim(), status: $("statusSel").value }; }
   function bindCatalogUI() {
     $("saveUpdate").addEventListener("click", () => { if (!current) return; Object.assign(current, readHeader(), { result: clone(result) }); saveCatalog(); renderCatalog(); setStatus(`Updated “${current.name}”.`, "ok"); });
-    $("saveNew").addEventListener("click", () => { if (!result) return; const meta = readHeader(); const e = addEntry(Object.assign(meta, { name: current && meta.name === current.name ? meta.name + " (remix)" : meta.name, thumb: current?.thumb || image?.thumb || "", source: current ? "remix" : "photo", parentId: current?.id || null, fav: current?.fav || false, result: clone(result) })); current = e; headerFor = undefined; render(); setStatus(`Saved “${e.name}”.`, "ok"); });
+    $("saveNew").addEventListener("click", () => { if (!result) return; const meta = readHeader(); const e = addEntry(Object.assign(meta, { name: current && meta.name === current.name ? meta.name + " (remix)" : meta.name, thumb: current?.thumb || image?.thumb || "", source: current ? "remix" : "photo", parentId: current?.id || null, fav: current?.fav || false, result: clone(result), sourceName: current?.sourceName || image?.name || "", sourceUrl: current?.sourceUrl || "" })); (async () => { const pic = await mapPicture(); if (pic) C.previews.put(e.id, pic); })(); current = e; headerFor = undefined; render(); setStatus(`Saved “${e.name}”.`, "ok"); });
     $("favBtn").addEventListener("click", () => { if (!current) { $("favBtn").textContent = $("favBtn").textContent === "★" ? "☆" : "★"; return; } current.fav = !current.fav; saveCatalog(); $("favBtn").textContent = current.fav ? "★" : "☆"; renderCatalog(); });
     $("statusSel").addEventListener("change", () => { if (current) { current.status = $("statusSel").value; saveCatalog(); renderCatalog(); } });
     $("deleteBtn").addEventListener("click", () => { if (!current) return; $("deleteYes").hidden = false; setTimeout(() => { $("deleteYes").hidden = true; }, 4000); });
-    $("deleteYes").addEventListener("click", () => { catalog = catalog.filter(e => e !== current); saveCatalog(); current = null; $("deleteYes").hidden = true; render(); setStatus("Deleted from the catalog.", "ok"); });
+    $("deleteYes").addEventListener("click", () => { if (current) C.previews.delete(current.id); catalog = catalog.filter(e => e !== current); saveCatalog(); current = null; $("deleteYes").hidden = true; render(); setStatus("Deleted from the catalog.", "ok"); });
     $("catSearch").addEventListener("input", () => { filter.q = $("catSearch").value.trim().toLowerCase(); renderCatalog(); });
     document.querySelectorAll("#catViews button").forEach(b => b.addEventListener("click", () => { filter.view = b.dataset.view; document.querySelectorAll("#catViews button").forEach(x => x.classList.toggle("on", x === b)); renderCatalog(); }));
     $("exportCat").addEventListener("click", () => download("outfit-catalog.json", JSON.stringify(catalog, null, 2)));
     $("importCat").addEventListener("change", async (e) => { const f = e.target.files[0]; if (!f) return; try { const arr = JSON.parse(await f.text()); if (!Array.isArray(arr)) throw 0; const ids = new Set(catalog.map(x => x.id)); let n = 0; arr.forEach(x => { if (x && x.result && !ids.has(x.id)) { catalog.push(x); n++; } }); saveCatalog(); catalog = loadCatalog(); renderCatalog(); setStatus(`Imported ${n} outfit${n === 1 ? "" : "s"}.`, "ok"); } catch { setStatus("That file is not a catalog export.", "bad"); } e.target.value = ""; });
   }
+  // Where an entry's picture came from: a link to the page, else the file name.
+  function sourceHtml(e, sep = "") {
+    if (e.sourceUrl) { let host = e.sourceUrl; try { host = new URL(e.sourceUrl).hostname.replace(/^www\./, ""); } catch {} return `${sep}from <a href="${esc(e.sourceUrl)}" target="_blank" rel="noopener" title="${esc(e.sourceUrl)}">${esc(host)}</a>`; }
+    if (e.sourceName) return `${sep}from ${esc(e.sourceName)}`;
+    return "";
+  }
   function entryMatches(e) {
     if (filter.view === "fav" && !e.fav) return false; if (filter.view === "try" && e.status !== "try") return false; if (filter.view === "done" && e.status !== "done") return false;
     if (!filter.q) return true;
-    const hay = [e.name, e.notes, ...e.labels, ...orderedTagsOf(e.result, true).map(x => x.tag)].join(" ").toLowerCase();
+    const hay = [e.name, e.notes, e.sourceName || "", e.sourceUrl || "", ...e.labels, ...orderedTagsOf(e.result, true).map(x => x.tag)].join(" ").toLowerCase();
     return filter.q.split(/\s+/).every(w => hay.includes(w));
   }
   function renderCatalog() {
     const grid = $("catalog"); grid.innerHTML = "";
     const list = catalog.filter(entryMatches).sort((a, b) => b.ts - a.ts);
-    $("catMeta").textContent = `${list.length} of ${catalog.length}`;
+    $("catMeta").textContent = `${list.length} of ${catalog.length}`; $("catCount").textContent = catalog.length ? `(${catalog.length})` : "";
     if (!list.length) { grid.innerHTML = `<p class="tiny">${catalog.length ? "Nothing matches." : "No outfits yet. Interpret a photo to start the catalog."}</p>`; return; }
     list.forEach(e => {
       const card = document.createElement("div"); card.className = "card" + (e === current ? " active" : "");
       const tags = orderedTagsOf(e.result, true).filter(x => !["subject", "hair", "face", "framing"].includes(x.group)).slice(0, 6).map(x => x.tag);
-      card.innerHTML = `${e.thumb ? `<img src="${e.thumb}" alt="">` : `<div class="noimg">${esc(e.source)}</div>`}<div class="cbody"><div class="cname">${e.fav ? "★ " : ""}${esc(e.name)}</div><div class="tiny">${esc(tags.join(", "))}</div>${e.labels.length ? `<div class="labels">${e.labels.map(l => `<span>${esc(l)}</span>`).join("")}</div>` : ""}<div class="tiny stat ${e.status}">${{ new: "", try: "to try", done: "done" }[e.status] || ""}</div></div>`;
-      card.addEventListener("click", () => openEntry(e)); grid.appendChild(card);
+      card.innerHTML = `${e.thumb ? `<img src="${e.thumb}" alt="">` : `<div class="noimg">${esc(e.source)}</div>`}<div class="cbody"><div class="cname">${e.fav ? "★ " : ""}${esc(e.name)}</div><div class="tiny">${esc(tags.join(", "))}</div>${e.labels.length ? `<div class="labels">${e.labels.map(l => `<span>${esc(l)}</span>`).join("")}</div>` : ""}${sourceHtml(e) ? `<div class="csrc">${sourceHtml(e)}</div>` : ""}<div class="tiny stat ${e.status}">${{ new: "", try: "to try", done: "done" }[e.status] || ""}</div></div>`;
+      card.addEventListener("click", (ev) => { if (ev.target.closest("a")) return; openEntry(e); }); grid.appendChild(card);
     });
   }
 
@@ -1414,7 +1752,7 @@ window.OTI = (() => {
   function init() {
     catalog = loadCatalog();
     $("importBtn").addEventListener("click", () => $("importCat").click());
-    bindImageInput(); bindCatalogUI(); renderQueue();
+    bindImageInput(); bindCatalogUI(); bindFocus(); bindMap(); renderQueue();
     loadPresets(); $("fmt").value = ls(LS.fmt) || C.PRESETS[presetId].format; if (!$("fmt").value) $("fmt").value = "danbooru"; $("minConf").value = ls(LS.minConf) || "0.5";
     bindPresetUI(); $("sentenceBtn").addEventListener("click", rewriteSentences);
     $("fmt").addEventListener("change", () => { ls(LS.fmt, $("fmt").value); render(); }); $("minConf").addEventListener("change", () => { ls(LS.minConf, $("minConf").value); render(); });
@@ -1428,13 +1766,13 @@ window.OTI = (() => {
     $("checkBtn").addEventListener("click", checkTags);
     $("remixBtn").addEventListener("click", () => { remix = !remix; render(); if (remix) setStatus("Remix mode: × deletes tags, add tags per group, swap garments from the catalog, then save.", "ok"); });
     if (P().download === undefined && P().hideDownload) $("dlJson").hidden = true;
-    renderCatalog();
+    renderCatalog(); bindTabs();
     if (catalog.length) { const last = catalog[catalog.length - 1]; openEntry(last); setStatus("Showing your latest outfit. Drop a new photo to interpret another."); }
   }
   // Re-read the catalog after another part of the app (e.g. the browser extension) changed storage.
   function reloadCatalog() { catalog = loadCatalog(); if (current) current = catalog.find(e => e.id === current.id) || null; renderCatalog(); }
   function openById(id) { const e = catalog.find(x => x.id === id); if (e) openEntry(e); return !!e; }
-  return { init, setStatus, loadFile, loadFiles, run, get queueRoom() { return QUEUE_MAX - queue.length; }, reloadCatalog, openById, get result() { return result; }, get catalog() { return catalog; } };
+  return { init, setStatus, loadFile, loadFiles, run, showTab, get queueRoom() { return QUEUE_MAX - queue.length; }, reloadCatalog, openById, get result() { return result; }, get catalog() { return catalog; } };
 })();
 
 </script>
