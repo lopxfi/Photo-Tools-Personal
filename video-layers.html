@@ -291,13 +291,6 @@ input[type=color]{width:40px;height:32px;border:1px solid var(--line);border-rad
   .cvh{width:30px;height:30px;margin:-15px 0 0 -15px}
   .cvh[data-sx="0"]{width:44px;height:18px;margin:-9px 0 0 -22px}
   .cvh[data-sy="0"]{width:18px;height:44px;margin:-22px 0 0 -9px}
-  /* fold-out sections */
-  .fsec{border-top:1px solid var(--line);margin:0 -16px;padding:0 16px}
-  .fold{width:100%;justify-content:space-between;border:0;background:transparent;padding:14px 0;font:600 14px/1.2 var(--f-display);border-radius:0}
-  .fold .chev{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;margin-right:4px;flex:none}
-  .fold[aria-expanded="true"] .chev{transform:rotate(45deg)}
-  .fold .on{font:600 11px/1 var(--f-body);color:var(--accent);margin-left:8px;margin-right:auto;text-transform:uppercase;letter-spacing:.06em}
-  .foldbody{display:flex;flex-direction:column;gap:14px;padding-bottom:16px}
   .side .panel{padding-bottom:20px}
   /* a bigger preview when you want a good look; a small one while typing, so the keyboard leaves room for the field */
   .stage.big canvas#cv{max-height:60vh}
@@ -305,6 +298,24 @@ input[type=color]{width:40px;height:32px;border:1px solid var(--line);border-rad
   .app:has(.side :is(textarea,input[type=text],input[type=number]):focus) .stage :is(.selbar,.transport,.cvbtn,.seek){display:none}
 }
 @media (max-width:900px) and (max-height:560px){.stage{position:static;box-shadow:none}canvas#cv{max-height:70vh}}
+/* folding sections (phones and wide screens) */
+.fsec{border-top:1px solid var(--line);margin:0 -16px;padding:0 16px}
+.fold{width:100%;justify-content:space-between;border:0;background:transparent;padding:14px 0;font:600 14px/1.2 var(--f-display);border-radius:0}
+.fold .chev{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;margin-right:4px;flex:none}
+.fold[aria-expanded="true"] .chev{transform:rotate(45deg)}
+.fold .on{font:600 11px/1 var(--f-body);color:var(--accent);margin-left:8px;margin-right:auto;text-transform:uppercase;letter-spacing:.06em}
+.foldbody{display:flex;flex-direction:column;gap:14px;padding-bottom:16px}
+/* wide screens: the whole width, the timeline in view under the preview */
+@media (min-width:1440px){
+  body{padding-inline:20px;padding-block:14px 24px}
+  .top,.app{max-width:none}
+  .top{margin-bottom:12px}
+  .app{grid-template-columns:320px minmax(0,1fr) 440px;gap:16px 20px}
+  .layers,.side{position:sticky;top:14px;max-height:calc(100vh - 320px);overflow:auto;overscroll-behavior:contain}
+  .side .tabs{position:sticky;top:0;background:var(--panel);z-index:2}
+  .canvas-wrap{min-height:360px}
+  canvas#cv{max-height:calc(100vh - 480px)}
+}
 .adds button.wide{grid-column:1/-1}
 .recbar{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;padding:10px 12px;border-radius:10px;border:1px solid #E5484D;background:color-mix(in srgb,#E5484D 9%,var(--panel))}
 .recbar b{font-variant-numeric:tabular-nums}
@@ -351,7 +362,7 @@ input[type=color]{width:40px;height:32px;border:1px solid var(--line);border-rad
 <body>
 <header class="top">
   <h1 class="brand">Video <span>Layers</span></h1>
-  <nav class="switch" aria-label="Switch tool"><a href="photo-frame-studio.html">Frame Studio</a><a href="photo-splitter.html">Splitter</a><a href="chat-reel.html">Chat Reel</a><a href="metadata-scrubber.html">Scrubber</a><a href="watermark.html">Watermark</a><a href="caption-maker.html">Captions</a><a href="sfx-maker.html">SFX</a><a href="background-remover.html">BG Remover</a><a href="video-layers.html" aria-current="page">Video</a><a href="delivery-reel.html">Delivery</a><a href="visual-novel.html">Novel</a><a href="motion-comic.html">Comic</a><a href="outfit-tags.html">Outfits</a></nav>
+  <nav class="switch" aria-label="Switch tool"><a href="photo-frame-studio.html">Frame Studio</a><a href="photo-splitter.html">Splitter</a><a href="chat-reel.html">Chat Reel</a><a href="metadata-scrubber.html">Scrubber</a><a href="watermark.html">Watermark</a><a href="caption-maker.html">Captions</a><a href="sfx-maker.html">SFX</a><a href="effect-lines.html">Lines</a><a href="background-remover.html">BG Remover</a><a href="video-layers.html" aria-current="page">Video</a><a href="delivery-reel.html">Delivery</a><a href="visual-novel.html">Novel</a><a href="motion-comic.html">Comic</a><a href="outfit-tags.html">Outfits</a></nav>
   <p>Put pictures, videos and text together and make a new video.</p>
   <span class="spacer"></span>
   <button type="button" id="exportBtn" class="primary">Export video</button>
@@ -565,6 +576,24 @@ function migrateP(p){if(p.v>=2)return p;const old=p.aspect;
 let P=freshP(),sel=null,tab='layer';
 /* phone layout and canvas resizing state (used from the start) */
 const phoneMQ=matchMedia('(max-width:900px)'),isPhone=()=>phoneMQ.matches;let dock='layers',HOLD=null,holdJust=0,cvEdit=false,cvd=null;const openSecs=new Set(['Video size']);
+/* ================= wide screens: full width, settings on both sides of the picture, sections fold ================= */
+const wideMQ=matchMedia('(min-width:1440px)'),isWide=()=>wideMQ.matches;
+const ptMoves=[];
+function ptMove(el,parent,before){if(!el||!parent)return;ptMoves.push({el,p:el.parentNode,n:el.nextSibling});parent.insertBefore(el,before||null);}
+function ptUnmove(){while(ptMoves.length){const m=ptMoves.pop();m.p.insertBefore(m.el,m.n);}}
+/* everything in the settings panel before the section called firstRight moves to a second panel on the left */
+function ptSplit(panel,firstRight){if(!panel)return;let left=document.querySelector('.pt-left');
+  if(isWide()){if(!left){left=document.createElement('aside');left.className=panel.className+' pt-left';left.setAttribute('aria-label','Settings');left.id='';panel.before(left);}
+    for(const el of[...panel.children]){const f=el.querySelector&&(el.querySelector('.fold')||el.querySelector(':scope>h2'));if(f&&f.firstChild.textContent.trim()===firstRight)break;left.append(el);}}
+  else if(left){panel.prepend(...left.children);left.remove();}}
+/* o: {panel, key, open:[sections open the first time], firstRight, fold(panel), wide(), narrow()} */
+function ptWide(o){globalThis.ptKey=o.key||'';const p=o.panel;const apply=()=>{
+  if(isWide()&&!apply.loaded){apply.loaded=true;let v=null;try{v=JSON.parse(localStorage.getItem(o.key)||'null');}catch(e){}(Array.isArray(v)?v:o.open||[]).forEach(n=>openSecs.add(n));}
+  if(isWide()&&p&&!p.querySelector('.fsec'))(o.fold||(x=>foldSections(x,'h4.fhead')))(p);
+  ptUnmove();if(o.firstRight)ptSplit(p,o.firstRight);if(isWide()&&o.wide)o.wide();if(!isWide()&&o.narrow)o.narrow();};
+  apply();wideMQ.addEventListener('change',apply);return apply;}
+function keepOpen(){if(isWide()&&globalThis.ptKey)try{localStorage.setItem(globalThis.ptKey,JSON.stringify([...openSecs]));}catch(e){}}
+
 const M={};          /* per layer: element, object URL, natural size, duration */
 const BLOBS={};      /* media files by key */
 const selL=()=>P.layers.find(l=>l.id===sel);
@@ -1178,7 +1207,9 @@ const otherVisuals=L=>P.layers.filter(o=>o!==L&&VIS(o)&&M[o.id]);
 function matchTarget(L){const os=otherVisuals(L);return os.find(o=>o.id===matchId)||os[0]||null;}
 function renderSide(){
   if(isPhone()){if(tab==='canvas'&&dock==='edit')dock='size';else if(tab==='layer'&&dock==='size')dock='edit';syncDock();}
-  renderSideInner();if(isPhone())foldSections($('panel'));}
+  renderSideInner();if(isPhone()||isWide())foldSections($('panel'));}
+ptWide({panel:$('panel'),key:'vl-open',open:['Video size','Size and place','Sound','Animation','Background'],fold(){}});
+wideMQ.addEventListener('change',()=>renderSide());
 function renderSideInner(){
   document.querySelectorAll('[data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===tab)));
   const p=$('panel');p.innerHTML='';p.setAttribute('aria-labelledby','t-'+tab);renderSelBar();
@@ -2410,7 +2441,7 @@ async function handoffIn(){const fs=await HANDOFF.take();if(!fs.length)return;aw
 
 /* ================= switching tools ================= */
 (function(){
-  const ART={'photo-frame-studio.html':'https://claude.ai/artifact/BTFF4oB7m8EHQMWNwCo2Uw','photo-splitter.html':'https://claude.ai/artifact/ENVcKXEpCdopL6rRfj1fT9','chat-reel.html':'https://claude.ai/artifact/Tzehgnj1qjBYtpZ6oxKAhG','metadata-scrubber.html':'https://claude.ai/artifact/8kwiNFdeFAR3uZ8NTzKVnX','watermark.html':'https://claude.ai/artifact/KY6NSnRSjL5vHT5tjTEZeu','caption-maker.html':'https://claude.ai/artifact/5E6VdnrgfSVCytQtsQUNVc','background-remover.html':'https://claude.ai/artifact/FzXZ8jMRnT8kFRFXS4G3wF','video-layers.html':'https://claude.ai/artifact/HMnHFrAaDUyaiSg7H8uxwN','delivery-reel.html':'https://claude.ai/artifact/4XzpUcdVZdRCviwGjyvTNQ','visual-novel.html':'https://claude.ai/artifact/GUKwPgmd3o8tZarDH4ygRx','motion-comic.html':'https://claude.ai/artifact/QA3g3sR3Jy4etrFoq8rNBD','outfit-tags.html':'https://claude.ai/artifact/3GUgfTcEMSDbgj5TMVuARd','sfx-maker.html':'https://claude.ai/artifact/REzZEE49rDGsJvLMiHU94S'};
+  const ART={'photo-frame-studio.html':'https://claude.ai/artifact/BTFF4oB7m8EHQMWNwCo2Uw','photo-splitter.html':'https://claude.ai/artifact/ENVcKXEpCdopL6rRfj1fT9','chat-reel.html':'https://claude.ai/artifact/Tzehgnj1qjBYtpZ6oxKAhG','metadata-scrubber.html':'https://claude.ai/artifact/8kwiNFdeFAR3uZ8NTzKVnX','watermark.html':'https://claude.ai/artifact/KY6NSnRSjL5vHT5tjTEZeu','caption-maker.html':'https://claude.ai/artifact/5E6VdnrgfSVCytQtsQUNVc','background-remover.html':'https://claude.ai/artifact/FzXZ8jMRnT8kFRFXS4G3wF','video-layers.html':'https://claude.ai/artifact/HMnHFrAaDUyaiSg7H8uxwN','delivery-reel.html':'https://claude.ai/artifact/4XzpUcdVZdRCviwGjyvTNQ','visual-novel.html':'https://claude.ai/artifact/GUKwPgmd3o8tZarDH4ygRx','motion-comic.html':'https://claude.ai/artifact/QA3g3sR3Jy4etrFoq8rNBD','outfit-tags.html':'https://claude.ai/artifact/3GUgfTcEMSDbgj5TMVuARd','sfx-maker.html':'https://claude.ai/artifact/REzZEE49rDGsJvLMiHU94S','effect-lines.html':'https://claude.ai/artifact/VjVk1Y38uReCEXRQm4Pkmo'};
   document.querySelectorAll('.switch a').forEach(a=>{
     if(a.getAttribute('aria-current')){a.addEventListener('click',e=>e.preventDefault());return;}
     if(!topLevel){const u=ART[a.getAttribute('href')];if(u&&u.startsWith('https:')){a.href=u;a.target='_blank';a.rel='noopener';}return;}
@@ -2443,7 +2474,7 @@ function foldSections(p){let body=null;
     if(el.matches('h4.fhead')){const name=el.textContent.trim(),open=openSecs.has(name);
       const b=h('button',{type:'button',class:'fold','aria-expanded':String(open),id:el.id||null},name,h('span',{class:'chev','aria-hidden':'true'}));
       body=h('div',{class:'foldbody'});body.hidden=!open;const bd=body;
-      b.onclick=()=>{const o=bd.hidden;bd.hidden=!o;b.setAttribute('aria-expanded',String(o));if(o)openSecs.add(name);else openSecs.delete(name);};
+      b.onclick=()=>{const o=bd.hidden;bd.hidden=!o;b.setAttribute('aria-expanded',String(o));if(o)openSecs.add(name);else openSecs.delete(name);keepOpen();};
       el.replaceWith(h('div',{class:'fsec'},b,body));continue;}
     if(body&&!el.classList.contains('pfoot'))body.append(el);}
   /* show which sections are switched on */

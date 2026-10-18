@@ -151,6 +151,16 @@ summary{cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);list-st
 }
 @media (max-width:480px){.file{grid-template-columns:64px minmax(0,1fr);gap:12px}.thumb{width:64px;height:64px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* wide screens: the whole width, settings on both sides of the file list */
+@media (min-width:1440px){
+  body{padding-inline:20px;padding-block:14px 24px}
+  .top,.app{max-width:none}
+  .top{margin-bottom:12px}
+  .app{grid-template-columns:340px minmax(0,1fr) 340px;grid-template-areas:"left drop side" "left list side";gap:16px 20px}
+  .side.pt-left{grid-area:left}
+  .side>hr.sep:first-child,.side>hr.sep:last-child{display:none}
+  .drop{padding:20px 20px}
+}
 /* phone touches */
 @media (max-width:900px){
   body{padding-inline:12px}
@@ -164,7 +174,7 @@ summary{cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);list-st
 <body>
 <header class="top">
   <h1 class="brand">Metadata <span>Scrubber</span></h1>
-  <nav class="switch" aria-label="Switch tool"><a href="photo-frame-studio.html">Frame Studio</a><a href="photo-splitter.html">Splitter</a><a href="chat-reel.html">Chat Reel</a><a href="metadata-scrubber.html" aria-current="page">Scrubber</a><a href="watermark.html">Watermark</a><a href="caption-maker.html">Captions</a><a href="sfx-maker.html">SFX</a><a href="background-remover.html">BG Remover</a><a href="video-layers.html">Video</a><a href="delivery-reel.html">Delivery</a><a href="visual-novel.html">Novel</a><a href="motion-comic.html">Comic</a><a href="outfit-tags.html">Outfits</a></nav>
+  <nav class="switch" aria-label="Switch tool"><a href="photo-frame-studio.html">Frame Studio</a><a href="photo-splitter.html">Splitter</a><a href="chat-reel.html">Chat Reel</a><a href="metadata-scrubber.html" aria-current="page">Scrubber</a><a href="watermark.html">Watermark</a><a href="caption-maker.html">Captions</a><a href="sfx-maker.html">SFX</a><a href="effect-lines.html">Lines</a><a href="background-remover.html">BG Remover</a><a href="video-layers.html">Video</a><a href="delivery-reel.html">Delivery</a><a href="visual-novel.html">Novel</a><a href="motion-comic.html">Comic</a><a href="outfit-tags.html">Outfits</a></nav>
   <p>Remove prompts, settings, location and hidden data from pictures and videos, then save a clean copy under a new random name.</p>
 </header>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -216,6 +226,17 @@ summary{cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);list-st
 </main>
 
 <script>
+
+/* ================= wide screens: settings on both sides of the list ================= */
+const wideMQ=matchMedia('(min-width:1440px)'),isWide=()=>wideMQ.matches;
+(function(){const side=document.querySelector('.side');if(!side)return;const seps=()=>[...side.querySelectorAll(':scope>hr.sep')];
+  function apply(){let left=document.querySelector('.pt-left');
+    if(isWide()){if(!left){left=document.createElement('aside');left.className='card side pt-left';left.setAttribute('aria-label','Settings');side.before(left);}
+      /* everything up to and including the second divider goes left: how to save, and the video date */
+      let n=0;for(const el of[...side.children]){left.append(el);if(el.matches('hr.sep')&&++n===2)break;}
+      const last=left.lastElementChild;if(last&&last.matches('hr.sep'))last.remove();}
+    else if(left){const kids=[...left.children];const hr=document.createElement('hr');hr.className='sep';side.prepend(...kids,hr);left.remove();}}
+  apply();wideMQ.addEventListener('change',apply);})();
 const $=id=>document.getElementById(id);
 function h(tag,props,...kids){const e=document.createElement(tag);for(const[k,v]of Object.entries(props||{})){if(k==='class')e.className=v;else if(k==='text')e.textContent=v;else if(k.startsWith('on'))e[k]=v;else if(v===true)e.setAttribute(k,'');else if(v!==false&&v!=null)e.setAttribute(k,v);}
   kids.flat().forEach(c=>{if(c!=null&&c!==false)e.append(c.nodeType?c:document.createTextNode(c));});return e;}
@@ -633,7 +654,7 @@ async function makeSample(){
 /* ================= switching tools ================= */
 function flushAutosave(){return Promise.resolve();}
 (function(){
-  const ART={'photo-frame-studio.html':'https://claude.ai/artifact/BTFF4oB7m8EHQMWNwCo2Uw','photo-splitter.html':'https://claude.ai/artifact/ENVcKXEpCdopL6rRfj1fT9','chat-reel.html':'https://claude.ai/artifact/Tzehgnj1qjBYtpZ6oxKAhG','metadata-scrubber.html':'https://claude.ai/artifact/8kwiNFdeFAR3uZ8NTzKVnX','watermark.html':'https://claude.ai/artifact/KY6NSnRSjL5vHT5tjTEZeu','caption-maker.html':'https://claude.ai/artifact/5E6VdnrgfSVCytQtsQUNVc','background-remover.html':'https://claude.ai/artifact/FzXZ8jMRnT8kFRFXS4G3wF','video-layers.html':'https://claude.ai/artifact/HMnHFrAaDUyaiSg7H8uxwN','delivery-reel.html':'https://claude.ai/artifact/4XzpUcdVZdRCviwGjyvTNQ','visual-novel.html':'https://claude.ai/artifact/GUKwPgmd3o8tZarDH4ygRx','motion-comic.html':'https://claude.ai/artifact/QA3g3sR3Jy4etrFoq8rNBD','outfit-tags.html':'https://claude.ai/artifact/3GUgfTcEMSDbgj5TMVuARd','sfx-maker.html':'https://claude.ai/artifact/REzZEE49rDGsJvLMiHU94S'};
+  const ART={'photo-frame-studio.html':'https://claude.ai/artifact/BTFF4oB7m8EHQMWNwCo2Uw','photo-splitter.html':'https://claude.ai/artifact/ENVcKXEpCdopL6rRfj1fT9','chat-reel.html':'https://claude.ai/artifact/Tzehgnj1qjBYtpZ6oxKAhG','metadata-scrubber.html':'https://claude.ai/artifact/8kwiNFdeFAR3uZ8NTzKVnX','watermark.html':'https://claude.ai/artifact/KY6NSnRSjL5vHT5tjTEZeu','caption-maker.html':'https://claude.ai/artifact/5E6VdnrgfSVCytQtsQUNVc','background-remover.html':'https://claude.ai/artifact/FzXZ8jMRnT8kFRFXS4G3wF','video-layers.html':'https://claude.ai/artifact/HMnHFrAaDUyaiSg7H8uxwN','delivery-reel.html':'https://claude.ai/artifact/4XzpUcdVZdRCviwGjyvTNQ','visual-novel.html':'https://claude.ai/artifact/GUKwPgmd3o8tZarDH4ygRx','motion-comic.html':'https://claude.ai/artifact/QA3g3sR3Jy4etrFoq8rNBD','outfit-tags.html':'https://claude.ai/artifact/3GUgfTcEMSDbgj5TMVuARd','sfx-maker.html':'https://claude.ai/artifact/REzZEE49rDGsJvLMiHU94S','effect-lines.html':'https://claude.ai/artifact/VjVk1Y38uReCEXRQm4Pkmo'};
   document.querySelectorAll('.switch a').forEach(a=>{
     if(a.getAttribute('aria-current')){a.addEventListener('click',e=>e.preventDefault());return;}
     if(!topLevel){const u=ART[a.getAttribute('href')];if(u&&!u.startsWith('__')){a.href=u;a.target='_blank';a.rel='noopener';}return;}

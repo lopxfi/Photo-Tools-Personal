@@ -10,6 +10,7 @@ A small set of personal browser tools for dressing up photos, making short video
 - **Share straight from your gallery.** On Android, once the app is installed, it shows up in the Share menu for photos, videos and sounds. Pick it, then pick the tool.
 - **Tools pass work to each other.** A framed photo from Photo Frame Studio or a video from Chat Reel goes straight into Video Layers with one tap.
 - **Search engines are asked not to list it** (every page has `noindex, nofollow`).
+- **Made for big screens too.** On a wide computer monitor each tool spreads out: the picture or video in the middle with its buttons above and below, and the settings on both sides in sections you can fold away. Phones and smaller windows keep the compact layout.
 
 | Tool | What it does |
 |---|---|
@@ -19,6 +20,7 @@ A small set of personal browser tools for dressing up photos, making short video
 | [Metadata Scrubber](#metadata-scrubber) | Strips prompts, location and hidden data out of photos and videos and saves clean copies under random names, optionally under a size limit. |
 | [Caption Maker](#caption-maker) | Puts words on a picture (captions, dialogue, speech bubbles, titles) in about 60 fonts or your own, with outlines, shadow, glow, 3D and curved text. |
 | [SFX Maker](#sfx-maker) | Turns a typed sound effect into manga lettering (BOOM, ドカーン): letters along a curve, comic, brush, lightning and other styles in free fonts, outlines, halftone, 3D, motion and jagged edges, with a sheet of random ideas. PNG, SVG or layers. |
+| [Effect Lines](#effect-lines) | Manga effect lines and screentones: focus lines, black flash, speed lines, rain, cross-hatching and rope hatching, halftone, gradients, 19 patterns, sparkles, petals and more. Drag the center, shape with sliders, stack layers, save as transparent PNG, SVG or a ZIP by layer. |
 | [Watermark](#watermark) | Puts your name or logo on one photo or a whole batch, with ready-made looks (corner signature, label, stamp, proof band, tiled) or your own saved watermarks. |
 | [Background Remover](#background-remover) | Takes the background out of photos and videos: people, animals, everyday things, a plain background or green screen, or any color you pick like a chroma key. Touch-up brush for photos, and see-through, color, blurred or picture backgrounds. |
 | [Video Layers](#video-layers) | Puts pictures, videos, text, music and your voice together and exports a new video or GIF. Automatic background removal, green screen, motion paths with keyframes and one-tap layouts. |
@@ -528,6 +530,43 @@ Type a sound effect and it becomes manga lettering (描き文字). Everything ru
 
 ---
 
+## Effect Lines
+
+Manga effect lines and screentones (効果線・トーン), rebuilt after the Effect Lines & Screentone Generator by MIYADAIKU (Oyasumi Game Dev). Everything is drawn on the device from random numbers and set rules; nothing is uploaded.
+
+### Types
+27 types in five groups, each a small picture at the top right. Hover one for what it does.
+- **Focus lines:** focus lines (always run past the edge), flash rays, black flash (a spiky white hole in solid black), urchin flash (a ring of needles, single to triple).
+- **Effect lines:** speed lines, curved lines, wind, drop lines (with a dotted "breakup" at the tips), rain.
+- **Cross-hatch:** cross-hatch (single to quadruple, flow, edge fade), hatch gradient (with solid black at the dark end), black edge (a black area dissolving into fine lines, cut by a line or a circle), rope hatch, rope hatch gradient and radial rope hatch (bundles that follow a flow; only the top bundle shows where they overlap).
+- **Tones:** halftone (round, square or diamond dots), line tone, gradient (two densities and positions, round or line), 19 patterns (checker, diamonds, grid, lattice, hollow dots, stars, crosses, hexagons, kagome weave, hemp leaf, seigaiha waves, shippo circles, scales, arrow feathers, meander, bricks, random flowers, hearts, wavy lines), stipple, sand grain.
+- **Mood:** sparkles, flowers (4 to 8 petals), hearts, petals, bubbles, snow.
+
+### Shaping
+- **Drag in the preview** to move the center of the types that have one; it can sit outside the frame. The **Center** sliders do the same.
+- **Adjust** shows the sliders and choices for the picked type: count, inner radius, length, width and their variations, clustering, bend, taper, direction, band, scatter, wobble, stacking, flow, edge fade, waviness, crossing, coverage, gradient start / midpoint / end, and so on. **⟲ Default** puts them back.
+- **🎲 New shape** keeps the settings and draws the same type with a new random seed (the same seed always gives the same shape). **🎲 All** rerolls every layer. Types without randomness say so.
+- **Rotate all** (the hatching types) turns the drawing inside while the frame stays put.
+
+### Layers
+- **+ Add layer** stacks up to 8 effects, such as focus lines over a halftone, or a tone inside a black flash. Clicking a type changes the selected layer. The eye hides a layer; ▲ ▼ reorder; ✕ deletes.
+- Each layer has its own **color** (black, white, red, blue, yellow or any color), **opacity**, and whether its **white areas** are cut out to transparent or filled white.
+
+### Gacha
+- **🎰 Gacha** fills the preview area with 4, 9 or 16 picks: new seeds with slightly varied settings (**Spread** low, mid or high; **Mix types** draws 70% from other types in the same group). Click one to load it into the selected layer. **🧬 Mutate current** keeps the shape and nudges the settings. **▦ Results** reopens the last picks.
+
+### Preview and underlay
+- The preview background can be a checkerboard, white or black. **Underlay…** (or drop / paste a picture) puts your art or a panel layout underneath so you can line up the focus point or match tone density; it is never saved.
+- **Sharper preview** draws the preview at twice the size; turn it off if it feels slow.
+
+### Save
+- **Image size:** 16:9 (1920×1080), portrait 9:16, square 2048, social 4:5, B5 manuscript at 350 dpi, or any width and height from 64 to 8000 px. Saves at ½, 1× or 2× (capped at 8000 px on the long side).
+- **Save PNG** (transparent, white or black background), **Save SVG** (halftones and patterns become SVG patterns, lines become shapes, cut-outs become masks), **ZIP by layer** (one PNG per layer plus the whole picture as PNG and SVG), or **Copy** to paste into Clip Studio Paint or a post.
+- **Copy share link** puts the current settings in the page address so someone else can open the same picture.
+- Settings stay in this browser. **Reset all settings** starts over.
+
+---
+
 ## Watermark
 
 Puts your name or logo on your photos. Add one photo or a whole batch; every photo gets the same watermark in the same spot, sized to match.
@@ -803,6 +842,7 @@ Open each tool once while you're online so everything, fonts included, is saved 
 | `watermark.html` | Watermark |
 | `caption-maker.html` | Caption Maker |
 | `sfx-maker.html` | SFX Maker |
+| `effect-lines.html` | Effect Lines |
 | `background-remover.html` | Background Remover |
 | `video-layers.html` | Video Layers |
 | `outfit-tags.html` | Outfit Tags (built from the Outfit-Idenitfy repository) |
