@@ -474,6 +474,9 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 
 Type a sound effect and it becomes manga lettering (描き文字). Everything runs on the device; nothing is uploaded, and no AI is involved: the wobble and the ideas come from random numbers and set rules. Made for English and Japanese, with Korean and Chinese fonts too.
 
+### The page
+- The lettering sits on top and stays pinned while you scroll (📌 unpins it). Under it, a strip of lettering styles, then every setting spread across the width as cards, two to four columns depending on your screen, each one folding open and shut (**Open all** / **Close all**).
+
 ### Text
 - Type the sound effect; each line of text gets its own line of lettering. **Across** or **Down** (vertical writing, right to left).
 - **Stretch long marks** draws ー (and -, ~) stretched along the line, as long as the **Long mark stretch** setting. Small kana (ッ, ゃ) are drawn smaller. **Add ゛** puts dakuten on every kana (ハハ → バババ).

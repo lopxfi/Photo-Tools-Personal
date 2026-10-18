@@ -71,8 +71,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);
 .switch a:hover{color:var(--ink)}
 .switch a[aria-current="page"]{background:var(--ink);color:var(--bg)}
 .switch a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.app{max-width:none;margin:0;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:16px;align-items:start}
-@media (min-width:1700px){.app{grid-template-columns:minmax(0,1fr) 440px;gap:20px}}
+.app{max-width:none;margin:0;display:flex;flex-direction:column;gap:14px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
 button,.btn{font:500 14px/1 var(--f-body);border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 13px;border-radius:8px;cursor:pointer;position:relative;display:inline-flex;align-items:center;gap:6px;justify-content:center}
 button:hover,.btn:hover{border-color:var(--muted)}
@@ -83,8 +82,13 @@ button:disabled{opacity:.45;cursor:not-allowed}
 button:focus-visible,.btn:focus-within,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .row button,.row .btn{font-size:13px;padding:8px 11px}
-.opts{display:flex;flex-direction:column;gap:14px;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;overscroll-behavior:contain}
-.opts>*{flex-shrink:0}
+/* the settings: cards that flow into columns, as many as the width allows */
+.opts{columns:440px;column-gap:14px;padding:0;border:0;background:none}
+.opts>*{break-inside:avoid;margin-bottom:14px}
+.opts>.foldall{column-span:all;margin-bottom:6px}
+.opts>.status{column-span:all;margin:0}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 12px}
+.grid3>.field>label,.grid2>.field>label{font-size:12.5px}
 .field{display:flex;flex-direction:column;gap:6px}
 .field>label,.flabel{font-size:13px;font-weight:500;display:flex;justify-content:space-between;gap:8px}
 .field>label.chk{display:inline-flex;justify-content:flex-start;align-self:flex-start}
@@ -109,11 +113,18 @@ textarea{resize:vertical}
 .swatches button{width:24px;height:24px;padding:0;border-radius:50%}
 .swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--accent)}
 /* the lettering */
-.stage{display:flex;flex-direction:column;gap:10px;min-width:0;position:sticky;top:16px}
+/* the lettering stays on screen while you scroll the settings; unpin it with the pin button */
+.stage{display:flex;flex-direction:column;gap:10px;min-width:0;position:sticky;top:0;z-index:5;background:var(--bg);padding-top:6px}
+.stage.unpinned{position:static}
+.strip{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 6px}
+.strip .looks{display:flex;gap:8px}
+.strip .looks button{flex:none;width:118px;flex-direction:column;gap:4px;padding:6px 4px;font-size:11px;color:var(--muted)}
+.strip .looks button canvas{width:100%;height:52px}
 .canvas-wrap{position:relative;display:grid;place-items:center;padding:12px;border-radius:12px;min-height:280px;overflow:hidden;
   background:var(--stage) conic-gradient(var(--check) 25%,transparent 0 50%,var(--check) 0 75%,transparent 0) 0 0/22px 22px}
 .canvas-wrap.white{background:#fff}
 canvas#cv{display:block;max-width:100%;height:auto;touch-action:none;border-radius:4px}
+.stage.unpinned canvas#cv{max-height:none}
 .canvas-wrap.hasbg{background-image:none}
 .modebar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:13px}
 .modebar .field{flex:1;min-width:140px;max-width:220px}
@@ -126,18 +137,19 @@ canvas#cv{display:block;max-width:100%;height:auto;touch-action:none;border-radi
 .tools button,.tools .btn{font-size:13px;padding:8px 11px}
 .under .help{margin:0}
 /* fold-out settings sections */
-.fsec{border-top:1px solid var(--line);margin:0 -16px;padding:0 16px}
-.fold{width:100%;display:flex;align-items:center;gap:8px;padding:13px 0;background:none;border:0;border-radius:0;font:600 14px/1.2 var(--f-body);color:var(--ink);text-align:left;cursor:pointer;box-shadow:none}
+.fsec{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:0 14px}
+.fold{width:100%;display:flex;align-items:center;gap:8px;padding:12px 0;background:none;border:0;border-radius:0;font:600 14px/1.2 var(--f-body);color:var(--ink);text-align:left;cursor:pointer;box-shadow:none}
 .fold:hover{color:var(--accent);border:0}
 .fold .fsum{margin-left:auto;font-weight:400;color:var(--muted);font-size:12px;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fold .chev{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);margin:0 4px 0 2px;flex:none}
 .fold[aria-expanded="true"] .chev{transform:rotate(45deg);margin-top:-4px}
-.foldbody{display:flex;flex-direction:column;gap:14px;padding-bottom:14px}
+.foldbody{display:flex;flex-direction:column;gap:12px;padding-bottom:14px}
 .foldall{display:flex;justify-content:flex-end;gap:12px;font-size:12px}
 .foldall button{border:0;background:none;color:var(--muted);padding:2px 4px;font-size:12px;box-shadow:none}
 .foldall button:hover{color:var(--accent)}
 /* lettering styles */
 .looks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pin[aria-pressed="true"]{background:var(--soft)}
 .looks button{flex-direction:column;gap:4px;padding:6px 4px;font-size:11px;color:var(--muted);overflow:hidden}
 .looks button canvas{width:100%;height:46px;display:block;border-radius:5px;background:var(--stage) conic-gradient(var(--check) 25%,transparent 0 50%,var(--check) 0 75%,transparent 0) 0 0/8px 8px}
 .looks button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);color:var(--ink)}
@@ -167,9 +179,9 @@ canvas#cv{display:block;max-width:100%;height:auto;touch-action:none;border-radi
 @media (max-width:900px){
   body{padding-inline:12px}
   .top p{display:none}
-  .app{grid-template-columns:minmax(0,1fr)}
   .stage{position:static}
-  .opts{position:static;max-height:none}
+  .opts{columns:1}
+  .grid3{grid-template-columns:1fr 1fr}
   .canvas-wrap{padding:8px;min-height:200px}
   canvas#cv{max-height:52vh}
   .textbar{grid-template-columns:1fr}
@@ -177,7 +189,7 @@ canvas#cv{display:block;max-width:100%;height:auto;touch-action:none;border-radi
   textarea,input[type=text],input[type=number],select{font-size:16px}
   .seg button,.row button{padding:10px 12px;font-size:14px}
   .field input[type=range]{height:30px}
-  .looks{grid-template-columns:repeat(3,1fr)}
+  .strip .looks button{width:96px}
   .flist{grid-template-columns:1fr 1fr}
   .fopt .fs{font-size:20px}
 }
@@ -210,6 +222,7 @@ canvas#cv{display:block;max-width:100%;height:auto;touch-action:none;border-radi
       <button type="button" id="resetLetters" title="Put every letter back on the line">Reset letters</button>
       <button type="button" id="resetPath" title="Straighten the line and center it">Reset line</button>
       <span class="spacer"></span>
+      <button type="button" id="pinBtn" class="pin" aria-pressed="true" title="Keep the lettering on screen while you scroll the settings">📌</button>
       <button type="button" id="undo" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
       <button type="button" id="redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
     </div>
@@ -218,12 +231,11 @@ canvas#cv{display:block;max-width:100%;height:auto;touch-action:none;border-radi
       <p class="help">Drag ● to move the ends of the line and ◆ to bend it. Tap a letter to pick it, then drag it, turn it with ○ or resize it with □; double-tap puts it back. ✒ Points and ◎ Liquify reshape the letters themselves. Nothing is uploaded; it all runs here.</p>
     </div>
   </section>
+  <div class="strip" aria-label="Lettering styles"><div class="field" id="lookF"></div></div>
 
-  <section class="card opts" id="opts" aria-label="Settings">
+  <section class="opts" id="opts" aria-label="Settings">
     <h4 class="fhead">Text</h4>
     <div class="field" id="textF"></div>
-    <h4 class="fhead">Lettering</h4>
-    <div class="field" id="lookF"></div>
     <h4 class="fhead">Font</h4>
     <div class="field" id="fontF"></div>
     <h4 class="fhead">Shape and wobble</h4>
@@ -267,7 +279,7 @@ canvas#cv{display:block;max-width:100%;height:auto;touch-action:none;border-radi
 <script>
 /* ================= phones: fold-out sections ================= */
 const phoneMQ=matchMedia('(max-width:900px)'),isPhone=()=>phoneMQ.matches;
-const openSecs=new Set((()=>{try{const v=JSON.parse(localStorage.getItem('sfx-open')||'null');if(Array.isArray(v))return v;}catch(e){}return['Text','Lettering','Shape and wobble'];})());
+const openSecs=new Set((()=>{try{const v=JSON.parse(localStorage.getItem('sfx-open')||'null');if(Array.isArray(v))return v;}catch(e){}return['Text','Font','Shape and wobble','Fill','Outline','Shadow','Motion','Edges','Background','Save'];})());
 const keepOpen=()=>{try{localStorage.setItem('sfx-open',JSON.stringify([...openSecs]));}catch(e){}};
 function $id(id){return document.getElementById(id);}
 function foldSections(p,sel){let body=null;
@@ -404,9 +416,9 @@ function applyLook(id,keepFont){const L=LOOKS.find(l=>l[0]===id);if(!L)return;co
 let W=1400,H=1000;
 const cv=$('cv'),ctx=cv.getContext('2d');
 /* the page is as wide as the screen gives room for (1400 to 2600 wide, 1000 tall); work made on another width is scaled across */
-function fitWorld(){const wrap=$('wrap'),avail=Math.max(300,(wrap.clientWidth||1400)-24),hAvail=Math.max(400,innerHeight-250),want=isPhone()?1400:clamp(Math.round(1000*avail/hAvail/100)*100,1400,2600);
+function fitWorld(){const wrap=$('wrap'),avail=Math.max(300,(wrap.clientWidth||1400)-24),hAvail=document.querySelector('.stage').classList.contains('unpinned')?Math.max(400,innerHeight-250):Math.max(300,Math.round(innerHeight*.5)),want=isPhone()?1400:clamp(Math.round(1000*avail/hAvail/100)*100,1400,2600);
   if(want!==W){const k=want/W;W=want;if(Array.isArray(S.lines))S.lines.forEach(P=>{[P.p0,P.p1,P.c].forEach(q=>q.x*=k);});for(const key in S.edits||{}){const e=S.edits[key];if(e&&e.dx)e.dx*=k;}}
-  cv.width=W;cv.height=H;S.W=W;cv.style.width=Math.round(Math.min(avail,hAvail*W/H))+'px';}
+  if(cv.width!==W||cv.height!==H){cv.width=W;cv.height=H;}S.W=W;cv.style.width=Math.round(Math.min(avail,hAvail*W/H))+'px';}
 cv.width=W;cv.height=H;
 const mcv=document.createElement('canvas'),mctx=mcv.getContext('2d');
 const can=(w,hh)=>{const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(w));c.height=Math.max(1,Math.ceil(hh));return c;};
@@ -564,6 +576,8 @@ const toWorldPt=(M,p)=>{const q=M.transformPoint(new DOMPoint(p[0],p[1]));return
 let MODE=null,PSEL=null,LIQ={tool:'push',size:220,str:.5,hard:.5},CUR=null;
 function setMode(m){MODE=MODE===m?null:m;$('modePts').setAttribute('aria-pressed',String(MODE==='points'));$('modeLiq').setAttribute('aria-pressed',String(MODE==='liquify'));PSEL=null;CUR=null;renderModeBar();refreshStage();
   if(MODE==='points'&&!SEL)toast('Tap a letter to see its points.');}
+$('pinBtn').onclick=()=>{const st=$('pinBtn').getAttribute('aria-pressed')!=='true';$('pinBtn').setAttribute('aria-pressed',String(st));document.querySelector('.stage').classList.toggle('unpinned',!st);try{localStorage.setItem('sfx-pin',st?'1':'0');}catch(e){}fitWorld();render();};
+try{if(localStorage.getItem('sfx-pin')==='0'){$('pinBtn').setAttribute('aria-pressed','false');document.querySelector('.stage').classList.add('unpinned');}}catch(e){}
 $('modePts').onclick=()=>setMode('points');$('modeLiq').onclick=()=>setMode('liquify');
 function resetShape(all){if(all){for(const k in S.edits)if(S.edits[k].path){delete S.edits[k].path;bumpPath(S.edits[k]);}}else if(SEL&&S.edits[SEL]&&S.edits[SEL].path){delete S.edits[SEL].path;bumpPath(S.edits[SEL]);}PSEL=null;commit();render();}
 function renderModeBar(){const b=$('modeBar');b.innerHTML='';b.hidden=!MODE;if(!MODE)return;
@@ -698,7 +712,7 @@ const lookPreview=(id,w,hh)=>{const c=can(w,hh),g=c.getContext('2d'),keep=S;try{
     const pic=compose(layout(S)),bb=alphaBox(pic)||{l:0,t:0,r:W,b:H},pw=bb.r-bb.l,ph=bb.b-bb.t,k=Math.min(w/pw,hh/ph)*.9;g.drawImage(pic,bb.l,bb.t,pw,ph,(w-pw*k)/2,(hh-ph*k)/2,pw*k,ph*k);}catch(e){}finally{S=keep;}return c;};
 function renderLooks(){const p=$('lookF');p.innerHTML='';const box=h('div',{class:'looks'}),lang=langOf(S.text);
   LOOKS.forEach(([id,name])=>{const key=id+'|'+lang;let pv=LOOKPV.get(key);if(!pv){pv=lookPreview(id,180,92);LOOKPV.set(key,pv);}const b=h('button',{type:'button','aria-pressed':String(S.look===id),title:name,onclick:()=>{applyLook(id);commit();renderAll();toast(name+' lettering.');}},pv,h('span',{},name));box.append(b);});
-  p.append(box,h('p',{class:'help'},'A style picks a font for the language you typed, plus its outline, edges and wobble. Change anything after.'));}
+  p.append(box);}
 /* font */
 let FCAT='all',FOPENED=false;
 function renderFontF(){const p=$('fontF');p.innerHTML='';const F=FONTS[S.font]||FONTS.bangers;needFont(F.id);
@@ -721,14 +735,13 @@ function renderFonts(){const q=$('fSearch').value.trim().toLowerCase(),sample=(S
 /* shape and wobble */
 function renderShape(){const p=$('shapeF');p.innerHTML='';
   p.append(h('span',{class:'flabel'},'The big three',h('span',{class:'rv'},'each one moves several settings')),
-    rangeF('impact','Impact',0,1,.01,S.macro.impact,pct,ch((S,v)=>S.macro.impact=v)),rangeF('roughM','Roughness',0,1,.01,S.macro.rough,pct,ch((S,v)=>S.macro.rough=v)),rangeF('speed','Momentum',0,1,.01,S.macro.speed,pct,ch((S,v)=>S.macro.speed=v)),
+    h('div',{class:'grid3'},rangeF('impact','Impact',0,1,.01,S.macro.impact,pct,ch((S,v)=>S.macro.impact=v)),rangeF('roughM','Roughness',0,1,.01,S.macro.rough,pct,ch((S,v)=>S.macro.rough=v)),rangeF('speed','Momentum',0,1,.01,S.macro.speed,pct,ch((S,v)=>S.macro.speed=v))),
     h('div',{class:'row'},h('label',{for:'seed',class:'flabel'},'Wobble seed'),h('input',{type:'number',id:'seed',value:S.seed,min:'0',step:'1',style:'width:110px',onchange:e=>{S.seed=Math.max(0,parseInt(e.target.value,10)||0);commit();render();}}),h('button',{type:'button',class:'dice',title:'New random wobble',onclick:()=>$('diceBtn').click()},'⚄')),
-    rangeF('size','Letter size',40,420,1,S.size,px,ch((S,v)=>S.size=v)),
-    h('div',{class:'grid2'},rangeF('spacing','Spacing',-.3,1,.01,S.spacing,v=>Math.round(v*100)+'',ch((S,v)=>S.spacing=v)),rangeF('upright','Follow the curve',0,1,.01,S.upright,v=>v===0?'stay level':v===1?'fully':pct(v),ch((S,v)=>S.upright=v)),
+    h('div',{class:'grid3'},rangeF('size','Letter size',40,420,1,S.size,px,ch((S,v)=>S.size=v)),rangeF('spacing','Spacing',-.3,1,.01,S.spacing,v=>Math.round(v*100)+'',ch((S,v)=>S.spacing=v)),rangeF('upright','Follow the curve',0,1,.01,S.upright,v=>v===0?'stay level':v===1?'fully':pct(v),ch((S,v)=>S.upright=v)),
       rangeF('lean','Lean',-45,45,1,S.lean,deg,ch((S,v)=>S.lean=v)),rangeF('fan','Fan out',-60,60,1,S.fan,deg,ch((S,v)=>S.fan=v)),
       rangeF('grow','Grow along',-1,1,.01,S.grow,v=>v===0?'even':v>0?'bigger at the end':'smaller at the end',ch((S,v)=>S.grow=v)),rangeF('stretch','Long mark stretch',0,2,.01,S.stretch,v=>'×'+(1+v*2).toFixed(1),ch((S,v)=>S.stretch=v))),
     h('span',{class:'flabel'},'Random wobble',h('span',{class:'rv'},'per letter')),
-    h('div',{class:'grid2'},rangeF('jrot','Angle',0,1,.01,S.jit.rot,pct,ch((S,v)=>S.jit.rot=v)),rangeF('jsize','Size',0,1,.01,S.jit.size,pct,ch((S,v)=>S.jit.size=v)),rangeF('jy','Up and down',0,1,.01,S.jit.y,pct,ch((S,v)=>S.jit.y=v))),
+    h('div',{class:'grid3'},rangeF('jrot','Angle',0,1,.01,S.jit.rot,pct,ch((S,v)=>S.jit.rot=v)),rangeF('jsize','Size',0,1,.01,S.jit.size,pct,ch((S,v)=>S.jit.size=v)),rangeF('jy','Up and down',0,1,.01,S.jit.y,pct,ch((S,v)=>S.jit.y=v))),
     segF('deform','Squeeze the whole thing',[['none','None'],['trapTop','Narrow top'],['trapBottom','Narrow bottom'],['trapLeft','Narrow left'],['trapRight','Narrow right']],S.deform.kind,v=>ch((S,x)=>S.deform.kind=x,true)(v)),
     S.deform.kind!=='none'?rangeF('deformAmt','How much',0,.9,.01,S.deform.amt,pct,ch((S,v)=>S.deform.amt=v)):'');}
 /* fill */
@@ -900,7 +913,7 @@ async function makeZip(entries){const parts=[],central=[];let off=0;const time=0
   $('txt').value=S.text;$('dirH').setAttribute('aria-pressed',String(S.dir==='h'));$('dirV').setAttribute('aria-pressed',String(S.dir==='v'));$('wrap').classList.toggle('white',S.bg==='white');
   if(S.W&&S.W!==W){const k=W/S.W;(S.lines||[]).forEach(P=>{[P.p0,P.p1,P.c].forEach(q=>q.x*=k);});for(const key in S.edits||{}){const e=S.edits[key];if(e&&e.dx)e.dx*=k;}}fitWorld();
   ensurePaths(prepLines().length);restored=true;HIST=[snap()];HI=0;syncUndo();renderAll();
-  addEventListener('resize',()=>{clearTimeout(window.__rs);window.__rs=setTimeout(()=>{const w=W;fitWorld();if(W!==w){ensurePaths(prepLines().length);render();}},250);});
+  addEventListener('resize',()=>{clearTimeout(window.__rs);window.__rs=setTimeout(()=>{const w=W;fitWorld();if(W!==w)ensurePaths(prepLines().length);render();},250);});
   document.fonts.addEventListener('loadingdone',()=>{MW.clear();LOOKPV.clear();renderSoon();renderLooks();renderFontF();});
   if(link)toast('Opened the lettering from the link.');
 })();
