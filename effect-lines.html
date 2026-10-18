@@ -6,8 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#F2F1F6" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#121118" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F7F3E8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A1630" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -24,7 +24,7 @@ header:not(.top){position:relative;padding-right:46px}
 header:not(.top)>button.pt-theme{position:absolute;top:0;right:0}
 </style>
 <script id="pt-theme-js">/* light or dark: dark unless you pick light with the switch; the choice is kept for every tool */
-(function(){var K='pt-theme',d=document.documentElement,C={light:'#F2F1F6',dark:'#121118'},
+(function(){var K='pt-theme',d=document.documentElement,C={light:'#F7F3E8',dark:'#0A1630'},
 SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>',
 MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>';
 var mem=null;function saved(){try{var v=localStorage.getItem(K);if(v==='light'||v==='dark')return v;}catch(e){}return mem;}
@@ -43,26 +43,26 @@ document.addEventListener('DOMContentLoaded',function(){var h=document.querySele
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Unbounded:wght@600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Lora:wght@500;600;700&family=Unbounded:wght@600&display=swap">
 <style>
 /* Layout: one screen. The preview on the left with its buttons above and below; on the right the 27 effect types
    as small pictures, then the settings (Adjust, Layers, Size & color, Save) in one scrolling column. On phones the
    preview comes first and the settings follow underneath. */
 :root{
-  --bg:#F2F1F6; --panel:#FFFFFF; --ink:#18161F; --muted:#686577; --line:#DDDAE6; --line-soft:#E8E6EF;
-  --accent:#5B3DF5; --accent-ink:#FFFFFF; --soft:#ECE8FF; --stage:#E7E5EE; --check:#DCD9E4; --tail:#E8743B; --warn:#B4541F; --ok:#15803D;
+  --bg:#F7F3E8; --panel:#FFFDF7; --ink:#0A1630; --muted:#4A5368; --line:#E2DAC4; --line-soft:#ECE5D2;
+  --accent:#8A6A1F; --accent-ink:#FFFFFF; --soft:#F1E7CC; --stage:#ECE5D2; --check:#E2DAC4; --tail:#E8743B; --warn:#B4541F; --ok:#15803D;
   --sh2:0 6px 18px rgba(23,22,40,.14);
-  --f-display:"Unbounded","Familjen Grotesk",system-ui,sans-serif;
+  --f-display:"Lora","Familjen Grotesk",system-ui,sans-serif;
   --f-body:"Familjen Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-num:"Cascadia Mono","SF Mono",ui-monospace,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#121118; --panel:#1B1A23; --ink:#EEEDF4; --muted:#9D9AAE; --line:#2F2D3B; --line-soft:#262430;
-  --accent:#9C88FF; --accent-ink:#141020; --soft:#26213F; --stage:#0C0B11; --check:#17161E; --tail:#F08A55; --warn:#FB923C; --ok:#4ADE80;
+  --bg:#0A1630; --panel:#111F3D; --ink:#F7F3E8; --muted:#C9C5B9; --line:#24365A; --line-soft:#1A2A4B;
+  --accent:#C8A24A; --accent-ink:#0A1630; --soft:#233457; --stage:#060E20; --check:#111F3D; --tail:#F08A55; --warn:#FB923C; --ok:#4ADE80;
   --sh2:0 8px 22px rgba(0,0,0,.55); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#121118; --panel:#1B1A23; --ink:#EEEDF4; --muted:#9D9AAE; --line:#2F2D3B; --line-soft:#262430;
-  --accent:#9C88FF; --accent-ink:#141020; --soft:#26213F; --stage:#0C0B11; --check:#17161E; --tail:#F08A55; --warn:#FB923C; --ok:#4ADE80;
+  --bg:#0A1630; --panel:#111F3D; --ink:#F7F3E8; --muted:#C9C5B9; --line:#24365A; --line-soft:#1A2A4B;
+  --accent:#C8A24A; --accent-ink:#0A1630; --soft:#233457; --stage:#060E20; --check:#111F3D; --tail:#F08A55; --warn:#FB923C; --ok:#4ADE80;
   --sh2:0 8px 22px rgba(0,0,0,.55); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}

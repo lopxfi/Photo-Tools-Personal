@@ -6,8 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#F2F1F6" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#121118" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F7F3E8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A1630" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -24,7 +24,7 @@ header:not(.top){position:relative;padding-right:46px}
 header:not(.top)>button.pt-theme{position:absolute;top:0;right:0}
 </style>
 <script id="pt-theme-js">/* light or dark: dark unless you pick light with the switch; the choice is kept for every tool */
-(function(){var K='pt-theme',d=document.documentElement,C={light:'#F2F1F6',dark:'#121118'},
+(function(){var K='pt-theme',d=document.documentElement,C={light:'#F7F3E8',dark:'#0A1630'},
 SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>',
 MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>';
 var mem=null;function saved(){try{var v=localStorage.getItem(K);if(v==='light'||v==='dark')return v;}catch(e){}return mem;}
@@ -43,21 +43,21 @@ document.addEventListener('DOMContentLoaded',function(){var h=document.querySele
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Unbounded:wght@600&family=Bangers&family=Dela+Gothic+One&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Lora:wght@500;600;700&family=Unbounded:wght@600&family=Bangers&family=Dela+Gothic+One&display=swap">
 <style>
 /* Layout: the lettering on the left, settings on the right; on phones the lettering comes first */
 :root{
-  --bg:#F2F1F6; --panel:#FFFFFF; --ink:#18161F; --muted:#686577; --line:#DDDAE6;
-  --accent:#5B3DF5; --accent-ink:#FFFFFF; --soft:#ECE8FF; --stage:#E7E5EE; --check:#DCD9E4; --warn:#B4281E;
-  --f-display:"Unbounded","Familjen Grotesk",system-ui,sans-serif;
+  --bg:#F7F3E8; --panel:#FFFDF7; --ink:#0A1630; --muted:#4A5368; --line:#E2DAC4;
+  --accent:#8A6A1F; --accent-ink:#FFFFFF; --soft:#F1E7CC; --stage:#ECE5D2; --check:#E2DAC4; --warn:#B4281E;
+  --f-display:"Lora","Familjen Grotesk",system-ui,sans-serif;
   --f-body:"Familjen Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#121118; --panel:#1B1A23; --ink:#EEEDF4; --muted:#9D9AAE; --line:#2F2D3B;
-  --accent:#9C88FF; --accent-ink:#141020; --soft:#26213F; --stage:#75737F; --check:#6A6874; --warn:#FF8A80; color-scheme:dark}}
+  --bg:#0A1630; --panel:#111F3D; --ink:#F7F3E8; --muted:#C9C5B9; --line:#24365A;
+  --accent:#C8A24A; --accent-ink:#0A1630; --soft:#233457; --stage:#75737F; --check:#6A6874; --warn:#FF8A80; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#121118; --panel:#1B1A23; --ink:#EEEDF4; --muted:#9D9AAE; --line:#2F2D3B;
-  --accent:#9C88FF; --accent-ink:#141020; --soft:#26213F; --stage:#75737F; --check:#6A6874; --warn:#FF8A80; color-scheme:dark}
+  --bg:#0A1630; --panel:#111F3D; --ink:#F7F3E8; --muted:#C9C5B9; --line:#24365A;
+  --accent:#C8A24A; --accent-ink:#0A1630; --soft:#233457; --stage:#75737F; --check:#6A6874; --warn:#FF8A80; color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);padding-inline:16px;padding-block:18px 40px}
 [hidden]{display:none!important}
@@ -639,8 +639,8 @@ function pointWorld(L){const ed=S.edits[L.key];if(!ed||!ed.path)return[];const M
 function nearestSeg(L,p,u){const ed=S.edits[L.key];if(!ed||!ed.path)return null;const M=letterMatrix(L);let best=null;
   ed.path.forEach((c,ci)=>{for(let i=0;i<c.length;i++){const a=toWorldPt(M,c[i]),b=toWorldPt(M,c[(i+1)%c.length]),dx=b[0]-a[0],dy=b[1]-a[1],l2=dx*dx+dy*dy||1e-9,t=clamp(((p.x-a[0])*dx+(p.y-a[1])*dy)/l2,0,1),d=Math.hypot(p.x-(a[0]+dx*t),p.y-(a[1]+dy*t));if(d<10*u&&(!best||d<best.d))best={ci,i,t,d};}});return best;}
 function drawShapeUI(u){const L=SEL&&LAY.letters.find(x=>x.key===SEL);if(!L)return;const ed=S.edits[L.key];if(!ed||!ed.path)return;const M=letterMatrix(L);
-  ctx.save();ctx.lineWidth=1.2*u;ctx.strokeStyle='rgba(91,61,245,.8)';ed.path.forEach(c=>{ctx.beginPath();c.forEach((p,i)=>{const w=toWorldPt(M,p);i?ctx.lineTo(w[0],w[1]):ctx.moveTo(w[0],w[1]);});ctx.closePath();ctx.stroke();});
-  ed.path.forEach((c,ci)=>c.forEach((p,pi)=>{const w=toWorldPt(M,p),sel=PSEL&&PSEL.ci===ci&&PSEL.pi===pi,r=(sel?6:4.5)*u;ctx.fillStyle=sel?'#FFD43B':'#fff';ctx.strokeStyle='#5B3DF5';ctx.lineWidth=1.5*u;ctx.beginPath();
+  ctx.save();ctx.lineWidth=1.2*u;ctx.strokeStyle='rgba(200,162,74,.8)';ed.path.forEach(c=>{ctx.beginPath();c.forEach((p,i)=>{const w=toWorldPt(M,p);i?ctx.lineTo(w[0],w[1]):ctx.moveTo(w[0],w[1]);});ctx.closePath();ctx.stroke();});
+  ed.path.forEach((c,ci)=>c.forEach((p,pi)=>{const w=toWorldPt(M,p),sel=PSEL&&PSEL.ci===ci&&PSEL.pi===pi,r=(sel?6:4.5)*u;ctx.fillStyle=sel?'#0A1630':'#fff';ctx.strokeStyle='#C8A24A';ctx.lineWidth=1.5*u;ctx.beginPath();
     if(p[2])ctx.rect(w[0]-r,w[1]-r,r*2,r*2);else ctx.arc(w[0],w[1],r,0,Math.PI*2);ctx.fill();ctx.stroke();}));ctx.restore();}
 function drawBrushUI(u){if(!BRUSH)return;ctx.save();ctx.beginPath();ctx.arc(BRUSH.x,BRUSH.y,LIQ.size/2,0,Math.PI*2);ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=1.5*u;ctx.stroke();ctx.strokeStyle='rgba(0,0,0,.5)';ctx.setLineDash([4*u,4*u]);ctx.stroke();ctx.restore();}
 /* the brush: every point of every letter under it moves a little */
@@ -666,14 +666,14 @@ const renderSoon=()=>{cancelAnimationFrame(rT);rT=requestAnimationFrame(render);
 function letterBox(L){return{w:L.w*L.sc*L.sx+L.hh*L.sc*.12,h:L.hh*L.sc*1.05};}
 function drawUI(){const u=uiScale();ctx.save();ctx.lineWidth=1.5*u;
   /* the lines */
-  S.lines.forEach((P,i)=>{ctx.beginPath();ctx.moveTo(P.p0.x,P.p0.y);ctx.quadraticCurveTo(P.c.x,P.c.y,P.p1.x,P.p1.y);ctx.setLineDash([6*u,6*u]);ctx.strokeStyle='rgba(91,61,245,.55)';ctx.stroke();ctx.setLineDash([]);
-    ctx.strokeStyle='rgba(91,61,245,.35)';ctx.beginPath();ctx.moveTo(P.p0.x,P.p0.y);ctx.lineTo(P.c.x,P.c.y);ctx.lineTo(P.p1.x,P.p1.y);ctx.stroke();
-    [P.p0,P.p1].forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,8*u,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=2.5*u;ctx.strokeStyle='#5B3DF5';ctx.stroke();});
-    ctx.save();ctx.translate(P.c.x,P.c.y);ctx.rotate(Math.PI/4);ctx.fillStyle='#FFD43B';ctx.strokeStyle='#5B3DF5';ctx.lineWidth=2.5*u;ctx.fillRect(-7*u,-7*u,14*u,14*u);ctx.strokeRect(-7*u,-7*u,14*u,14*u);ctx.restore();});
+  S.lines.forEach((P,i)=>{ctx.beginPath();ctx.moveTo(P.p0.x,P.p0.y);ctx.quadraticCurveTo(P.c.x,P.c.y,P.p1.x,P.p1.y);ctx.setLineDash([6*u,6*u]);ctx.strokeStyle='rgba(200,162,74,.55)';ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle='rgba(200,162,74,.35)';ctx.beginPath();ctx.moveTo(P.p0.x,P.p0.y);ctx.lineTo(P.c.x,P.c.y);ctx.lineTo(P.p1.x,P.p1.y);ctx.stroke();
+    [P.p0,P.p1].forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,8*u,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=2.5*u;ctx.strokeStyle='#C8A24A';ctx.stroke();});
+    ctx.save();ctx.translate(P.c.x,P.c.y);ctx.rotate(Math.PI/4);ctx.fillStyle='#0A1630';ctx.strokeStyle='#C8A24A';ctx.lineWidth=2.5*u;ctx.fillRect(-7*u,-7*u,14*u,14*u);ctx.strokeRect(-7*u,-7*u,14*u,14*u);ctx.restore();});
   /* the picked letter */
   const L=SEL&&LAY.letters.find(x=>x.key===SEL);if(L){const B=letterBox(L);ctx.save();ctx.translate(L.x,L.y);ctx.rotate(L.rot);ctx.setLineDash([7*u,5*u]);ctx.lineWidth=2*u;ctx.strokeStyle='rgba(255,255,255,.95)';ctx.strokeRect(-B.w/2,-B.h/2,B.w,B.h);ctx.strokeStyle='rgba(0,0,0,.6)';ctx.lineDashOffset=7*u;ctx.strokeRect(-B.w/2,-B.h/2,B.w,B.h);ctx.setLineDash([]);
     ctx.beginPath();ctx.moveTo(0,-B.h/2);ctx.lineTo(0,-B.h/2-26*u);ctx.strokeStyle='#fff';ctx.stroke();
-    ctx.beginPath();ctx.arc(0,-B.h/2-26*u,9*u,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=2.5*u;ctx.strokeStyle='#5B3DF5';ctx.stroke();
+    ctx.beginPath();ctx.arc(0,-B.h/2-26*u,9*u,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=2.5*u;ctx.strokeStyle='#C8A24A';ctx.stroke();
     ctx.fillStyle='#fff';ctx.fillRect(B.w/2-8*u,B.h/2-8*u,16*u,16*u);ctx.strokeRect(B.w/2-8*u,B.h/2-8*u,16*u,16*u);ctx.restore();}
   if(MODE==='points')drawShapeUI(u);if(MODE==='liquify')drawBrushUI(u);ctx.restore();}
 

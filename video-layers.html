@@ -6,8 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#F2F1F6" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#121118" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F7F3E8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0A1630" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="mobile-web-app-capable" content="yes">
@@ -24,7 +24,7 @@ header:not(.top){position:relative;padding-right:46px}
 header:not(.top)>button.pt-theme{position:absolute;top:0;right:0}
 </style>
 <script id="pt-theme-js">/* light or dark: dark unless you pick light with the switch; the choice is kept for every tool */
-(function(){var K='pt-theme',d=document.documentElement,C={light:'#F2F1F6',dark:'#121118'},
+(function(){var K='pt-theme',d=document.documentElement,C={light:'#F7F3E8',dark:'#0A1630'},
 SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>',
 MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>';
 var mem=null;function saved(){try{var v=localStorage.getItem(K);if(v==='light'||v==='dark')return v;}catch(e){}return mem;}
@@ -43,24 +43,24 @@ document.addEventListener('DOMContentLoaded',function(){var h=document.querySele
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Unbounded:wght@600&family=Anton&family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Serif+Display:ital@0;1&family=Permanent+Marker&family=Caveat:wght@700&family=Pacifico&family=Bangers&family=Fredoka:wght@600&family=Special+Elite&family=Space+Mono:ital,wght@0,700;1,700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Lora:wght@500;600;700&family=Unbounded:wght@600&family=Anton&family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Serif+Display:ital@0;1&family=Permanent+Marker&family=Caveat:wght@700&family=Pacifico&family=Bangers&family=Fredoka:wght@600&family=Special+Elite&family=Space+Mono:ital,wght@0,700;1,700&display=swap">
 <style>
 /* Layout: editor workbench — layers | live preview | settings, with the timeline across the bottom; stacks on phones (preview first) */
 :root{
-  --bg:#F2F1F6; --panel:#FFFFFF; --ink:#18161F; --muted:#686577; --line:#DDDAE6;
-  --accent:#5B3DF5; --accent-ink:#FFFFFF; --soft:#ECE8FF; --stage:#E7E5EE; --check:#DCD9E4;
-  --c-video:#5B3DF5; --c-image:#1F8A70; --c-text:#C2410C; --c-audio:#6E6A80; --c-fx:#0E7490;
-  --f-display:"Unbounded","Familjen Grotesk",system-ui,sans-serif;
+  --bg:#F7F3E8; --panel:#FFFDF7; --ink:#0A1630; --muted:#4A5368; --line:#E2DAC4;
+  --accent:#8A6A1F; --accent-ink:#FFFFFF; --soft:#F1E7CC; --stage:#ECE5D2; --check:#E2DAC4;
+  --c-video:#2F6FD6; --c-image:#1F8A70; --c-text:#C2410C; --c-audio:#6E6A80; --c-fx:#0E7490;
+  --f-display:"Lora","Familjen Grotesk",system-ui,sans-serif;
   --f-body:"Familjen Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#121118; --panel:#1B1A23; --ink:#EEEDF4; --muted:#9D9AAE; --line:#2F2D3B;
-  --accent:#9C88FF; --accent-ink:#141020; --soft:#26213F; --stage:#0C0B11; --check:#17161E;
-  --c-video:#9C88FF; --c-image:#4FC9A6; --c-text:#F59E5B; --c-audio:#A09CB4; --c-fx:#3BC4DB; color-scheme:dark}}
+  --bg:#0A1630; --panel:#111F3D; --ink:#F7F3E8; --muted:#C9C5B9; --line:#24365A;
+  --accent:#C8A24A; --accent-ink:#0A1630; --soft:#233457; --stage:#060E20; --check:#111F3D;
+  --c-video:#7FA8F0; --c-image:#4FC9A6; --c-text:#F59E5B; --c-audio:#A09CB4; --c-fx:#3BC4DB; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#121118; --panel:#1B1A23; --ink:#EEEDF4; --muted:#9D9AAE; --line:#2F2D3B;
-  --accent:#9C88FF; --accent-ink:#141020; --soft:#26213F; --stage:#0C0B11; --check:#17161E;
-  --c-video:#9C88FF; --c-image:#4FC9A6; --c-text:#F59E5B; --c-audio:#A09CB4; --c-fx:#3BC4DB; color-scheme:dark}
+  --bg:#0A1630; --panel:#111F3D; --ink:#F7F3E8; --muted:#C9C5B9; --line:#24365A;
+  --accent:#C8A24A; --accent-ink:#0A1630; --soft:#233457; --stage:#060E20; --check:#111F3D;
+  --c-video:#7FA8F0; --c-image:#4FC9A6; --c-text:#F59E5B; --c-audio:#A09CB4; --c-fx:#3BC4DB; color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);padding-inline:16px;padding-block:18px 40px}
 [hidden]{display:none!important}
@@ -991,8 +991,8 @@ function render(t){
   const L=selL();
   if(L&&hasKf(L)&&L.kf.length>1&&!L.hidden)drawPath(L,W,H,k);
   if(L&&L.type!=='audio'&&!L.hidden){const b=boxOf(L);ctx.save();ctx.translate(b.cx,b.cy);ctx.rotate(L.rot*Math.PI/180);
-    ctx.strokeStyle='#7C5CFF';ctx.lineWidth=1.5*k;ctx.setLineDash([6*k,4*k]);ctx.strokeRect(-b.w/2,-b.h/2,b.w,b.h);ctx.setLineDash([]);
-    for(const hd of handlesOf(L,b,k)){ctx.fillStyle='#fff';ctx.strokeStyle='#7C5CFF';ctx.lineWidth=1.8*k;
+    ctx.strokeStyle='#C8A24A';ctx.lineWidth=1.5*k;ctx.setLineDash([6*k,4*k]);ctx.strokeRect(-b.w/2,-b.h/2,b.w,b.h);ctx.setLineDash([]);
+    for(const hd of handlesOf(L,b,k)){ctx.fillStyle='#fff';ctx.strokeStyle='#C8A24A';ctx.lineWidth=1.8*k;
       if(hd.k==='r'){if(hd.y<-b.h/2||hd.y>b.h/2){ctx.beginPath();ctx.moveTo(0,hd.y<0?-b.h/2:b.h/2);ctx.lineTo(0,hd.y);ctx.stroke();}ctx.beginPath();ctx.arc(0,hd.y,10*k,0,Math.PI*2);ctx.fill();ctx.stroke();
         ctx.beginPath();ctx.arc(0,hd.y,4.6*k,-.4,Math.PI*1.45);ctx.stroke();ctx.beginPath();const ax=4.6*k*Math.cos(-.4),ay=hd.y+4.6*k*Math.sin(-.4);ctx.moveTo(ax-3*k,ay-2*k);ctx.lineTo(ax,ay);ctx.lineTo(ax+1*k,ay-3.4*k);ctx.stroke();}
       else if(hd.k==='c'){ctx.beginPath();ctx.arc(hd.x,hd.y,7.5*k,0,Math.PI*2);ctx.fill();ctx.stroke();}
