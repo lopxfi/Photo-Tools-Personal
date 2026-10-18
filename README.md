@@ -492,6 +492,7 @@ Type a sound effect and it becomes manga lettering (描き文字). Everything ru
 - The page is 1000 px tall and as wide as your screen has room for (1400 to 2600 px), so wide screens get a wide page. Letters sit on a curve. Drag ● at either end to move it; drag ◆ to bend it. Hold Shift while dragging an end to leave the bend where it is. **Reset line** straightens it.
 - **Follow the curve** sets how much letters turn with it, from staying level to turning fully.
 - **Tap a letter** to pick it, then drag it, turn it with ○ or resize it with □. Arrow keys nudge it (Shift for 10 px). Double-tap puts it back; **Reset letters** puts them all back.
+- **Start over** (in the bar under the picture) clears the page and goes back to one “BOOM” in the Comic style, with the page, lettering and save settings as they start. It asks first, and Undo brings your work back. If you have an underlay picture, you choose whether to keep it; removing it can’t be undone.
 
 ### Reshaping letters
 - **✒ Points:** tap a letter and its outline becomes points (traced from the drawn letter). Drag a point; double-tap a line to add one; double-tap a point to switch it between a corner (square) and smooth (round); Delete removes it. **Reset this letter** or **Reset all** goes back to the font's shape.

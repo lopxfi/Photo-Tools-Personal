@@ -181,6 +181,14 @@ canvas#cv{display:block;max-width:100%;height:auto;touch-action:none;border-radi
 .modal{position:fixed;inset:0;background:rgba(10,8,20,.55);display:grid;place-items:center;z-index:30;padding:12px}
 .sheet{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;width:min(760px,100%);max-height:92vh;display:flex;flex-direction:column;gap:10px;overflow:hidden}
 .sheet h3{margin:0;font:600 16px/1.2 var(--f-display);display:flex;align-items:center;gap:8px}
+/* start over: a red button and a small box that asks first */
+.danger{color:#B4232C}
+:root[data-theme="dark"] .danger{color:#FF8A8A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .danger{color:#FF8A8A}}
+:root .danger.solid{background:#B4232C;color:#FFFFFF;border-color:#B4232C}
+.sheet.confirm{width:min(440px,100%);gap:12px}
+.sheet.confirm p{margin:0;font-size:14.5px;line-height:1.5;color:var(--muted)}
+.sheet.confirm .acts{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:4px}
 .fcats{display:flex;gap:6px;flex-wrap:wrap}
 .fcats button{font-size:12px;padding:6px 9px}
 .fcats button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
@@ -257,6 +265,7 @@ canvas#cv{display:block;max-width:100%;height:auto;touch-action:none;border-radi
         <span class="sep"></span>
         <button type="button" id="resetLetters" title="Put every letter back on the line">Reset letters</button>
         <button type="button" id="resetPath" title="Straighten the line and center it">Reset line</button>
+        <button type="button" id="startOver" class="danger" title="Clear the page and go back to the starting BOOM">Start over</button>
         <span class="spacer"></span>
         <button type="button" id="quickPng" class="primary">Save PNG</button>
         <button type="button" id="quickCopy">Copy</button>
@@ -312,6 +321,14 @@ canvas#cv{display:block;max-width:100%;height:auto;touch-action:none;border-radi
     <div class="row" id="iBar"></div>
     <div class="ideas" id="iGrid"></div>
     <p class="help">Tap one to use it. Your words and line stay the same; only the look changes. Made with random numbers and set rules, no AI.</p>
+  </div>
+</div>
+<div class="modal" id="rmodal" hidden>
+  <div class="sheet confirm" role="alertdialog" aria-modal="true" aria-labelledby="rTitle" aria-describedby="rText">
+    <h3 id="rTitle">Start over?</h3>
+    <p id="rText">This removes every sound effect on the page and puts the lettering, page and save settings back to how they start: one “BOOM” in the Comic style. Undo can bring your work back.</p>
+    <label class="chk" id="rBgRow"><input type="checkbox" id="rBg"> Also remove the underlay picture (this part can’t be undone)</label>
+    <div class="acts"><button type="button" id="rCancel">Cancel</button><button type="button" id="rOk" class="danger solid">Start over</button></div>
   </div>
 </div>
 
@@ -739,7 +756,7 @@ cv.addEventListener('dblclick',e=>{if(MODE!=='points')return;const p=toWorld(e),
   const sg=nearestSeg(L,p,u);
   if(best&&(!sg||best.d<sg.d+4*u)){const pt=ed.path[best.ci][best.pi];pt[2]=pt[2]?0:1;PSEL={ci:best.ci,pi:best.pi};bumpPath(ed);commit();render();return;}
   if(sg){const q=toLocalPt(letterMatrix(L).inverse(),p);ed.path[sg.ci].splice(sg.i+1,0,[+q[0].toFixed(4),+q[1].toFixed(4),0]);PSEL={ci:sg.ci,pi:sg.i+1};bumpPath(ed);commit();render();}});
-document.addEventListener('keydown',e=>{const tag=(e.target&&e.target.tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tag)||!$('fmodal').hidden||!$('imodal').hidden)return;
+document.addEventListener('keydown',e=>{const tag=(e.target&&e.target.tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tag)||!$('fmodal').hidden||!$('imodal').hidden||!$('rmodal').hidden)return;
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();return;}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();redo();return;}
   if(MODE==='points'&&PSEL&&SEL&&(e.key==='Delete'||e.key==='Backspace')){const ed=S.edits[SEL];const c=ed&&ed.path&&ed.path[PSEL.ci];if(c&&c.length>3){c.splice(PSEL.pi,1);PSEL=null;bumpPath(ed);commit();render();}else toast('A shape needs at least three points. Reset this letter to start over.');e.preventDefault();return;}
@@ -759,6 +776,16 @@ $('quickPng').onclick=()=>{const b=$('savePng');if(b)b.click();else toast('Savin
 $('quickCopy').onclick=()=>{const b=$('copyBtn');if(b)b.click();};
 $('resetLetters').onclick=()=>{S.edits={};commit();render();toast('Every letter is back on the line.');};
 $('resetPath').onclick=()=>{S.lines=[];ensurePaths(prepLines().length);commit();render();};
+/* start over: asks first, then goes back to a fresh page with one BOOM (undo still works) */
+function openStartOver(){$('rBgRow').hidden=!BGIMG;$('rBg').checked=false;$('rmodal').hidden=false;$('rCancel').focus();}
+function closeStartOver(){$('rmodal').hidden=true;$('startOver').focus();}
+$('startOver').onclick=openStartOver;$('rCancel').onclick=closeStartOver;
+$('rmodal').addEventListener('click',e=>{if(e.target===$('rmodal'))closeStartOver();});
+addEventListener('keydown',e=>{if($('rmodal').hidden)return;if(e.key==='Escape'){e.preventDefault();closeStartOver();}else if(e.key==='Tab'){const f=[...$('rmodal').querySelectorAll('input:not([hidden]),button')].filter(x=>x.offsetParent),a=f[0],z=f[f.length-1];if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}}});
+$('rOk').onclick=()=>{const dropBg=!!(BGIMG&&$('rBg').checked),bgOn=PG.bgi.on;$('rmodal').hidden=true;flushCommit();if(MODE)setMode(MODE);
+  ITEMS=[DEF()];CUR=0;PG=PGDEF();if(BGIMG&&!dropBg)PG.bgi.on=bgOn;PATHC.clear();useItem(0);ensurePaths(prepLines().length);needFont(S.font);
+  $('wrap').classList.remove('white','black');$('stageBg').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.bg===PG.bg)));
+  if(dropBg)setBgImage(null);fitWorld();renderAll();commit();toast(dropBg?'Started over with a fresh page.':'Started over. Undo brings your work back.');$('startOver').focus();};
 $('diceBtn').onclick=()=>{S.seed=(Math.random()*1e6)|0;commit();render();renderShape();};
 
 /* ================= the settings ================= */
