@@ -21,6 +21,7 @@ A small set of personal browser tools for dressing up photos, making short video
 | [Caption Maker](#caption-maker) | Puts words on a picture (captions, dialogue, speech bubbles, titles) in about 60 fonts or your own, with outlines, shadow, glow, 3D and curved text. |
 | [SFX Maker](#sfx-maker) | Turns a typed sound effect into manga lettering (BOOM, ドカーン): letters along a curve, comic, brush, lightning and other styles in free fonts, outlines, halftone, 3D, motion and jagged edges, with a sheet of random ideas. PNG, SVG or layers. |
 | [Effect Lines](#effect-lines) | Manga effect lines and screentones: focus lines, black flash, speed lines, rain, cross-hatching and rope hatching, halftone, gradients, 19 patterns, sparkles, petals and more. Drag the center, shape with sliders, stack layers, save as transparent PNG, SVG or a ZIP by layer. |
+| [Panel Layouts](#panel-layouts) | Manga and comic page layouts in batches of 12, 24 or 48 from a seed: orderly, standard, action or splash pages, slanted borders, bleeds and split panels, right-to-left or left-to-right. Drag borders, remove panels, mutate a layout into variations, and save as SVG or PNG with a clear, white or black background. |
 | [Watermark](#watermark) | Puts your name or logo on one photo or a whole batch, with ready-made looks (corner signature, label, stamp, proof band, tiled) or your own saved watermarks. |
 | [Background Remover](#background-remover) | Takes the background out of photos and videos: people, animals, everyday things, a plain background or green screen, or any color you pick like a chroma key. Touch-up brush for photos, and see-through, color, blurred or picture backgrounds. |
 | [Video Layers](#video-layers) | Puts pictures, videos, text, music and your voice together and exports a new video or GIF. Automatic background removal, green screen, motion paths with keyframes and one-tap layouts. |
@@ -568,6 +569,33 @@ Manga effect lines and screentones (効果線・トーン), rebuilt after the Ef
 
 ---
 
+## Panel Layouts
+
+Manga and comic panel layouts (コマ割り) in batches, rebuilt after the Manga Panel Layout Generator by Oyasumi Game Dev. Everything is made on the device from random numbers and set rules; nothing is uploaded.
+
+### Making a batch
+- **Starting points:** Orderly / Dialogue (straight rows, more panels), Standard, Action (slanted, fewer and bigger panels, more bleeds) and Splash / Title page (one big panel, lots of bleed). Each one sets the sliders; move any slider to go your own way.
+- **Format:** a manga page (B5), a social post (4:5) or a square. **Rows:** 1–2 up to 3–4. **Only layouts with … to … panels** keeps pages with that many panels.
+- **Sliders:** slanted rows, slanted columns, bleed (panels that run off the page edge past the dotted inner frame), split panels, big panels and border width.
+- **Reading:** right to left like Japanese manga or left to right like Western comics. Switching mirrors the same layouts, and the numbers show the reading order.
+- **Seed:** the same seed and settings always give the same batch. Type `PL-2026#5` and press Enter to open the 5th page of batch PL-2026. **🎲 New batch** picks a new seed. 12, 24 or 48 pages at a time.
+
+### Editing
+- Click a page to open it large. **Drag a border** to move it; grab it near one end to tilt it. It stops before any panel gets too small.
+- Click a panel to pick it (Shift for more) and press **Delete** to remove it; the panel next to it grows into the space. **Ctrl+Z** undoes; ◀ ▶ or the arrow keys go through the batch.
+- Edits stay with the batch (and after a reload) as long as its seed and settings stay the same. Edited pages are marked in the grid.
+
+### Mutate
+- **🧬 Mutate from this** turns one layout into a batch of variations: borders moved and tilted, panels split or merged, bleeds changed. **Low**, **Medium** or **High** sets how far they go; High can add or remove a row. Straight rows (or columns) stay straight. #01 is always the layout you started from, and you can mutate a mutation.
+
+### Saving
+- **Save SVG** (vector lines) or **Save PNG** (2400 px tall, or 1200, 3600 or 4800), one page at a time, or the whole batch as a ZIP of PNGs or SVGs, named in order (`panels_PL-2026_01.png`…).
+- **Background:** **Clear** leaves only the panel lines on a transparent picture, **White** or **Black** fills the page. **Lines** are Auto (white on black, black otherwise), black or white. **White inside the panels** keeps the panels white with black or clear gutters. The editor shows the saved look.
+- The reading-order numbers and the inner frame guide are left out of saved files unless you tick them. **Copy picture** puts the PNG on the clipboard; **Copy link** carries one layout, edits included.
+- In Clip Studio Paint: open the PNG as a guide and trace it with the Divide frame tool for masked panels, or use File › Import › Vector (Ver. 1.10 or later) for the SVG as lines.
+
+---
+
 ## Watermark
 
 Puts your name or logo on your photos. Add one photo or a whole batch; every photo gets the same watermark in the same spot, sized to match.
@@ -844,6 +872,7 @@ Open each tool once while you're online so everything, fonts included, is saved 
 | `caption-maker.html` | Caption Maker |
 | `sfx-maker.html` | SFX Maker |
 | `effect-lines.html` | Effect Lines |
+| `panel-layouts.html` | Panel Layouts |
 | `background-remover.html` | Background Remover |
 | `video-layers.html` | Video Layers |
 | `outfit-tags.html` | Outfit Tags (built from the Outfit-Idenitfy repository) |
