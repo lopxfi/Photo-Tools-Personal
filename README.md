@@ -480,9 +480,17 @@ Type a sound effect and it becomes manga lettering (描き文字). Everything ru
 - **Small note beside it** (添え字): a smaller word below, above, right or left of the lettering.
 
 ### The line
-- Letters sit on a curve. Drag ● at either end to move it; drag ◆ to bend it. Hold Shift while dragging an end to leave the bend where it is. **Reset line** straightens it.
+- The page is 1000 px tall and as wide as your screen has room for (1400 to 2600 px), so wide screens get a wide page. Letters sit on a curve. Drag ● at either end to move it; drag ◆ to bend it. Hold Shift while dragging an end to leave the bend where it is. **Reset line** straightens it.
 - **Follow the curve** sets how much letters turn with it, from staying level to turning fully.
 - **Tap a letter** to pick it, then drag it, turn it with ○ or resize it with □. Arrow keys nudge it (Shift for 10 px). Double-tap puts it back; **Reset letters** puts them all back.
+
+### Reshaping letters
+- **✒ Points:** tap a letter and its outline becomes points (traced from the drawn letter). Drag a point; double-tap a line to add one; double-tap a point to switch it between a corner (square) and smooth (round); Delete removes it. **Reset this letter** or **Reset all** goes back to the font's shape.
+- **◎ Liquify:** a brush with **Push**, **Bloat**, **Pinch**, **Twirl ↻** and **Twirl ↺**, with brush size, strength and hardness; hold Alt to reverse. It works on every letter under the brush.
+- Reshaped letters keep their new shape when you move, turn or resize them, and the SVG keeps them as paths. Undo covers every point and brush stroke.
+
+### Background
+- **Open a picture** (or drop one on the page) to put a page, a panel or a photo behind the lettering, fit inside or filling the page, at any opacity. The lettering saves on its own, see-through, unless you tick **Save it with the lettering**, which saves the whole page with it (PNG, copy and SVG). The picture is kept in the browser.
 
 ### Lettering styles and fonts
 - One tap for a style: Comic, Rounded, Brush, Marker, Pen, Lightning, Board, Negative, Spooky. A style picks a font for the language you typed and sets its outline, edges and wobble; change anything after.
