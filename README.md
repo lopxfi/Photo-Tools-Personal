@@ -18,6 +18,7 @@ A small set of personal browser tools for dressing up photos, making short video
 | [Chat Reel](#chat-reel) | Turns a text conversation into a video, timing every message on a timeline. Group chats, reactions, replies, voice notes and unsent messages, in iPhone, Android, DM, WhatsApp-style, Discord-style or lock-screen looks, or as a sci-fi transmission screen, a retro game cutscene, a video call, a social post with comments, or bubbles over your own video. |
 | [Metadata Scrubber](#metadata-scrubber) | Strips prompts, location and hidden data out of photos and videos and saves clean copies under random names, optionally under a size limit. |
 | [Caption Maker](#caption-maker) | Puts words on a picture (captions, dialogue, speech bubbles, titles) in about 60 fonts or your own, with outlines, shadow, glow, 3D and curved text. |
+| [SFX Maker](#sfx-maker) | Turns a typed sound effect into manga lettering (BOOM, ドカーン): letters along a curve, comic, brush, lightning and other styles in free fonts, outlines, halftone, 3D, motion and jagged edges, with a sheet of random ideas. PNG, SVG or layers. |
 | [Watermark](#watermark) | Puts your name or logo on one photo or a whole batch, with ready-made looks (corner signature, label, stamp, proof band, tiled) or your own saved watermarks. |
 | [Background Remover](#background-remover) | Takes the background out of photos and videos: people, animals, everyday things, a plain background or green screen, or any color you pick like a chroma key. Touch-up brush for photos, and see-through, color, blurred or picture backgrounds. |
 | [Video Layers](#video-layers) | Puts pictures, videos, text, music and your voice together and exports a new video or GIF. Automatic background removal, green screen, motion paths with keyframes and one-tap layouts. |
@@ -469,6 +470,49 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 
 ---
 
+## SFX Maker
+
+Type a sound effect and it becomes manga lettering (描き文字). Everything runs on the device; nothing is uploaded, and no AI is involved: the wobble and the ideas come from random numbers and set rules. Made for English and Japanese, with Korean and Chinese fonts too.
+
+### Text
+- Type the sound effect; each line of text gets its own line of lettering. **Across** or **Down** (vertical writing, right to left).
+- **Stretch long marks** draws ー (and -, ~) stretched along the line, as long as the **Long mark stretch** setting. Small kana (ッ, ゃ) are drawn smaller. **Add ゛** puts dakuten on every kana (ハハ → バババ).
+- **Small note beside it** (添え字): a smaller word below, above, right or left of the lettering.
+
+### The line
+- Letters sit on a curve. Drag ● at either end to move it; drag ◆ to bend it. Hold Shift while dragging an end to leave the bend where it is. **Reset line** straightens it.
+- **Follow the curve** sets how much letters turn with it, from staying level to turning fully.
+- **Tap a letter** to pick it, then drag it, turn it with ○ or resize it with □. Arrow keys nudge it (Shift for 10 px). Double-tap puts it back; **Reset letters** puts them all back.
+
+### Lettering styles and fonts
+- One tap for a style: Comic, Rounded, Brush, Marker, Pen, Lightning, Board, Negative, Spooky. A style picks a font for the language you typed and sets its outline, edges and wobble; change anything after.
+- About 90 free fonts from Google Fonts in groups (Japanese, comic, bold, rounded, brush, pen, fun and retro, spooky, Korean and Chinese), shown in your own words. Japanese fonts cover English too.
+- **Your fonts:** add TTF, OTF or WOFF files in the font picker. They stay in this browser and are shared with Caption Maker.
+
+### Shape and wobble
+- **The big three:** **Impact** (size, outline, growth), **Roughness** (wobble, rough edges, dry brush) and **Momentum** (lean, long-mark stretch, afterimages) each move several settings at once, on top of the detailed ones.
+- **Wobble seed** with a dice: a new random wobble each time, kept so the same seed gives the same result.
+- Letter size, spacing, follow the curve, lean, fan out, grow along (bigger or smaller toward the end), long mark stretch, and random wobble of angle, size and height per letter.
+- **Squeeze the whole thing:** narrow at the top, bottom, left or right.
+
+### Fill, outline, shadow, motion, edges
+- **Fill:** a color, white, gray, halftone dots, dots fading across, line tone, outline only, or negative (white letters on a black shape). Dot spacing and darkness.
+- **Outline:** thickness and color, around each letter or the whole word, sharp or rounded corners, and a second outline around the first.
+- **Shadow:** drop shadow or extruded 3D, with direction, length and color.
+- **Motion:** motion blur (width, copies, direction) and afterimages (gap, how many, fade, direction).
+- **Edges:** clean, lightning (jagged bands) or torn; hand-drawn roughness, dry brush and haze.
+
+### Ideas
+- **🎲 Draw ideas:** a sheet of 12, 24 or 48 random variations (calmer, wilder or both). Tap one to use it; your words and line stay. **🧬 Mutate** makes 12 small variations of the current look, as different as you set.
+- Undo (Ctrl+Z) and redo cover everything, including an idea you picked.
+
+### Saving
+- **Save PNG** (see-through or white, 1× to 4×, cut to the lettering or the whole page), **Save SVG** (the letters stay text, fonts from Google Fonts, your own fonts embedded by name), **Layered ZIP** (text, outline, shadow, afterimages and motion blur as separate PNGs for layers in Clip Studio or Photoshop), **Copy** to the clipboard, and **Copy link** (a link that carries the words and every setting).
+- Halftone, edges and the squeeze only come out in PNG. Clip Studio drops SVG fills, so use PNG or the layered ZIP there.
+- Your work is kept in the browser.
+
+---
+
 ## Watermark
 
 Puts your name or logo on your photos. Add one photo or a whole batch; every photo gets the same watermark in the same spot, sized to match.
@@ -743,6 +787,7 @@ Open each tool once while you're online so everything, fonts included, is saved 
 | `metadata-scrubber.html` | Metadata Scrubber |
 | `watermark.html` | Watermark |
 | `caption-maker.html` | Caption Maker |
+| `sfx-maker.html` | SFX Maker |
 | `background-remover.html` | Background Remover |
 | `video-layers.html` | Video Layers |
 | `outfit-tags.html` | Outfit Tags (built from the Outfit-Idenitfy repository) |

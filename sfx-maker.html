@@ -1,0 +1,777 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>SFX Maker</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#F2F1F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121118" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Photo Tools">
+<script>try{if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')&&window.top===window.self)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}catch(e){}</script>
+<style id="pt-theme-css">
+/* light/dark switch, added next to each page's name; same on every page */
+:root header button.pt-theme{flex:none;display:inline-grid;place-items:center;width:34px;height:34px;min-width:0;padding:0;margin:0;border:1px solid var(--line);border-radius:50%;background:var(--panel);color:var(--ink);cursor:pointer;align-self:center;box-shadow:none;font:inherit;line-height:0}
+:root header button.pt-theme:hover{border-color:var(--accent);color:var(--accent);background:var(--panel)}
+:root header button.pt-theme:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+:root header button.pt-theme svg{width:18px;height:18px;display:block}
+header:not(.top){position:relative;padding-right:46px}
+header:not(.top)>button.pt-theme{position:absolute;top:0;right:0}
+</style>
+<script id="pt-theme-js">/* light or dark: dark unless you pick light with the switch; the choice is kept for every tool */
+(function(){var K='pt-theme',d=document.documentElement,C={light:'#F2F1F6',dark:'#121118'},
+SUN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>',
+MOON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>';
+var mem=null;function saved(){try{var v=localStorage.getItem(K);if(v==='light'||v==='dark')return v;}catch(e){}return mem;}
+function now(){return saved()||'dark';}
+function apply(){var cur=now();d.setAttribute('data-theme',cur);
+  document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.content=C[cur];});
+  var b=document.getElementById('ptTheme');if(b){var n=cur==='dark'?'light':'dark';b.setAttribute('aria-label','Switch to '+n+' mode');b.title='Switch to '+n+' mode';b.innerHTML=cur==='dark'?SUN:MOON;}}
+window.ptTheme={get:now,set:function(t){mem=t;try{localStorage.setItem(K,t);}catch(e){}apply();}};
+apply();
+addEventListener('storage',function(e){if(e.key===K)apply();});
+document.addEventListener('DOMContentLoaded',function(){var h=document.querySelector('header');if(!h||document.getElementById('ptTheme'))return;
+  var b=document.createElement('button');b.type='button';b.id='ptTheme';b.className='pt-theme';
+  b.addEventListener('click',function(){ptTheme.set(now()==='dark'?'light':'dark');});
+  var t=h.querySelector('h1');if(t&&h.classList.contains('top'))t.after(b);else h.prepend(b);apply();});
+})();</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&family=Unbounded:wght@600&family=Bangers&family=Dela+Gothic+One&display=swap">
+<style>
+/* Layout: the lettering on the left, settings on the right; on phones the lettering comes first */
+:root{
+  --bg:#F2F1F6; --panel:#FFFFFF; --ink:#18161F; --muted:#686577; --line:#DDDAE6;
+  --accent:#5B3DF5; --accent-ink:#FFFFFF; --soft:#ECE8FF; --stage:#E7E5EE; --check:#DCD9E4; --warn:#B4281E;
+  --f-display:"Unbounded","Familjen Grotesk",system-ui,sans-serif;
+  --f-body:"Familjen Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121118; --panel:#1B1A23; --ink:#EEEDF4; --muted:#9D9AAE; --line:#2F2D3B;
+  --accent:#9C88FF; --accent-ink:#141020; --soft:#26213F; --stage:#75737F; --check:#6A6874; --warn:#FF8A80; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121118; --panel:#1B1A23; --ink:#EEEDF4; --muted:#9D9AAE; --line:#2F2D3B;
+  --accent:#9C88FF; --accent-ink:#141020; --soft:#26213F; --stage:#75737F; --check:#6A6874; --warn:#FF8A80; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);padding-inline:16px;padding-block:18px 40px}
+[hidden]{display:none!important}
+.top{max-width:1400px;margin:0 auto 16px;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
+.brand{font:600 22px/1.1 var(--f-display);letter-spacing:-.01em;margin:0}
+.brand span{color:var(--accent)}
+.top p{margin:0;color:var(--muted)}
+.spacer{flex:1}
+.switch{display:inline-flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--panel);align-self:center;max-width:100%;overflow-x:auto}
+.switch a{font:500 14px/1 var(--f-body);color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:7px;white-space:nowrap}
+.switch a:hover{color:var(--ink)}
+.switch a[aria-current="page"]{background:var(--ink);color:var(--bg)}
+.switch a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{max-width:1400px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+button,.btn{font:500 14px/1 var(--f-body);border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:9px 13px;border-radius:8px;cursor:pointer;position:relative;display:inline-flex;align-items:center;gap:6px;justify-content:center}
+button:hover,.btn:hover{border-color:var(--muted)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.primary:hover{border-color:var(--accent);filter:brightness(1.08)}
+.btn input{position:absolute;opacity:0;width:1px;height:1px}
+button:focus-visible,.btn:focus-within,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.row button,.row .btn{font-size:13px;padding:8px 11px}
+.opts{display:flex;flex-direction:column;gap:14px;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;overscroll-behavior:contain}
+.opts>*{flex-shrink:0}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label,.flabel{font-size:13px;font-weight:500;display:flex;justify-content:space-between;gap:8px}
+.field>label.chk{display:inline-flex;justify-content:flex-start;align-self:flex-start}
+.rv{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:400}
+.field input[type=range]{accent-color:var(--accent);width:100%}
+textarea,input[type=text],input[type=number],select{font:15px/1.35 var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+textarea{resize:vertical}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{padding:7px 10px;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chk{display:inline-flex;align-items:center;gap:7px;font-size:13px;cursor:pointer}
+.chk input{accent-color:var(--accent);width:16px;height:16px;flex:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.help{font-size:12.5px;color:var(--muted);margin:0}
+.status{font-size:13px;color:var(--accent);min-height:1.2em;margin:0}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;font-size:14px;z-index:40;max-width:min(92vw,520px);text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+/* colors: a color box with a few swatches */
+.cbtn{display:inline-flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;font-size:13px}
+.cbtn i{width:22px;height:22px;border-radius:6px;border:1px solid var(--line);display:block}
+.cbtn input{position:absolute;opacity:0;width:1px;height:1px}
+.swatches{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.swatches button{width:24px;height:24px;padding:0;border-radius:50%}
+.swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--accent)}
+/* the lettering */
+.stage{display:flex;flex-direction:column;gap:10px;min-width:0;position:sticky;top:16px}
+.canvas-wrap{position:relative;display:grid;place-items:center;padding:12px;border-radius:12px;min-height:280px;overflow:hidden;
+  background:var(--stage) conic-gradient(var(--check) 25%,transparent 0 50%,var(--check) 0 75%,transparent 0) 0 0/22px 22px}
+.canvas-wrap.white{background:#fff}
+canvas#cv{display:block;max-width:100%;max-height:min(66vh,900px);width:auto;height:auto;touch-action:none;border-radius:4px}
+.textbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start}
+.textbar textarea{font:700 22px/1.3 var(--f-body);min-height:52px}
+.textbar .seg{flex-direction:column;flex-wrap:nowrap}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tools button,.tools .btn{font-size:13px;padding:8px 11px}
+.under .help{margin:0}
+/* fold-out settings sections */
+.fsec{border-top:1px solid var(--line);margin:0 -16px;padding:0 16px}
+.fold{width:100%;display:flex;align-items:center;gap:8px;padding:13px 0;background:none;border:0;border-radius:0;font:600 14px/1.2 var(--f-body);color:var(--ink);text-align:left;cursor:pointer;box-shadow:none}
+.fold:hover{color:var(--accent);border:0}
+.fold .fsum{margin-left:auto;font-weight:400;color:var(--muted);font-size:12px;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fold .chev{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);margin:0 4px 0 2px;flex:none}
+.fold[aria-expanded="true"] .chev{transform:rotate(45deg);margin-top:-4px}
+.foldbody{display:flex;flex-direction:column;gap:14px;padding-bottom:14px}
+.foldall{display:flex;justify-content:flex-end;gap:12px;font-size:12px}
+.foldall button{border:0;background:none;color:var(--muted);padding:2px 4px;font-size:12px;box-shadow:none}
+.foldall button:hover{color:var(--accent)}
+/* lettering styles */
+.looks{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.looks button{flex-direction:column;gap:4px;padding:6px 4px;font-size:11px;color:var(--muted);overflow:hidden}
+.looks button canvas{width:100%;height:46px;display:block;border-radius:5px;background:var(--stage) conic-gradient(var(--check) 25%,transparent 0 50%,var(--check) 0 75%,transparent 0) 0 0/8px 8px}
+.looks button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);color:var(--ink)}
+/* fonts */
+.fontrow{display:flex;gap:8px;align-items:stretch}
+.fontbtn{flex:1;justify-content:space-between;font-size:20px;padding:8px 12px;min-width:0}
+.fontbtn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fontbtn small{font:500 12px/1 var(--f-body);color:var(--muted);flex:none}
+.modal{position:fixed;inset:0;background:rgba(10,8,20,.55);display:grid;place-items:center;z-index:30;padding:12px}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;width:min(760px,100%);max-height:92vh;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.sheet h3{margin:0;font:600 16px/1.2 var(--f-display);display:flex;align-items:center;gap:8px}
+.fcats{display:flex;gap:6px;flex-wrap:wrap}
+.fcats button{font-size:12px;padding:6px 9px}
+.fcats button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.flist{overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;padding:2px;min-height:200px}
+.fopt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 10px;text-align:left}
+.fopt .fs{font-size:24px;line-height:1.15;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fopt small{font:500 11px/1 var(--f-body);color:var(--muted)}
+.fopt[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.myfonts{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:10px}
+/* ideas sheet */
+.ideas{overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:2px}
+.ideas button{padding:4px;aspect-ratio:4/3;background:var(--stage) conic-gradient(var(--check) 25%,transparent 0 50%,var(--check) 0 75%,transparent 0) 0 0/10px 10px}
+.ideas button canvas{width:100%;height:100%;object-fit:contain;display:block}
+.ideas button:hover{border-color:var(--accent)}
+.dice{font-size:18px;padding:4px 10px}
+@media (max-width:900px){
+  body{padding-inline:12px}
+  .top p{display:none}
+  .app{grid-template-columns:minmax(0,1fr)}
+  .stage{position:static}
+  .opts{position:static;max-height:none}
+  .canvas-wrap{padding:8px;min-height:200px}
+  canvas#cv{max-height:52vh}
+  .textbar{grid-template-columns:1fr}
+  .textbar .seg{flex-direction:row}
+  textarea,input[type=text],input[type=number],select{font-size:16px}
+  .seg button,.row button{padding:10px 12px;font-size:14px}
+  .field input[type=range]{height:30px}
+  .looks{grid-template-columns:repeat(3,1fr)}
+  .flist{grid-template-columns:1fr 1fr}
+  .fopt .fs{font-size:20px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1 class="brand">SFX <span>Maker</span></h1>
+  <nav class="switch" aria-label="Switch tool"><a href="photo-frame-studio.html">Frame Studio</a><a href="photo-splitter.html">Splitter</a><a href="chat-reel.html">Chat Reel</a><a href="metadata-scrubber.html">Scrubber</a><a href="watermark.html">Watermark</a><a href="caption-maker.html">Captions</a><a href="sfx-maker.html" aria-current="page">SFX</a><a href="background-remover.html">BG Remover</a><a href="video-layers.html">Video</a><a href="delivery-reel.html">Delivery</a><a href="visual-novel.html">Novel</a><a href="motion-comic.html">Comic</a><a href="outfit-tags.html">Outfits</a></nav>
+  <p>Type a sound effect and it becomes manga lettering: BOOM, ドカーン, with a curve, an outline, motion and shadow.</p>
+</header>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<main class="app">
+  <section class="stage" aria-label="Lettering">
+    <div class="textbar">
+      <textarea id="txt" rows="1" autocomplete="off" spellcheck="false" aria-label="The sound effect" placeholder="BOOM"></textarea>
+      <div class="seg" role="group" aria-label="Writing direction"><button type="button" id="dirH" aria-pressed="true" title="Horizontal">Across</button><button type="button" id="dirV" aria-pressed="false" title="Vertical">Down</button></div>
+    </div>
+    <div class="canvas-wrap" id="wrap">
+      <canvas id="cv" width="1400" height="800" aria-label="The lettering. Drag the round handles to move the line, the diamond to bend it. Tap a letter to move, turn or resize just that one."></canvas>
+    </div>
+    <div class="tools">
+      <button type="button" id="ideasBtn" class="primary" title="A sheet of random variations to pick from">🎲 Draw ideas</button>
+      <button type="button" id="mutateBtn" title="Small random changes to this one">🧬 Mutate</button>
+      <button type="button" id="diceBtn" class="dice" title="New random wobble (seed)" aria-label="New random wobble">⚄</button>
+      <button type="button" id="resetLetters" title="Put every letter back on the line">Reset letters</button>
+      <button type="button" id="resetPath" title="Straighten the line and center it">Reset line</button>
+      <span class="spacer"></span>
+      <button type="button" id="undo" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+      <button type="button" id="redo" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
+    </div>
+    <div class="under">
+      <p class="help">Drag ● to move the ends of the line and ◆ to bend it. Tap a letter to pick it, then drag it, turn it with ○ or resize it with □; double-tap puts it back. Nothing is uploaded; it all runs here.</p>
+    </div>
+  </section>
+
+  <section class="card opts" id="opts" aria-label="Settings">
+    <h4 class="fhead">Text</h4>
+    <div class="field" id="textF"></div>
+    <h4 class="fhead">Lettering</h4>
+    <div class="field" id="lookF"></div>
+    <h4 class="fhead">Font</h4>
+    <div class="field" id="fontF"></div>
+    <h4 class="fhead">Shape and wobble</h4>
+    <div class="field" id="shapeF"></div>
+    <h4 class="fhead">Fill</h4>
+    <div class="field" id="fillF"></div>
+    <h4 class="fhead">Outline</h4>
+    <div class="field" id="outF"></div>
+    <h4 class="fhead">Shadow</h4>
+    <div class="field" id="shadowF"></div>
+    <h4 class="fhead">Motion</h4>
+    <div class="field" id="motionF"></div>
+    <h4 class="fhead">Edges</h4>
+    <div class="field" id="edgeF"></div>
+    <h4 class="fhead">Save</h4>
+    <div class="field" id="saveF"></div>
+    <p class="status" id="status" role="status"></p>
+  </section>
+</main>
+
+<div class="modal" id="fmodal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="fTitle">
+    <h3 id="fTitle">Pick a font <span class="spacer"></span><button type="button" id="fClose">Done</button></h3>
+    <input type="text" id="fSearch" placeholder="Search fonts" autocomplete="off" aria-label="Search fonts">
+    <div class="fcats" id="fCats" role="group" aria-label="Kinds of fonts"></div>
+    <div class="flist" id="fList" role="listbox" aria-label="Fonts"></div>
+    <div class="myfonts" id="myFonts"></div>
+  </div>
+</div>
+<div class="modal" id="imodal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="iTitle">
+    <h3 id="iTitle">Ideas <span class="spacer"></span><button type="button" id="iClose">Close</button></h3>
+    <div class="row" id="iBar"></div>
+    <div class="ideas" id="iGrid"></div>
+    <p class="help">Tap one to use it. Your words and line stay the same; only the look changes. Made with random numbers and set rules, no AI.</p>
+  </div>
+</div>
+
+<script>
+/* ================= phones: fold-out sections ================= */
+const phoneMQ=matchMedia('(max-width:900px)'),isPhone=()=>phoneMQ.matches;
+const openSecs=new Set((()=>{try{const v=JSON.parse(localStorage.getItem('sfx-open')||'null');if(Array.isArray(v))return v;}catch(e){}return['Text','Lettering','Shape and wobble'];})());
+const keepOpen=()=>{try{localStorage.setItem('sfx-open',JSON.stringify([...openSecs]));}catch(e){}};
+function $id(id){return document.getElementById(id);}
+function foldSections(p,sel){let body=null;
+  for(const el of[...p.children]){
+    if(el.matches(sel)){const name=el.firstChild.textContent.trim(),open=openSecs.has(name);
+      const b=document.createElement('button');b.type='button';b.className='fold';b.dataset.sec=name;b.setAttribute('aria-expanded',String(open));b.append(name);
+      const sm=document.createElement('span');sm.className='fsum';b.append(sm);
+      const ch=document.createElement('span');ch.className='chev';ch.setAttribute('aria-hidden','true');b.append(ch);
+      body=document.createElement('div');body.className='foldbody';body.hidden=!open;const bd=body;
+      b.onclick=()=>{const o=bd.hidden;bd.hidden=!o;b.setAttribute('aria-expanded',String(o));if(o)openSecs.add(name);else openSecs.delete(name);keepOpen();};
+      const sec=document.createElement('div');sec.className='fsec';sec.append(b,body);el.replaceWith(sec);continue;}
+    if(body)body.append(el);}}
+foldSections($id('opts'),'h4.fhead');
+(function(){const o=$id('opts'),first=o.querySelector('.fsec');if(!first)return;const set=open=>{o.querySelectorAll('.fold').forEach(b=>{const bd=b.nextElementSibling;bd.hidden=!open;b.setAttribute('aria-expanded',String(open));if(open)openSecs.add(b.dataset.sec);else openSecs.delete(b.dataset.sec);});keepOpen();};
+  const bar=document.createElement('div');bar.className='foldall';const mk=(t,f)=>{const x=document.createElement('button');x.type='button';x.textContent=t;x.onclick=f;return x;};bar.append(mk('Open all',()=>set(true)),mk('Close all',()=>set(false)));first.before(bar);})();
+function setSum(name,txt){const b=document.querySelector(`.fold[data-sec="${name}"] .fsum`);if(b)b.textContent=txt||'';}
+
+/* ================= basics ================= */
+const $=$id;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const rkey=()=>Math.random().toString(36).slice(2,9);
+const pct=v=>Math.round(v*100)+'%',deg=v=>Math.round(v)+'°',px=v=>Math.round(v)+' px';
+function h(tag,props,...kids){const e=document.createElement(tag);for(const[k,v]of Object.entries(props||{})){if(k==='class')e.className=v;else if(k==='style')e.style.cssText=v;else if(k.startsWith('on'))e[k]=v;else if(v===true)e.setAttribute(k,'');else if(v!==false&&v!=null)e.setAttribute(k,v);}
+  kids.flat().forEach(c=>{if(c!=null&&c!==false)e.append(c.nodeType?c:document.createTextNode(c));});return e;}
+function toast(msg){const t=$('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>{t.hidden=true;},4200);}
+const say=m=>{$('status').textContent=m;};
+function segF(id,label,opts,val,on){const g=h('div',{class:'seg',role:'group','aria-labelledby':id+'-l'});opts.forEach(([v,l,st])=>g.append(h('button',{type:'button','aria-pressed':String(v===val),style:st||null,onclick:()=>on(v)},l)));return h('div',{class:'field'},h('span',{class:'flabel',id:id+'-l'},label),g);}
+function rangeF(id,label,min,max,step,val,fmt,on){const out=h('output',{class:'rv',for:id},fmt(val)),inp=h('input',{type:'range',id,min,max,step,value:val});inp.oninput=()=>{out.textContent=fmt(+inp.value);on(+inp.value,false);};inp.onchange=()=>on(+inp.value,true);return h('div',{class:'field'},h('label',{for:id},label,out),inp);}
+function checkF(id,label,val,on){const c=h('input',{type:'checkbox',id});c.checked=!!val;c.onchange=()=>on(c.checked);return h('label',{class:'chk',for:id},c,label);}
+const SW=['#000000','#FFFFFF','#FF3B30','#FFD60A','#3E8BFF','#2FBF71','#FF7AC6','#9C88FF'];
+function colorF(id,label,val,on,sw){const inp=h('input',{type:'color',id,value:val}),i=h('i',{style:`background:${val}`}),lab=h('label',{class:'btn cbtn',for:id},i,h('span',{},val),inp);
+  inp.oninput=()=>{i.style.background=inp.value;lab.querySelector('span').textContent=inp.value.toUpperCase();on(inp.value.toUpperCase(),false);};inp.onchange=()=>on(inp.value.toUpperCase(),true);
+  const row=h('div',{class:'swatches'},...(sw||SW).map(c=>h('button',{type:'button',title:c,'aria-label':'Use '+c,'aria-pressed':String(c.toUpperCase()===val.toUpperCase()),style:`background:${c}`,onclick:()=>{inp.value=c;inp.oninput();on(c,true);}})));
+  return h('div',{class:'field'},h('span',{class:'flabel'},label),h('div',{class:'row'},lab,row));}
+function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const hexRGB=hx=>{const n=parseInt(String(hx).slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255];};
+const rgba=(hx,a)=>{const[r,g,b]=hexRGB(hx);return`rgba(${r},${g},${b},${a})`;};
+const rad=d=>d*Math.PI/180;
+
+/* ================= fonts: free fonts from Google Fonts that cover the languages, plus your own ================= */
+/* [id, name, Google Fonts family (with weight), css family, kind, languages] */
+const WEB_FONTS=[
+  ['bangers','Bangers','Bangers','"Bangers"','comic','en'],['luckiest','Luckiest Guy','Luckiest Guy','"Luckiest Guy"','comic','en'],['bowlby','Bowlby One','Bowlby One','"Bowlby One"','comic','en'],
+  ['titan','Titan One','Titan One','"Titan One"','comic','en'],['lilita','Lilita One','Lilita One','"Lilita One"','comic','en'],['boogaloo','Boogaloo','Boogaloo','"Boogaloo"','comic','en'],['chewy','Chewy','Chewy','"Chewy"','comic','en'],
+  ['bagel','Bagel Fat One','Bagel Fat One','"Bagel Fat One"','comic','en'],['shojumaru','Shojumaru','Shojumaru','"Shojumaru"','comic','en'],['sigmar','Sigmar One','Sigmar One','"Sigmar One"','comic','en'],
+  ['anton','Anton','Anton','"Anton"','bold','en'],['bungee','Bungee','Bungee','"Bungee"','bold','en'],['rubikmono','Rubik Mono One','Rubik Mono One','"Rubik Mono One"','bold','en'],['blackops','Black Ops One','Black Ops One','"Black Ops One"','bold','en'],
+  ['ultra','Ultra','Ultra','"Ultra"','bold','en'],['passion','Passion One','Passion One:wght@900','"Passion One"','bold','en'],['londrina','Londrina Solid','Londrina Solid:wght@900','"Londrina Solid"','bold','en'],['carter','Carter One','Carter One','"Carter One"','bold','en'],
+  ['rammetto','Rammetto One','Rammetto One','"Rammetto One"','bold','en'],['fredoka','Fredoka','Fredoka:wght@700','"Fredoka"','round','en'],['knewave','Knewave','Knewave','"Knewave"','brush','en'],
+  ['marker','Permanent Marker','Permanent Marker','"Permanent Marker"','brush','en'],['caveatb','Caveat Brush','Caveat Brush','"Caveat Brush"','brush','en'],['rocksalt','Rock Salt','Rock Salt','"Rock Salt"','brush','en'],
+  ['sedgwick','Sedgwick Ave Display','Sedgwick Ave Display','"Sedgwick Ave Display"','brush','en'],['patrick','Patrick Hand','Patrick Hand','"Patrick Hand"','pen','en'],['slackey','Slackey','Slackey','"Slackey"','fun','en'],
+  ['creepster','Creepster','Creepster','"Creepster"','spooky','en'],['nosifer','Nosifer','Nosifer','"Nosifer"','spooky','en'],['eater','Eater','Eater','"Eater"','spooky','en'],['lacquer','Lacquer','Lacquer','"Lacquer"','spooky','en'],
+  ['faster','Faster One','Faster One','"Faster One"','fun','en'],['monoton','Monoton','Monoton','"Monoton"','fun','en'],['bungeeshade','Bungee Shade','Bungee Shade','"Bungee Shade"','fun','en'],
+  ['rglitch','Rubik Glitch','Rubik Glitch','"Rubik Glitch"','fun','en'],['rspray','Rubik Spray Paint','Rubik Spray Paint','"Rubik Spray Paint"','brush','en'],['rwet','Rubik Wet Paint','Rubik Wet Paint','"Rubik Wet Paint"','brush','en'],
+  ['rdirt','Rubik Dirt','Rubik Dirt','"Rubik Dirt"','spooky','en'],['rdist','Rubik Distressed','Rubik Distressed','"Rubik Distressed"','spooky','en'],['rscribble','Rubik Scribble','Rubik Scribble','"Rubik Scribble"','pen','en'],
+  /* Japanese (all cover English too) */
+  ['dela','Dela Gothic One','Dela Gothic One','"Dela Gothic One"','bold','ja'],['reggae','Reggae One','Reggae One','"Reggae One"','comic','ja'],['rocknroll','RocknRoll One','RocknRoll One','"RocknRoll One"','comic','ja'],
+  ['rampart','Rampart One','Rampart One','"Rampart One"','fun','ja'],['yusei','Yusei Magic','Yusei Magic','"Yusei Magic"','brush','ja'],['hachimaru','Hachi Maru Pop','Hachi Maru Pop','"Hachi Maru Pop"','round','ja'],
+  ['potta','Potta One','Potta One','"Potta One"','comic','ja'],['mochiy','Mochiy Pop One','Mochiy Pop One','"Mochiy Pop One"','round','ja'],['stick','Stick','Stick','"Stick"','pen','ja'],['train','Train One','Train One','"Train One"','fun','ja'],
+  ['dotgothic','DotGothic16','DotGothic16','"DotGothic16"','fun','ja'],['yomogi','Yomogi','Yomogi','"Yomogi"','pen','ja'],['kaiseidecol','Kaisei Decol','Kaisei Decol:wght@700','"Kaisei Decol"','comic','ja'],
+  ['kaiseiopti','Kaisei Opti','Kaisei Opti:wght@700','"Kaisei Opti"','bold','ja'],['kaiseitok','Kaisei Tokumin','Kaisei Tokumin:wght@800','"Kaisei Tokumin"','bold','ja'],['zenkaku','Zen Kaku Gothic New','Zen Kaku Gothic New:wght@900','"Zen Kaku Gothic New"','bold','ja'],
+  ['zenmaru','Zen Maru Gothic','Zen Maru Gothic:wght@900','"Zen Maru Gothic"','round','ja'],['zenantique','Zen Antique','Zen Antique','"Zen Antique"','brush','ja'],['zenantiques','Zen Antique Soft','Zen Antique Soft','"Zen Antique Soft"','brush','ja'],
+  ['zenkure','Zen Kurenaido','Zen Kurenaido','"Zen Kurenaido"','pen','ja'],['shippori','Shippori Antique B1','Shippori Antique B1','"Shippori Antique B1"','bold','ja'],['kiwi','Kiwi Maru','Kiwi Maru:wght@500','"Kiwi Maru"','round','ja'],
+  ['klee','Klee One','Klee One:wght@600','"Klee One"','pen','ja'],['yujisyuku','Yuji Syuku','Yuji Syuku','"Yuji Syuku"','brush','ja'],['yujiboku','Yuji Boku','Yuji Boku','"Yuji Boku"','brush','ja'],['yujimai','Yuji Mai','Yuji Mai','"Yuji Mai"','brush','ja'],
+  ['kosugimaru','Kosugi Maru','Kosugi Maru','"Kosugi Maru"','round','ja'],['mplusr','M PLUS Rounded 1c','M PLUS Rounded 1c:wght@900','"M PLUS Rounded 1c"','round','ja'],['mplus1p','M PLUS 1p','M PLUS 1p:wght@900','"M PLUS 1p"','bold','ja'],
+  ['bizud','BIZ UDPGothic','BIZ UDPGothic:wght@700','"BIZ UDPGothic"','bold','ja'],['murecho','Murecho','Murecho:wght@900','"Murecho"','bold','ja'],['notosansjp','Noto Sans JP','Noto Sans JP:wght@900','"Noto Sans JP"','bold','ja'],
+  ['notoserifjp','Noto Serif JP','Noto Serif JP:wght@900','"Noto Serif JP"','bold','ja'],['daruma','Darumadrop One','Darumadrop One','"Darumadrop One"','comic','ja'],['cherry','Cherry Bomb One','Cherry Bomb One','"Cherry Bomb One"','comic','ja'],
+  ['chokokutai','Chokokutai','Chokokutai','"Chokokutai"','fun','ja'],['tsukimi','Tsukimi Rounded','Tsukimi Rounded:wght@700','"Tsukimi Rounded"','round','ja'],['palette','Palette Mozaic','Palette Mozaic','"Palette Mozaic"','fun','ja'],
+  ['monomaniac','Monomaniac One','Monomaniac One','"Monomaniac One"','fun','ja'],['zentokyo','Zen Tokyo Zoo','Zen Tokyo Zoo','"Zen Tokyo Zoo"','fun','ja'],['shizuru','Shizuru','Shizuru','"Shizuru"','spooky','ja'],
+  ['tegomin','New Tegomin','New Tegomin','"New Tegomin"','pen','ja'],['hina','Hina Mincho','Hina Mincho','"Hina Mincho"','pen','ja'],['zenold','Zen Old Mincho','Zen Old Mincho:wght@900','"Zen Old Mincho"','bold','ja'],
+  ['zenkakuant','Zen Kaku Gothic Antique','Zen Kaku Gothic Antique:wght@900','"Zen Kaku Gothic Antique"','bold','ja'],['sawarabi','Sawarabi Gothic','Sawarabi Gothic','"Sawarabi Gothic"','bold','ja'],
+  /* Korean and Chinese */
+  ['blackhan','Black Han Sans','Black Han Sans','"Black Han Sans"','bold','ko'],['jua','Jua','Jua','"Jua"','round','ko'],['dohyeon','Do Hyeon','Do Hyeon','"Do Hyeon"','bold','ko'],
+  ['zcool','ZCOOL KuaiLe','ZCOOL KuaiLe','"ZCOOL KuaiLe"','comic','zh'],['mashan','Ma Shan Zheng','Ma Shan Zheng','"Ma Shan Zheng"','brush','zh'],['zhimang','Zhi Mang Xing','Zhi Mang Xing','"Zhi Mang Xing"','brush','zh'],
+];
+const FONTS={};WEB_FONTS.forEach(([id,name,gf,css,kind,lang])=>FONTS[id]={id,name,gf,css,kind,lang});
+const FONT_KINDS=[['all','All'],['ja','Japanese'],['comic','Comic'],['bold','Bold and loud'],['round','Rounded'],['brush','Brush'],['pen','Pen'],['fun','Fun and retro'],['spooky','Spooky'],['other','Korean and Chinese'],['mine','Your fonts']];
+const GF_LOADED=new Set();
+function needFont(id){const f=FONTS[id];if(!f||!f.gf||GF_LOADED.has(f.gf))return;GF_LOADED.add(f.gf);
+  const l=h('link',{rel:'stylesheet',href:'https://fonts.googleapis.com/css2?family='+f.gf.replace(/ /g,'+')+'&display=swap'});l.onload=()=>setTimeout(renderSoon,50);document.head.append(l);}
+const fontCss=id=>(FONTS[id]||FONTS.bangers).css;
+const fontWeight=id=>{const f=FONTS[id];if(!f||!f.gf)return 400;const m=f.gf.match(/wght@(\d+)/);return m?+m[1]:400;};
+/* your fonts: font files you add, kept in this browser (shared by every tool on this site) */
+const FDB={open(){if(FDB.p)return FDB.p;return FDB.p=new Promise(res=>{try{const r=indexedDB.open('pt-fonts',1);r.onupgradeneeded=()=>r.result.createObjectStore('fonts');r.onsuccess=()=>res(r.result);r.onerror=r.onblocked=()=>res(null);}catch(e){res(null);}});},
+  async tx(mode,fn){const db=await FDB.open();if(!db)return null;return new Promise(res=>{try{const t=db.transaction('fonts',mode),s=t.objectStore('fonts'),q=fn(s);t.oncomplete=()=>res(q&&'result' in q?q.result:true);t.onerror=t.onabort=()=>res(null);}catch(e){res(null);}});}};
+function fontFileName(buf){try{const dv=new DataView(buf),n=dv.getUint16(4);for(let i=0;i<n;i++){const o=12+i*16,tag=String.fromCharCode(dv.getUint8(o),dv.getUint8(o+1),dv.getUint8(o+2),dv.getUint8(o+3));if(tag!=='name')continue;
+    const t=dv.getUint32(o+8),cnt=dv.getUint16(t+2),so=t+dv.getUint16(t+4),got={};
+    for(let k=0;k<cnt;k++){const r=t+6+k*12,pid=dv.getUint16(r),nid=dv.getUint16(r+6),len=dv.getUint16(r+8),off=dv.getUint16(r+10);if(nid!==4&&nid!==1&&nid!==2)continue;let s='';
+      if(pid===3||pid===0){for(let j=0;j<len;j+=2)s+=String.fromCharCode(dv.getUint16(so+off+j));}else if(pid===1){for(let j=0;j<len;j++)s+=String.fromCharCode(dv.getUint8(so+off+j));}else continue;
+      if(s&&(!got[nid]||pid===3))got[nid]=s;}
+    return got[4]||[got[1],got[2]&&got[2]!=='Regular'?got[2]:''].filter(Boolean).join(' ')||null;}}catch(e){}return null;}
+async function useOwnFont(rec){try{const ff=new FontFace('pt-own-'+rec.id,await rec.blob.arrayBuffer());await ff.load();document.fonts.add(ff);
+  FONTS['own-'+rec.id]={id:'own-'+rec.id,name:rec.name,gf:null,css:`"pt-own-${rec.id}",sans-serif`,kind:'mine',lang:'any',own:true};return true;}catch(e){return false;}}
+async function loadOwnFonts(){const keys=await FDB.tx('readonly',s=>s.getAllKeys())||[];for(const k of keys){if(FONTS['own-'+k])continue;const rec=await FDB.tx('readonly',s=>s.get(k));if(rec)await useOwnFont(rec);}}
+async function addFontFiles(files){let n=0,bad=0,last=null;
+  for(const f of files){if(!/\.(ttf|otf|woff2?)$/i.test(f.name)&&!/font/.test(f.type)){bad++;continue;}const buf=await f.arrayBuffer();
+    const name=(fontFileName(buf)||f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ')).slice(0,60),rec={id:rkey(),name,blob:new Blob([buf],{type:f.type||'font/ttf'}),added:Date.now()};
+    if(await useOwnFont(rec)){await FDB.tx('readwrite',s=>s.put(rec,rec.id));n++;last='own-'+rec.id;}else bad++;}
+  if(n)toast(`${n} font${n>1?'s':''} added. ${bad?bad+' couldn’t be read. ':''}They stay in this browser.`);else if(bad)toast('Those files couldn’t be read as fonts (TTF, OTF, WOFF).');return last;}
+async function removeOwnFont(id){await FDB.tx('readwrite',s=>s.delete(id.replace(/^own-/,'')));delete FONTS[id];if(S.font===id)S.font='bangers';}
+
+/* ================= the state ================= */
+const hasJa=t=>/[぀-ヿ一-鿿ｦ-ﾟ]/.test(t),hasKo=t=>/[가-힯ᄀ-ᇿ]/.test(t),hasZh=t=>/[一-鿿]/.test(t)&&!/[぀-ヿ]/.test(t);
+const DEF=()=>({
+  text:'BOOM',dir:'h',joinLong:true,dakuten:false,look:'comic',font:'bangers',
+  size:170,spacing:0,upright:1,lean:0,fan:0,grow:0,stretch:.5,
+  jit:{rot:.2,size:.15,y:.1},seed:7,macro:{impact:.4,rough:.1,speed:.2},
+  lines:[],edits:{},
+  fill:{kind:'solid',color:'#000000',dot:.08,tone:.5,color2:'#FFFFFF'},
+  out:{on:true,w:.08,color:'#FFFFFF',group:false,sharp:true,on2:true,w2:.05,color2:'#000000'},
+  shadow:{kind:'none',dir:135,len:.12,color:'#000000'},
+  blur:{on:false,w:.12,n:6,dir:0},after:{on:false,gap:.14,n:2,dir:180,fade:.5},
+  edge:{kind:'none',amt:.5,rough:0,dry:0,haze:0},
+  sub:{text:'',pos:'below',size:.4},deform:{kind:'none',amt:.3},
+  bg:'clear',scale:2,fit:'crop'});
+let S=DEF();
+/* the lettering styles: a font for English and one for Japanese, and the settings that make the style */
+const LOOKS=[
+  ['comic','Comic',{font:['bangers','reggae'],out:{on:true,w:.08,color:'#FFFFFF',group:false,sharp:true,on2:true,w2:.05,color2:'#000000'},fill:{kind:'solid',color:'#000000'},edge:{kind:'none',amt:.5,rough:0,dry:0,haze:0},jit:{rot:.2,size:.15,y:.1},lean:0,shadow:{kind:'none'}}],
+  ['round','Rounded',{font:['fredoka','mochiy'],out:{on:true,w:.1,color:'#FFFFFF',group:true,sharp:false,on2:true,w2:.05,color2:'#000000'},fill:{kind:'solid',color:'#000000'},edge:{kind:'none',amt:.5,rough:0,dry:0,haze:0},jit:{rot:.08,size:.1,y:.08},lean:0,shadow:{kind:'none'}}],
+  ['brush','Brush',{font:['caveatb','yujisyuku'],out:{on:false,on2:false},fill:{kind:'solid',color:'#000000'},edge:{kind:'none',amt:.5,rough:.5,dry:.45,haze:.1},jit:{rot:.15,size:.2,y:.12},lean:0,shadow:{kind:'none'}}],
+  ['marker','Marker',{font:['marker','yusei'],out:{on:false,on2:false},fill:{kind:'solid',color:'#000000'},edge:{kind:'none',amt:.5,rough:.3,dry:.1,haze:0},jit:{rot:.12,size:.12,y:.1},lean:-8,shadow:{kind:'none'}}],
+  ['pen','Pen',{font:['patrick','zenkure'],out:{on:false,on2:false},fill:{kind:'solid',color:'#000000'},edge:{kind:'none',amt:.5,rough:.15,dry:0,haze:0},jit:{rot:.1,size:.1,y:.1},lean:0,shadow:{kind:'none'}}],
+  ['lightning','Lightning',{font:['bangers','dela'],out:{on:true,w:.07,color:'#FFFFFF',group:false,sharp:true,on2:true,w2:.04,color2:'#000000'},fill:{kind:'solid',color:'#000000'},edge:{kind:'lightning',amt:.6,rough:0,dry:0,haze:0},jit:{rot:.1,size:.1,y:.05},lean:12,shadow:{kind:'none'}}],
+  ['board','Board',{font:['rubikmono','dela'],out:{on:true,w:.06,color:'#000000',group:true,sharp:false,on2:false},fill:{kind:'white'},edge:{kind:'none',amt:.5,rough:0,dry:0,haze:0},jit:{rot:0,size:0,y:0},lean:0,shadow:{kind:'extrude',dir:135,len:.14,color:'#000000'}}],
+  ['nega','Negative',{font:['anton','dela'],out:{on:true,w:.16,color:'#000000',group:true,sharp:false,on2:false},fill:{kind:'white'},edge:{kind:'none',amt:.5,rough:0,dry:0,haze:0},jit:{rot:.05,size:.05,y:.05},lean:0,shadow:{kind:'none'}}],
+  ['spooky','Spooky',{font:['creepster','shizuru'],out:{on:true,w:.05,color:'#FFFFFF',group:false,sharp:true,on2:false},fill:{kind:'solid',color:'#000000'},edge:{kind:'torn',amt:.5,rough:.3,dry:.2,haze:.3},jit:{rot:.25,size:.25,y:.2},lean:0,shadow:{kind:'drop',dir:90,len:.08,color:'#000000'}}],
+];
+const mergeDeep=(a,b)=>{for(const k in b){if(b[k]&&typeof b[k]==='object'&&!Array.isArray(b[k])&&a[k]&&typeof a[k]==='object')a[k]=mergeDeep({...a[k]},b[k]);else a[k]=b[k];}return a;};
+const langOf=t=>hasJa(t)?'ja':hasKo(t)?'ko':hasZh(t)?'zh':'en';
+function applyLook(id,keepFont){const L=LOOKS.find(l=>l[0]===id);if(!L)return;const o=JSON.parse(JSON.stringify(L[2]));const fonts=o.font;delete o.font;
+  mergeDeep(S,o);S.look=id;if(!keepFont){const lang=langOf(S.text);S.font=lang==='en'?fonts[0]:fonts[1];if(lang==='ko'||lang==='zh')S.font=lang==='ko'?'blackhan':'zcool';}needFont(S.font);}
+
+/* ================= the page the lettering lives on ================= */
+let W=1400,H=1000;
+const cv=$('cv'),ctx=cv.getContext('2d');cv.width=W;cv.height=H;
+const mcv=document.createElement('canvas'),mctx=mcv.getContext('2d');
+const can=(w,hh)=>{const c=document.createElement('canvas');c.width=Math.max(1,Math.ceil(w));c.height=Math.max(1,Math.ceil(hh));return c;};
+const CANFILTER=(()=>{try{const g=document.createElement('canvas').getContext('2d');if(!('filter' in g))return false;g.filter='blur(2px)';return g.filter==='blur(2px)';}catch(e){return false;}})();
+
+/* ---------- the text: lines of letters, with the kana rules ---------- */
+const SMALL='ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮヵヶ',LONG='ー-−—～〜';
+function voiced(ch){if(!/[ぁ-ゔァ-ヴ]/.test(ch))return ch;const d=(ch+'゙').normalize('NFC');return d.length===1?d:ch;}
+function prepLines(){const raw=String(S.text||'').replace(/\r/g,'').split('\n');const lines=raw.map(l=>[...l].filter(c=>c!=='\n'&&c!=='\r'));
+  return lines.map(chars=>chars.map(ch=>{let c=ch;if(S.dakuten)c=voiced(c);const small=SMALL.includes(c),long=LONG.includes(c);return{ch:c,small,long,space:/\s/.test(c)};}));}
+/* a line's path: a curve from p0 to p1, bent by c */
+const qAt=(P,t)=>({x:(1-t)*(1-t)*P.p0.x+2*(1-t)*t*P.c.x+t*t*P.p1.x,y:(1-t)*(1-t)*P.p0.y+2*(1-t)*t*P.c.y+t*t*P.p1.y});
+const qTan=(P,t)=>{const x=2*(1-t)*(P.c.x-P.p0.x)+2*t*(P.p1.x-P.c.x),y=2*(1-t)*(P.c.y-P.p0.y)+2*t*(P.p1.y-P.c.y);const n=Math.hypot(x,y)||1;return{x:x/n,y:y/n};};
+function qTable(P){const N=160,pts=[],arc=[0];let p=qAt(P,0);pts.push(p);for(let i=1;i<=N;i++){const q=qAt(P,i/N);arc.push(arc[i-1]+Math.hypot(q.x-p.x,q.y-p.y));pts.push(q);p=q;}return{arc,len:arc[N],N};}
+function tAt(tab,s){const{arc,N}=tab;if(s<=0)return s/Math.max(1,tab.len);if(s>=tab.len)return 1+(s-tab.len)/Math.max(1,tab.len);let lo=0,hi=N;while(lo<hi){const m=(lo+hi)>>1;if(arc[m]<s)lo=m+1;else hi=m;}const i=Math.max(1,lo),f=(s-arc[i-1])/Math.max(1e-6,arc[i]-arc[i-1]);return(i-1+f)/N;}
+function defaultPath(i,n,dir){if(dir==='v'){const x=W/2+((n-1)/2-i)*S.size*1.35;return{p0:{x,y:H*.12},p1:{x,y:H*.88},c:{x,y:H*.5}};}
+  const y=H/2+(i-(n-1)/2)*S.size*1.25;return{p0:{x:W*.14,y},p1:{x:W*.86,y},c:{x:W/2,y}};}
+function ensurePaths(n){if(!Array.isArray(S.lines))S.lines=[];while(S.lines.length<n)S.lines.push(defaultPath(S.lines.length,n,S.dir));if(S.lines.length>n)S.lines.length=n;}
+/* what the big sliders add on top of the detailed settings */
+function eff(){const m=S.macro,E={};E.size=S.size*(1+m.impact*.25);E.outW=S.out.w*(1+m.impact*.9);E.outW2=S.out.w2*(1+m.impact*.6);E.grow=S.grow+m.impact*.3;
+  E.jit={rot:S.jit.rot+m.rough*.35,size:S.jit.size+m.rough*.3,y:S.jit.y+m.rough*.3};E.rough=clamp(S.edge.rough+m.rough*.6,0,1);E.dry=clamp(S.edge.dry+m.rough*.25,0,1);
+  E.lean=S.lean+(S.dir==='h'?m.speed*22:0);E.stretch=S.stretch*(1+m.speed*1.2);E.fan=S.fan;
+  E.after={...S.after};if(!S.after.on&&m.speed>.55){E.after={on:true,n:Math.min(4,Math.round((m.speed-.55)*7)+1),gap:.12+m.speed*.08,dir:null,fade:.5};}
+  E.blur={...S.blur};if(S.blur.on)E.blur.w=S.blur.w*(1+m.speed);return E;}
+const MW=new Map();
+function measure(font,ch){const k=font+'|'+ch;let w=MW.get(k);if(w==null){mctx.font=font;w=mctx.measureText(ch).width;MW.set(k,w);}return w;}
+/* every letter: where it sits, how it's turned and scaled, after the line, the wobble and your own edits */
+function layout(st){st=st||S;const E=eff(),lines=prepLines(),n=lines.length;ensurePaths(n);const rnd=mulberry(st.seed*7919+13),letters=[],fam=fontCss(st.font),wt=fontWeight(st.font);
+  lines.forEach((chars,li)=>{const P=st.lines[li],tab=qTable(P),m=chars.length,adv=[],font=`${wt} ${E.size}px ${fam}`;
+    chars.forEach((g,i)=>{const t=m>1?i/(m-1):.5,sc=(1+E.grow*(t-.5))*(g.small?.72:1);let w;
+      if(st.dir==='h'){w=measure(font,g.ch)*sc;if(g.long&&st.joinLong)w*=1+E.stretch*2;if(g.space)w=E.size*.35;}
+      else{w=E.size*sc*(g.space?.4:1);if(g.long&&st.joinLong)w*=1+E.stretch*2;}
+      adv.push(w*(1+st.spacing)+(st.dir==='h'?E.size*.02:E.size*.06));});
+    const total=adv.reduce((a,b)=>a+b,0);let s=(tab.len-total)/2;
+    chars.forEach((g,i)=>{const r1=rnd(),r2=rnd(),r3=rnd();const mid=s+adv[i]/2;s+=adv[i];if(g.space)return;const t=tAt(tab,mid);let pos,tan;
+      if(t<0||t>1){const tt=clamp(t,0,1);tan=qTan(P,tt);const base=qAt(P,tt);const d=(t-tt)*tab.len;pos={x:base.x+tan.x*d,y:base.y+tan.y*d};}else{pos=qAt(P,t);tan=qTan(P,t);}
+      const ang=Math.atan2(tan.y,tan.x),base=st.dir==='h'?0:Math.PI/2,ti=m>1?i/(m-1):.5;
+      let rot=(ang-base)*st.upright+rad(E.fan)*(ti-.5)*2+(r1-.5)*2*rad(32)*E.jit.rot;
+      let sc=(1+E.grow*(ti-.5))*(1+(r2-.5)*2*.45*E.jit.size)*(g.small?.72:1);
+      const off=(r3-.5)*2*E.size*.3*E.jit.y;const nx=-tan.y,ny=tan.x;let x=pos.x+nx*off,y=pos.y+ny*off;
+      if(g.small){if(st.dir==='h'){x+=nx*E.size*.1;y+=ny*E.size*.1;}else{x+=E.size*.12;}}
+      if(st.dir==='v'&&g.long)rot+=Math.PI/2;
+      const key=li+'-'+i,ed=st.edits[key]||{dx:0,dy:0,rot:0,sc:1};
+      const sx=g.long&&st.joinLong?1+E.stretch*2:1;
+      letters.push({ch:g.ch,li,i,key,x:x+ed.dx,y:y+ed.dy,rot:rot+ed.rot,sc:sc*ed.sc,sx,w:st.dir==='h'?measure(font,g.ch):E.size,hh:E.size,small:g.small,long:g.long,font,ang});});
+    });
+  /* the small note (添え字) beside the lettering */
+  const sub=[];if(st.sub.text){const bb=lettersBox(letters,E);if(bb){const fs=E.size*st.sub.size,font=`${wt} ${fs}px ${fam}`,chs=[...st.sub.text],ws=chs.map(c=>measure(font,c)*1.05),tot=ws.reduce((a,b)=>a+b,0);
+      let x0,y0,vert=false;const g=fs*.5;if(st.sub.pos==='below'){x0=(bb.l+bb.r)/2-tot/2;y0=bb.b+g+fs/2;}else if(st.sub.pos==='above'){x0=(bb.l+bb.r)/2-tot/2;y0=bb.t-g-fs/2;}
+      else if(st.sub.pos==='right'){vert=true;x0=bb.r+g+fs/2;y0=(bb.t+bb.b)/2-tot/2;}else{vert=true;x0=bb.l-g-fs/2;y0=(bb.t+bb.b)/2-tot/2;}
+      let s=0;chs.forEach((c,i)=>{const mid=s+ws[i]/2;s+=ws[i];sub.push({ch:c,x:vert?x0:x0+mid,y:vert?y0+mid:y0,rot:0,sc:1,sx:1,w:ws[i],hh:fs,font,sub:true});});}}
+  return{letters,sub,E,n};}
+const LOOKPV=new Map();
+function lettersBox(letters,E){if(!letters.length)return null;let l=1e9,t=1e9,r=-1e9,b=-1e9;letters.forEach(L=>{const rx=L.w*L.sc*L.sx/2*1.1,ry=L.hh*L.sc/2*1.1,R=Math.hypot(rx,ry);l=Math.min(l,L.x-R);r=Math.max(r,L.x+R);t=Math.min(t,L.y-R);b=Math.max(b,L.y+R);});return{l,t,r,b};}
+
+/* ---------- drawing the letters ---------- */
+function glyphTransform(g,L,extra){g.translate(L.x,L.y);g.rotate(L.rot);if(L.lean)g.transform(1,0,Math.tan(rad(-L.lean)),1,0,0);g.scale(L.sc*L.sx*(extra||1),L.sc*(extra||1));}
+/* one pass over every letter: fill or stroke, with a little roughness if asked */
+function pass(g,letters,mode,o){const reps=o.rough>0?3:1;letters.forEach(L=>{for(let k=0;k<reps;k++){g.save();glyphTransform(g,L);g.font=L.font;g.textAlign='center';g.textBaseline='middle';
+    if(reps>1){const r=mulberry(Math.round(L.x*3+L.y*7)+k*17)();const a=r*Math.PI*2;g.translate(Math.cos(a)*o.rough*L.hh*.025,Math.sin(a)*o.rough*L.hh*.025);}
+    if(mode==='fill'){g.fillStyle=o.style;g.fillText(L.ch,0,0);}
+    else{g.lineWidth=o.w*2/((L.sx+1)/2);g.strokeStyle=o.style;g.lineJoin=o.sharp?'miter':'round';g.miterLimit=o.sharp?3.5:2;g.lineCap='round';g.strokeText(L.ch,0,0);}
+    g.restore();}});}
+function dotPattern(g,size,color,bgc,lines){const s=Math.max(3,size);const c=can(s,s),q=c.getContext('2d');if(bgc){q.fillStyle=bgc;q.fillRect(0,0,s,s);}q.fillStyle=color;
+  if(lines){q.save();q.translate(s/2,s/2);q.rotate(-Math.PI/4);q.lineWidth=Math.max(1,s*S.fill.tone*.9);q.strokeStyle=color;for(let k=-2;k<=2;k++){q.beginPath();q.moveTo(-s*2,k*s);q.lineTo(s*2,k*s);q.stroke();}q.restore();}
+  else{const r=s*.5*Math.sqrt(clamp(S.fill.tone,0,1));[[s/2,s/2],[0,0],[s,0],[0,s],[s,s]].forEach(([x,y])=>{q.beginPath();q.arc(x,y,r,0,Math.PI*2);q.fill();});}
+  return g.createPattern(c,'repeat');}
+/* the lettering itself (fill and outlines) on its own layer */
+function buildLayer(Lay,only){const{letters,sub,E}=Lay,all=[...letters.map(L=>({...L,lean:E.lean})),...sub.map(L=>({...L,lean:E.lean}))],c=can(W,H),g=c.getContext('2d'),size=E.size;
+  const F=S.fill,O=S.out,rough=E.rough,wantFill=only!=='outline',wantOut=only!=='text';
+  const o2={w:(E.outW+E.outW2)*size,style:O.color2,sharp:O.sharp,rough},o1={w:E.outW*size,style:O.color,sharp:O.sharp,rough};
+  const fillStyle=()=>F.kind==='white'||F.kind==='nega'?'#FFFFFF':F.kind==='gray'?'#9A9A9A':F.kind==='dots'?dotPattern(g,size*F.dot,F.color,F.color2):F.kind==='lines'?dotPattern(g,size*F.dot,F.color,F.color2,true):F.color;
+  const strokes=ls=>{if(F.kind==='nega')pass(g,ls,'stroke',{w:size*.5,style:'#000000',sharp:false,rough});if(!O.on)return;if(O.on2)pass(g,ls,'stroke',o2);pass(g,ls,'stroke',o1);};
+  const fills=ls=>{if(F.kind==='none'||!wantFill)return;
+    if(F.kind==='dotsGrad'){const t=can(W,H),q=t.getContext('2d');pass(q,ls,'fill',{style:'#000',rough});const bb=lettersBox(letters,E)||{l:0,t:0,r:W,b:H};const d=can(W,H),dq=d.getContext('2d');dq.fillStyle=F.color2;dq.fillRect(0,0,W,H);dq.fillStyle=F.color;
+      const s=Math.max(3,size*F.dot),vert=S.dir==='h';for(let y=bb.t-s;y<bb.b+s;y+=s)for(let x=bb.l-s;x<bb.r+s;x+=s){const f=vert?(y-bb.t)/Math.max(1,bb.b-bb.t):(x-bb.l)/Math.max(1,bb.r-bb.l);const r=s*.55*Math.sqrt(clamp(f*F.tone*1.6,0,1));if(r>.3){dq.beginPath();dq.arc(x,y,r,0,Math.PI*2);dq.fill();}}
+      q.globalCompositeOperation='source-in';q.drawImage(d,0,0);g.drawImage(t,0,0);return;}
+    pass(g,ls,'fill',{style:fillStyle(),rough});};
+  if(O.group||F.kind==='nega'){if(wantOut)strokes(all);fills(all);}
+  else all.forEach(L=>{if(wantOut)strokes([L]);fills([L]);});
+  return c;}
+/* only the colored shape of a layer */
+function tint(layer,color,alpha){const c=can(W,H),g=c.getContext('2d');g.drawImage(layer,0,0);g.globalCompositeOperation='source-in';g.fillStyle=color;g.fillRect(0,0,W,H);if(alpha!=null)g.globalAlpha=alpha;return c;}
+function alphaBox(c){const g=c.getContext('2d'),d=g.getImageData(0,0,c.width,c.height).data;let l=c.width,t=c.height,r=-1,b=-1;for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){if(d[(y*c.width+x)*4+3]>8){if(x<l)l=x;if(x>r)r=x;if(y<t)t=y;if(y>b)b=y;}}return r<0?null:{l,t,r:r+1,b:b+1};}
+/* edges: jagged lightning, torn, dry brush and haze */
+function edgesOn(layer,Lay){const E=Lay.E,size=E.size,K=S.edge.kind,bb=lettersBox(Lay.letters,E);if(!bb)return layer;let c=layer;
+  if(K==='lightning'||K==='torn'){const o=can(W,H),g=o.getContext('2d'),rnd=mulberry(S.seed*31+5),horiz=S.dir==='h';const band=Math.max(2,size*(K==='lightning'?.07:.025)),amp=size*(K==='lightning'?.09:.03)*S.edge.amt*2;
+    const from=Math.max(0,Math.floor((horiz?bb.t:bb.l)-size)),to=Math.min(horiz?H:W,Math.ceil((horiz?bb.b:bb.r)+size));let k=0;
+    for(let p=from;p<to;p+=band,k++){const z=K==='lightning'?(k%2?1:-1)*amp*(.6+rnd()*.4):(rnd()-.5)*2*amp;const bh=Math.min(band,to-p);
+      if(horiz)g.drawImage(c,0,p,W,bh,z,p,W,bh);else g.drawImage(c,p,0,bh,H,p,z,bh,H);}c=o;}
+  if(E.dry>0){const g=c.getContext('2d'),rnd=mulberry(S.seed*17+3),n=Math.round(E.dry*420*((bb.r-bb.l)*(bb.b-bb.t))/(900*300)),a=rad(E.lean)+(S.dir==='h'?0:Math.PI/2);g.save();g.globalCompositeOperation='destination-out';
+    for(let i=0;i<n;i++){const x=bb.l+rnd()*(bb.r-bb.l),y=bb.t+rnd()*(bb.b-bb.t),len=size*(.3+rnd()*1.2),w=.6+rnd()*1.8,ang=a+(rnd()-.5)*.5;g.globalAlpha=.35+rnd()*.6;g.lineWidth=w;g.strokeStyle='#000';g.beginPath();g.moveTo(x-Math.cos(ang)*len/2,y-Math.sin(ang)*len/2);g.lineTo(x+Math.cos(ang)*len/2,y+Math.sin(ang)*len/2);g.stroke();}g.restore();}
+  if(S.edge.haze>0&&CANFILTER){const o=can(W,H),g=o.getContext('2d');g.filter=`blur(${size*.08*S.edge.haze}px)`;g.globalAlpha=.4+S.edge.haze*.5;g.drawImage(c,0,0);g.filter='none';g.globalAlpha=1;g.drawImage(c,0,0);c=o;}
+  return c;}
+/* the whole shape squeezed: trapezoids */
+function deformOn(layer,Lay){const D=S.deform;if(!D||D.kind==='none'||!D.amt)return layer;const bb=alphaBox(layer);if(!bb)return layer;const o=can(W,H),g=o.getContext('2d'),a=D.amt,cx=(bb.l+bb.r)/2,cy=(bb.t+bb.b)/2;
+  if(D.kind==='trapTop'||D.kind==='trapBottom'){for(let y=bb.t;y<bb.b;y++){const f=(y-bb.t)/Math.max(1,bb.b-bb.t),k=1-a*(D.kind==='trapTop'?1-f:f);g.drawImage(layer,bb.l,y,bb.r-bb.l,1,cx-(bb.r-bb.l)*k/2,y,(bb.r-bb.l)*k,1);}}
+  else{for(let x=bb.l;x<bb.r;x++){const f=(x-bb.l)/Math.max(1,bb.r-bb.l),k=1-a*(D.kind==='trapLeft'?1-f:f);g.drawImage(layer,x,bb.t,1,bb.b-bb.t,x,cy-(bb.b-bb.t)*k/2,1,(bb.b-bb.t)*k);}}
+  return o;}
+/* everything put together; parts lets the layered ZIP ask for one piece at a time */
+function compose(Lay,parts){const E=Lay.E,size=E.size,out=can(W,H),g=out.getContext('2d'),want=p=>!parts||parts.has(p);
+  let layer=buildLayer(Lay);layer=edgesOn(layer,Lay);layer=deformOn(layer,Lay);
+  const pathDir=(()=>{const P=S.lines[0];if(!P)return 0;return Math.atan2(P.p1.y-P.p0.y,P.p1.x-P.p0.x);})();
+  if(want('motion')&&E.blur.on){const d=E.blur.w*size,n=Math.max(2,E.blur.n|0),a=rad(E.blur.dir)+(E.blur.dir==null?pathDir:0);for(let k=n;k>=1;k--){g.globalAlpha=(1-k/(n+1))*.55;g.drawImage(layer,Math.cos(a)*d*k/n,Math.sin(a)*d*k/n);}g.globalAlpha=1;}
+  if(want('after')&&E.after.on){const n=Math.max(1,E.after.n|0),a=E.after.dir==null?pathDir+Math.PI:rad(E.after.dir),gap=E.after.gap*size;for(let k=n;k>=1;k--){g.globalAlpha=Math.pow(E.after.fade,k);g.drawImage(layer,Math.cos(a)*gap*k,Math.sin(a)*gap*k);}g.globalAlpha=1;}
+  if(want('shadow')&&S.shadow.kind!=='none'){const a=rad(S.shadow.dir),d=S.shadow.len*size,t=tint(layer,S.shadow.color);if(S.shadow.kind==='drop')g.drawImage(t,Math.cos(a)*d,Math.sin(a)*d);
+    else{const n=Math.max(2,Math.ceil(d/2));for(let k=n;k>=1;k--)g.drawImage(t,Math.cos(a)*d*k/n,Math.sin(a)*d*k/n);}}
+  if(!parts)g.drawImage(layer,0,0);else{if(want('outline')&&S.out.on)g.drawImage(deformOn(edgesOn(buildLayer(Lay,'outline'),Lay),Lay),0,0);if(want('text'))g.drawImage(deformOn(edgesOn(buildLayer(Lay,'text'),Lay),Lay),0,0);}
+  return out;}
+/* ---------- the stage: what you see, with the handles ---------- */
+let SHOWUI=true,SEL=null,LAY=null,rT=0;
+const uiScale=()=>cv.width/Math.max(1,cv.getBoundingClientRect().width||cv.width);
+function render(){LAY=layout();const pic=compose(LAY);ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,W,H);if(S.bg==='white'){ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);}ctx.drawImage(pic,0,0);if(SHOWUI)drawUI();}
+const renderSoon=()=>{cancelAnimationFrame(rT);rT=requestAnimationFrame(render);};
+function letterBox(L){return{w:L.w*L.sc*L.sx+L.hh*L.sc*.12,h:L.hh*L.sc*1.05};}
+function drawUI(){const u=uiScale();ctx.save();ctx.lineWidth=1.5*u;
+  /* the lines */
+  S.lines.forEach((P,i)=>{ctx.beginPath();ctx.moveTo(P.p0.x,P.p0.y);ctx.quadraticCurveTo(P.c.x,P.c.y,P.p1.x,P.p1.y);ctx.setLineDash([6*u,6*u]);ctx.strokeStyle='rgba(91,61,245,.55)';ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle='rgba(91,61,245,.35)';ctx.beginPath();ctx.moveTo(P.p0.x,P.p0.y);ctx.lineTo(P.c.x,P.c.y);ctx.lineTo(P.p1.x,P.p1.y);ctx.stroke();
+    [P.p0,P.p1].forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,8*u,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=2.5*u;ctx.strokeStyle='#5B3DF5';ctx.stroke();});
+    ctx.save();ctx.translate(P.c.x,P.c.y);ctx.rotate(Math.PI/4);ctx.fillStyle='#FFD43B';ctx.strokeStyle='#5B3DF5';ctx.lineWidth=2.5*u;ctx.fillRect(-7*u,-7*u,14*u,14*u);ctx.strokeRect(-7*u,-7*u,14*u,14*u);ctx.restore();});
+  /* the picked letter */
+  const L=SEL&&LAY.letters.find(x=>x.key===SEL);if(L){const B=letterBox(L);ctx.save();ctx.translate(L.x,L.y);ctx.rotate(L.rot);ctx.setLineDash([7*u,5*u]);ctx.lineWidth=2*u;ctx.strokeStyle='rgba(255,255,255,.95)';ctx.strokeRect(-B.w/2,-B.h/2,B.w,B.h);ctx.strokeStyle='rgba(0,0,0,.6)';ctx.lineDashOffset=7*u;ctx.strokeRect(-B.w/2,-B.h/2,B.w,B.h);ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(0,-B.h/2);ctx.lineTo(0,-B.h/2-26*u);ctx.strokeStyle='#fff';ctx.stroke();
+    ctx.beginPath();ctx.arc(0,-B.h/2-26*u,9*u,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=2.5*u;ctx.strokeStyle='#5B3DF5';ctx.stroke();
+    ctx.fillStyle='#fff';ctx.fillRect(B.w/2-8*u,B.h/2-8*u,16*u,16*u);ctx.strokeRect(B.w/2-8*u,B.h/2-8*u,16*u,16*u);ctx.restore();}
+  ctx.restore();}
+
+/* ================= undo, and keeping your work ================= */
+let HIST=[],HI=-1,sT=0,restored=false;
+const snap=()=>JSON.stringify(S);
+function commit(){const s=snap();if(HIST[HI]!==s){HIST=HIST.slice(0,HI+1);HIST.push(s);if(HIST.length>60)HIST.shift();HI=HIST.length-1;}syncUndo();save();}
+let cT=0;const commitSoon=()=>{clearTimeout(cT);cT=setTimeout(()=>{cT=0;commit();},400);};
+function flushCommit(){if(cT){clearTimeout(cT);cT=0;commit();}}
+function restoreSnap(s){S=mergeDeep(DEF(),JSON.parse(s));needFont(S.font);renderAll();save();syncUndo();}
+function undo(){flushCommit();if(HI>0){HI--;restoreSnap(HIST[HI]);}}
+function redo(){if(HI<HIST.length-1){HI++;restoreSnap(HIST[HI]);}}
+function syncUndo(){$('undo').disabled=HI<=0;$('redo').disabled=HI>=HIST.length-1;}
+$('undo').onclick=undo;$('redo').onclick=redo;
+function writeState(){if(!restored)return;try{localStorage.setItem('sfx-state',JSON.stringify(S));}catch(e){}}
+function save(){clearTimeout(sT);sT=setTimeout(writeState,300);}
+/* a link that carries the lettering */
+const b64u=s=>btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),unb64u=s=>decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))));
+function shareLink(){return location.origin+location.pathname+'#s='+b64u(JSON.stringify(S));}
+function fromLink(){const m=location.hash.match(/^#s=(.+)$/);if(!m)return null;try{return JSON.parse(unb64u(m[1]));}catch(e){return null;}}
+
+/* ================= moving things on the stage ================= */
+const toWorld=e=>{const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H};};
+function hitLetter(p){if(!LAY)return null;for(let i=LAY.letters.length-1;i>=0;i--){const L=LAY.letters[i],B=letterBox(L),dx=p.x-L.x,dy=p.y-L.y,a=-L.rot,lx=dx*Math.cos(a)-dy*Math.sin(a),ly=dx*Math.sin(a)+dy*Math.cos(a);if(Math.abs(lx)<=B.w/2&&Math.abs(ly)<=B.h/2)return L;}return null;}
+let DR=null,lastTapAt=0,lastTapKey=null;
+cv.addEventListener('pointerdown',e=>{const p=toWorld(e),u=uiScale(),near=(a,r)=>Math.hypot(p.x-a.x,p.y-a.y)<r*u;
+  /* the picked letter's handles */
+  const L=SEL&&LAY&&LAY.letters.find(x=>x.key===SEL);
+  if(L){const B=letterBox(L),c=Math.cos(L.rot),s=Math.sin(L.rot),ly=-(B.h/2+26*u),rotH={x:L.x-s*ly,y:L.y+c*ly},cornerH={x:L.x+c*B.w/2-s*B.h/2,y:L.y+s*B.w/2+c*B.h/2};
+    if(near(rotH,16)){DR={mode:'lrot',L,ed:edOf(L.key),a0:Math.atan2(p.y-L.y,p.x-L.x),r0:edOf(L.key).rot};}
+    else if(near(cornerH,16)){DR={mode:'lsize',L,ed:edOf(L.key),d0:Math.max(1,Math.hypot(p.x-L.x,p.y-L.y)),s0:edOf(L.key).sc};}}
+  /* the lines' handles */
+  if(!DR)for(let i=S.lines.length-1;i>=0&&!DR;i--){const P=S.lines[i];if(near(P.c,16))DR={mode:'path',P,k:'c'};else if(near(P.p0,16))DR={mode:'path',P,k:'p0'};else if(near(P.p1,16))DR={mode:'path',P,k:'p1'};}
+  if(!DR){const hit=hitLetter(p);if(hit){const now=performance.now();if(lastTapKey===hit.key&&now-lastTapAt<380){delete S.edits[hit.key];SEL=hit.key;commit();render();lastTapKey=null;return;}lastTapAt=now;lastTapKey=hit.key;
+      SEL=hit.key;const ed=edOf(hit.key);DR={mode:'lmove',L:hit,ed,p0:p,x0:ed.dx,y0:ed.dy};render();}
+    else{if(SEL){SEL=null;render();}return;}}
+  DR.moved=false;cv.setPointerCapture(e.pointerId);e.preventDefault();});
+function edOf(key){return S.edits[key]||(S.edits[key]={dx:0,dy:0,rot:0,sc:1});}
+cv.addEventListener('pointermove',e=>{const p=toWorld(e);if(!DR){const u=uiScale();let cur='default';for(const P of S.lines){if([P.p0,P.p1,P.c].some(a=>Math.hypot(p.x-a.x,p.y-a.y)<16*u))cur='grab';}if(cur==='default'&&hitLetter(p))cur='move';cv.style.cursor=cur;return;}
+  DR.moved=true;const u=uiScale();
+  if(DR.mode==='path'){const P=DR.P,k=DR.k;if(k==='c'){P.c.x=p.x;P.c.y=p.y;}else{const dx=p.x-P[k].x,dy=p.y-P[k].y;P[k].x=p.x;P[k].y=p.y;if(!e.shiftKey){P.c.x+=dx/2;P.c.y+=dy/2;}}}
+  else if(DR.mode==='lmove'){DR.ed.dx=DR.x0+(p.x-DR.p0.x);DR.ed.dy=DR.y0+(p.y-DR.p0.y);}
+  else if(DR.mode==='lrot'){const a=Math.atan2(p.y-DR.L.y,p.x-DR.L.x);DR.ed.rot=DR.r0+(a-DR.a0);}
+  else if(DR.mode==='lsize'){DR.ed.sc=clamp(DR.s0*Math.hypot(p.x-DR.L.x,p.y-DR.L.y)/DR.d0,.2,4);}
+  render();});
+['pointerup','pointercancel'].forEach(ev=>cv.addEventListener(ev,()=>{if(!DR)return;const m=DR.moved;DR=null;if(m)commit();render();}));
+document.addEventListener('keydown',e=>{const tag=(e.target&&e.target.tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tag)||!$('fmodal').hidden||!$('imodal').hidden)return;
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();return;}
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();redo();return;}
+  if(!SEL)return;const ed=edOf(SEL),st=e.shiftKey?10:1;
+  if(e.key==='ArrowLeft')ed.dx-=st;else if(e.key==='ArrowRight')ed.dx+=st;else if(e.key==='ArrowUp')ed.dy-=st;else if(e.key==='ArrowDown')ed.dy+=st;else if(e.key==='Escape'){SEL=null;render();return;}else return;e.preventDefault();render();commitSoon();});
+$('resetLetters').onclick=()=>{S.edits={};commit();render();toast('Every letter is back on the line.');};
+$('resetPath').onclick=()=>{S.lines=[];ensurePaths(prepLines().length);commit();render();};
+$('diceBtn').onclick=()=>{S.seed=(Math.random()*1e6)|0;commit();render();renderShape();};
+
+/* ================= the settings ================= */
+const ch=(fn,fin)=>(v,done)=>{fn(S,v);render();if(done!==false){commit();if(fin)renderPanel();}else commitSoon();};
+function renderAll(){renderPanel();render();}
+function renderPanel(){renderText();renderLooks();renderFontF();renderShape();renderFill();renderOut();renderShadow();renderMotion();renderEdge();renderSave();updateSums();}
+/* text */
+function renderText(){const p=$('textF');p.innerHTML='';
+  p.append(h('div',{class:'row'},checkF('joinLong','Stretch long marks (ー) along the line',S.joinLong,ch((S,v)=>S.joinLong=v)),checkF('dakuten','Add ゛ to kana',S.dakuten,ch((S,v)=>S.dakuten=v))),
+    h('p',{class:'help'},'One line of text per line of lettering; each line gets its own curve. Small kana (ッ) are drawn smaller.'),
+    h('div',{class:'field'},h('label',{for:'subTxt'},'Small note beside it',h('span',{class:'rv'},'添え字')),h('input',{type:'text',id:'subTxt',value:S.sub.text,placeholder:'e.g. ガガガ',oninput:e=>{S.sub.text=e.target.value;render();commitSoon();}})),
+    S.sub.text?h('div',{class:'grid2'},segF('subPos','Where',[['below','Below'],['above','Above'],['right','Right'],['left','Left']],S.sub.pos,v=>ch((S,x)=>S.sub.pos=x,true)(v)),rangeF('subSize','Its size',.2,.8,.01,S.sub.size,pct,ch((S,v)=>S.sub.size=v))):'');}
+$('txt').value=S.text;
+$('txt').oninput=()=>{const was=langOf(S.text);S.text=$('txt').value;if(langOf(S.text)!==was){applyLook(S.look);renderFontF();}render();commitSoon();updateSums();};
+$('dirH').onclick=()=>setDir('h');$('dirV').onclick=()=>setDir('v');
+function setDir(d){if(S.dir===d)return;S.dir=d;S.lines=[];S.edits={};$('dirH').setAttribute('aria-pressed',String(d==='h'));$('dirV').setAttribute('aria-pressed',String(d==='v'));ensurePaths(prepLines().length);commit();renderAll();}
+/* lettering styles */
+const lookPreview=(id,w,hh)=>{const c=can(w,hh),g=c.getContext('2d'),keep=S;try{S=mergeDeep(DEF(),JSON.parse(JSON.stringify(keep)));S.text=langOf(keep.text)==='en'?'POW':'ドン';S.lines=[];S.edits={};S.sub.text='';S.macro={impact:.3,rough:0,speed:0};S.seed=3;applyLook(id);S.size=330;S.lines=[{p0:{x:W*.1,y:H/2},p1:{x:W*.9,y:H/2},c:{x:W/2,y:H/2}}];
+    const pic=compose(layout(S)),bb=alphaBox(pic)||{l:0,t:0,r:W,b:H},pw=bb.r-bb.l,ph=bb.b-bb.t,k=Math.min(w/pw,hh/ph)*.9;g.drawImage(pic,bb.l,bb.t,pw,ph,(w-pw*k)/2,(hh-ph*k)/2,pw*k,ph*k);}catch(e){}finally{S=keep;}return c;};
+function renderLooks(){const p=$('lookF');p.innerHTML='';const box=h('div',{class:'looks'}),lang=langOf(S.text);
+  LOOKS.forEach(([id,name])=>{const key=id+'|'+lang;let pv=LOOKPV.get(key);if(!pv){pv=lookPreview(id,180,92);LOOKPV.set(key,pv);}const b=h('button',{type:'button','aria-pressed':String(S.look===id),title:name,onclick:()=>{applyLook(id);commit();renderAll();toast(name+' lettering.');}},pv,h('span',{},name));box.append(b);});
+  p.append(box,h('p',{class:'help'},'A style picks a font for the language you typed, plus its outline, edges and wobble. Change anything after.'));}
+/* font */
+let FCAT='all',FOPENED=false;
+function renderFontF(){const p=$('fontF');p.innerHTML='';const F=FONTS[S.font]||FONTS.bangers;needFont(F.id);
+  p.append(h('div',{class:'fontrow'},h('button',{type:'button',class:'fontbtn',id:'fontBtn',style:`font-family:${F.css};font-weight:${fontWeight(F.id)}`,onclick:openFonts},h('span',{},F.name),h('small',{},'Change ▸'))),
+    h('p',{class:'help'},F.lang==='ja'?'A Japanese font; it covers English too.':F.lang==='en'?'An English font. Japanese text in it falls back to the browser’s font; pick one from the Japanese group for kana and kanji.':''));}
+function openFonts(){if(!FOPENED){FOPENED=true;if(langOf(S.text)==='ja')FCAT='ja';}$('fmodal').hidden=false;renderFonts();setTimeout(()=>$('fSearch').focus(),50);}
+$('fClose').onclick=()=>{$('fmodal').hidden=true;};$('fmodal').addEventListener('click',e=>{if(e.target===$('fmodal'))$('fmodal').hidden=true;});
+$('fSearch').oninput=renderFonts;
+function renderFonts(){const q=$('fSearch').value.trim().toLowerCase(),sample=(S.text||'Aa').split('\n')[0].slice(0,8)||'Aa';
+  const cats=$('fCats');cats.innerHTML='';FONT_KINDS.forEach(([k,l])=>cats.append(h('button',{type:'button','aria-pressed':String(FCAT===k),onclick:()=>{FCAT=k;renderFonts();}},l)));
+  const list=$('fList');list.innerHTML='';const fs=Object.values(FONTS).filter(f=>q?f.name.toLowerCase().includes(q):FCAT==='all'||(FCAT==='ja'?f.lang==='ja':FCAT==='other'?(f.lang==='ko'||f.lang==='zh'):FCAT==='mine'?f.own:f.kind===FCAT));
+  if(!fs.length)list.append(h('p',{class:'help'},FCAT==='mine'?'Add font files below. They stay in this browser.':'No fonts match.'));
+  const io=new IntersectionObserver(es=>es.forEach(en=>{if(en.isIntersecting){needFont(en.target.dataset.f);io.unobserve(en.target);}}),{root:list});
+  fs.forEach(f=>{const b=h('button',{type:'button',class:'fopt'+(f.own?' own':''),'data-f':f.id,role:'option','aria-selected':String(f.id===S.font),'aria-pressed':String(f.id===S.font),onclick:()=>{S.font=f.id;needFont(f.id);commit();renderFontF();render();renderFonts();}},
+      h('span',{class:'fs',style:`font-family:${f.css};font-weight:${fontWeight(f.id)}`},sample),h('small',{},f.name+(f.lang==='ja'?' · 日本語':f.lang==='ko'?' · 한국어':f.lang==='zh'?' · 中文':'')));
+    if(f.own)b.append(h('small',{},h('a',{href:'#',onclick:async e=>{e.preventDefault();e.stopPropagation();if(confirm(`Remove “${f.name}” from your fonts?`)){await removeOwnFont(f.id);renderFonts();renderFontF();render();}}},'remove')));
+    list.append(b);io.observe(b);});
+  const my=$('myFonts');my.innerHTML='';const inp=h('input',{type:'file',id:'fontFiles',accept:'.ttf,.otf,.woff,.woff2,font/*',multiple:true});inp.onchange=async()=>{const fs=[...inp.files];inp.value='';const id=await addFontFiles(fs);if(id){S.font=id;commit();renderFontF();render();}FCAT='mine';renderFonts();};
+  my.append(h('label',{class:'btn',for:'fontFiles'},'+ Add font files',inp),h('span',{class:'help'},'TTF, OTF or WOFF. Kept in this browser, shared with Caption Maker; nothing is uploaded.'));}
+/* shape and wobble */
+function renderShape(){const p=$('shapeF');p.innerHTML='';
+  p.append(h('span',{class:'flabel'},'The big three',h('span',{class:'rv'},'each one moves several settings')),
+    rangeF('impact','Impact',0,1,.01,S.macro.impact,pct,ch((S,v)=>S.macro.impact=v)),rangeF('roughM','Roughness',0,1,.01,S.macro.rough,pct,ch((S,v)=>S.macro.rough=v)),rangeF('speed','Momentum',0,1,.01,S.macro.speed,pct,ch((S,v)=>S.macro.speed=v)),
+    h('div',{class:'row'},h('label',{for:'seed',class:'flabel'},'Wobble seed'),h('input',{type:'number',id:'seed',value:S.seed,min:'0',step:'1',style:'width:110px',onchange:e=>{S.seed=Math.max(0,parseInt(e.target.value,10)||0);commit();render();}}),h('button',{type:'button',class:'dice',title:'New random wobble',onclick:()=>$('diceBtn').click()},'⚄')),
+    rangeF('size','Letter size',40,420,1,S.size,px,ch((S,v)=>S.size=v)),
+    h('div',{class:'grid2'},rangeF('spacing','Spacing',-.3,1,.01,S.spacing,v=>Math.round(v*100)+'',ch((S,v)=>S.spacing=v)),rangeF('upright','Follow the curve',0,1,.01,S.upright,v=>v===0?'stay level':v===1?'fully':pct(v),ch((S,v)=>S.upright=v)),
+      rangeF('lean','Lean',-45,45,1,S.lean,deg,ch((S,v)=>S.lean=v)),rangeF('fan','Fan out',-60,60,1,S.fan,deg,ch((S,v)=>S.fan=v)),
+      rangeF('grow','Grow along',-1,1,.01,S.grow,v=>v===0?'even':v>0?'bigger at the end':'smaller at the end',ch((S,v)=>S.grow=v)),rangeF('stretch','Long mark stretch',0,2,.01,S.stretch,v=>'×'+(1+v*2).toFixed(1),ch((S,v)=>S.stretch=v))),
+    h('span',{class:'flabel'},'Random wobble',h('span',{class:'rv'},'per letter')),
+    h('div',{class:'grid2'},rangeF('jrot','Angle',0,1,.01,S.jit.rot,pct,ch((S,v)=>S.jit.rot=v)),rangeF('jsize','Size',0,1,.01,S.jit.size,pct,ch((S,v)=>S.jit.size=v)),rangeF('jy','Up and down',0,1,.01,S.jit.y,pct,ch((S,v)=>S.jit.y=v))),
+    segF('deform','Squeeze the whole thing',[['none','None'],['trapTop','Narrow top'],['trapBottom','Narrow bottom'],['trapLeft','Narrow left'],['trapRight','Narrow right']],S.deform.kind,v=>ch((S,x)=>S.deform.kind=x,true)(v)),
+    S.deform.kind!=='none'?rangeF('deformAmt','How much',0,.9,.01,S.deform.amt,pct,ch((S,v)=>S.deform.amt=v)):'');}
+/* fill */
+function renderFill(){const p=$('fillF');p.innerHTML='';const F=S.fill;
+  p.append(segF('fillk','Fill',[['solid','Color'],['white','White'],['gray','Gray'],['dots','Halftone dots'],['dotsGrad','Dots fading'],['lines','Line tone'],['none','Outline only'],['nega','Negative']],F.kind,v=>ch((S,x)=>S.fill.kind=x,true)(v)));
+  if(F.kind==='solid'||F.kind==='dots'||F.kind==='dotsGrad'||F.kind==='lines')p.append(colorF('fillc',F.kind==='solid'?'Color':'Dot color',F.color,ch((S,v)=>S.fill.color=v)));
+  if(F.kind==='dots'||F.kind==='dotsGrad'||F.kind==='lines')p.append(h('div',{class:'grid2'},rangeF('dot','Dot spacing',.03,.25,.005,F.dot,pct,ch((S,v)=>S.fill.dot=v)),rangeF('tone','Darkness',.05,1,.01,F.tone,pct,ch((S,v)=>S.fill.tone=v))),colorF('fillc2','Behind the dots',F.color2,ch((S,v)=>S.fill.color2=v)));
+  if(F.kind==='nega')p.append(h('p',{class:'help'},'White letters on a black shape. Add an outline for a border around it.'));}
+/* outline */
+function renderOut(){const p=$('outF');p.innerHTML='';const O=S.out;
+  p.append(checkF('outOn','Outline',O.on,ch((S,v)=>S.out.on=v,true)));
+  if(O.on)p.append(rangeF('outW','Thickness',0,.3,.005,O.w,v=>pct(v/.3),ch((S,v)=>S.out.w=v)),colorF('outC','Color',O.color,ch((S,v)=>S.out.color=v)),
+    h('div',{class:'row'},checkF('outGroup','Around the whole word (not each letter)',O.group,ch((S,v)=>S.out.group=v)),checkF('outSharp','Sharp corners',O.sharp,ch((S,v)=>S.out.sharp=v))),
+    checkF('out2','Second outline around it',O.on2,ch((S,v)=>S.out.on2=v,true)),O.on2?h('div',{},rangeF('outW2','Its thickness',0,.3,.005,O.w2,v=>pct(v/.3),ch((S,v)=>S.out.w2=v)),colorF('outC2','Its color',O.color2,ch((S,v)=>S.out.color2=v))):'');}
+/* shadow */
+function renderShadow(){const p=$('shadowF');p.innerHTML='';const D=S.shadow;
+  p.append(segF('shk','Shadow',[['none','None'],['drop','Drop shadow'],['extrude','3D (extruded)']],D.kind,v=>ch((S,x)=>S.shadow.kind=x,true)(v)));
+  if(D.kind!=='none')p.append(h('div',{class:'grid2'},rangeF('shDir','Direction',0,360,1,D.dir,deg,ch((S,v)=>S.shadow.dir=v)),rangeF('shLen','Length',0,.6,.005,D.len,pct,ch((S,v)=>S.shadow.len=v))),colorF('shC','Color',D.color,ch((S,v)=>S.shadow.color=v)));}
+/* motion */
+function renderMotion(){const p=$('motionF');p.innerHTML='';const B=S.blur,A=S.after;
+  p.append(checkF('blurOn','Motion blur',B.on,ch((S,v)=>S.blur.on=v,true)));
+  if(B.on)p.append(h('div',{class:'grid2'},rangeF('blurW','Width',.02,.6,.005,B.w,pct,ch((S,v)=>S.blur.w=v)),rangeF('blurN','Copies',2,16,1,B.n,v=>v+'',ch((S,v)=>S.blur.n=v))),rangeF('blurDir','Direction',0,360,1,B.dir,deg,ch((S,v)=>S.blur.dir=v)));
+  p.append(checkF('afterOn','Afterimages',A.on,ch((S,v)=>S.after.on=v,true)));
+  if(A.on)p.append(h('div',{class:'grid2'},rangeF('afterGap','Gap',.03,.5,.005,A.gap,pct,ch((S,v)=>S.after.gap=v)),rangeF('afterN','How many',1,6,1,A.n,v=>v+'',ch((S,v)=>S.after.n=v)),rangeF('afterFade','Fade',.2,.9,.01,A.fade,pct,ch((S,v)=>S.after.fade=v)),rangeF('afterDir','Direction',0,360,1,A.dir,deg,ch((S,v)=>S.after.dir=v))));
+  p.append(h('p',{class:'help'},'Momentum (in Shape and wobble) adds lean, stretch and afterimages on its own.'));}
+/* edges */
+function renderEdge(){const p=$('edgeF');p.innerHTML='';const E=S.edge;
+  p.append(segF('edgek','Edge shape',[['none','Clean'],['lightning','Lightning (jagged)'],['torn','Torn']],E.kind,v=>ch((S,x)=>S.edge.kind=x,true)(v)));
+  if(E.kind!=='none')p.append(rangeF('edgeAmt','How jagged',.1,1,.01,E.amt,pct,ch((S,v)=>S.edge.amt=v)));
+  p.append(h('div',{class:'grid2'},rangeF('rough','Hand-drawn roughness',0,1,.01,E.rough,pct,ch((S,v)=>S.edge.rough=v)),rangeF('dry','Dry brush',0,1,.01,E.dry,pct,ch((S,v)=>S.edge.dry=v)),rangeF('haze','Haze',0,1,.01,E.haze,pct,ch((S,v)=>S.edge.haze=v))));}
+function updateSums(){const F=S.fill,O=S.out;setSum('Text',(S.dir==='v'?'down':'across')+(S.sub.text?' · note':''));setSum('Lettering',(LOOKS.find(l=>l[0]===S.look)||['',''])[1]);setSum('Font',(FONTS[S.font]||{}).name||'');
+  setSum('Shape and wobble',`${Math.round(S.size)} px · impact ${pct(S.macro.impact)}`);setSum('Fill',{solid:'color',white:'white',gray:'gray',dots:'halftone',dotsGrad:'dots fading',lines:'line tone',none:'outline only',nega:'negative'}[F.kind]);
+  setSum('Outline',O.on?(O.on2?'two':'on')+(O.group?' · whole word':''):'off');setSum('Shadow',{none:'none',drop:'drop',extrude:'3D'}[S.shadow.kind]);
+  setSum('Motion',[S.blur.on?'blur':'',S.after.on?'afterimages':''].filter(Boolean).join(', ')||(S.macro.speed>.55?'from momentum':'none'));setSum('Edges',[S.edge.kind!=='none'?S.edge.kind:'',S.edge.rough||S.macro.rough?'rough':'',S.edge.dry?'dry':''].filter(Boolean).join(', ')||'clean');
+  setSum('Save',`PNG ×${S.scale}`);}
+
+/* ================= ideas: a sheet of random variations ================= */
+let IMODE='both',ICOUNT=12;
+function randomState(base,mode,rnd){const T=mergeDeep(DEF(),JSON.parse(JSON.stringify(base)));const strong=mode==='wild'?1:mode==='calm'?.35:rnd()<.5?.35:1;const r=(a,b)=>a+rnd()*(b-a),pick=a=>a[(rnd()*a.length)|0];
+  applyLookTo(T,pick(LOOKS)[0],rnd);const lang=langOf(T.text),pool=Object.values(FONTS).filter(f=>lang==='en'?f.lang==='en'||f.lang==='ja':f.lang===lang||f.own);if(rnd()<.6&&pool.length)T.font=pick(pool).id;
+  T.macro={impact:r(0,1)*strong,rough:r(0,.9)*strong,speed:r(0,1)*strong};T.seed=(rnd()*1e6)|0;T.lean=r(-20,25)*strong;T.fan=rnd()<.3?r(-40,40)*strong:0;T.grow=rnd()<.4?r(-.6,.8)*strong:0;T.spacing=r(-.1,.3);
+  if(rnd()<.35)T.fill.kind=pick(['solid','white','dots','dotsGrad','lines','none','nega']);if(T.fill.kind==='solid'&&rnd()<.3)T.fill.color=pick(['#000000','#1E2A78','#8B0000','#2F3B2F']);
+  if(rnd()<.3)T.shadow={kind:pick(['drop','extrude']),dir:r(0,360),len:r(.04,.25)*strong+.02,color:'#000000'};
+  if(rnd()<.25*strong+.05)T.blur={on:true,w:r(.05,.4),n:(r(3,10))|0,dir:r(0,360)};if(rnd()<.25*strong+.05)T.after={on:true,gap:r(.06,.3),n:(r(1,4))|0,dir:r(0,360),fade:r(.3,.7)};
+  if(rnd()<.2*strong)T.edge.kind=pick(['lightning','torn']);if(rnd()<.2)T.deform={kind:pick(['trapTop','trapBottom','trapLeft','trapRight']),amt:r(.1,.6)};
+  if(rnd()<.3)T.out.group=!T.out.group;if(rnd()<.2){T.out.color=pick(['#FFFFFF','#FFD60A','#FF3B30','#3E8BFF']);}return T;}
+function applyLookTo(T,id,rnd){const L=LOOKS.find(l=>l[0]===id);const o=JSON.parse(JSON.stringify(L[2]));const fonts=o.font;delete o.font;mergeDeep(T,o);T.look=id;const lang=langOf(T.text);T.font=lang==='en'?fonts[0]:fonts[1];if(lang==='ko')T.font='blackhan';if(lang==='zh')T.font='zcool';}
+function mutate(base,amt,rnd){const T=mergeDeep(DEF(),JSON.parse(JSON.stringify(base)));const j=(v,a,b,k)=>clamp(v+(rnd()-.5)*2*(b-a)*amt*(k||1),a,b);
+  T.seed=(rnd()*1e6)|0;T.macro.impact=j(T.macro.impact,0,1);T.macro.rough=j(T.macro.rough,0,1);T.macro.speed=j(T.macro.speed,0,1);T.lean=j(T.lean,-45,45,.6);T.spacing=j(T.spacing,-.2,.6,.5);T.grow=j(T.grow,-1,1,.5);T.fan=j(T.fan,-60,60,.4);
+  T.jit.rot=j(T.jit.rot,0,1);T.jit.size=j(T.jit.size,0,1);T.jit.y=j(T.jit.y,0,1);if(T.out.on)T.out.w=j(T.out.w,0,.3,.6);if(T.shadow.kind!=='none'){T.shadow.dir=j(T.shadow.dir,0,360);T.shadow.len=j(T.shadow.len,0,.5,.6);}
+  if(rnd()<amt*.5)T.out.group=!T.out.group;if(rnd()<amt*.4)T.fill.kind=['solid','white','dots','lines','nega'][(rnd()*5)|0];if(rnd()<amt*.3)T.edge.kind=['none','lightning','torn'][(rnd()*3)|0];return T;}
+function thumbOf(T,w,hh){const keep=S,c=can(w,hh),g=c.getContext('2d');try{S=T;needFont(T.font);const pic=compose(layout(T)),bb=alphaBox(pic)||{l:0,t:0,r:W,b:H},pw=Math.max(1,bb.r-bb.l),ph=Math.max(1,bb.b-bb.t),k=Math.min(w/pw,hh/ph)*.92;g.drawImage(pic,bb.l,bb.t,pw,ph,(w-pw*k)/2,(hh-ph*k)/2,pw*k,ph*k);}catch(e){}finally{S=keep;}return c;}
+let IDEAS=[],IKIND='ideas',IMUT=.35;
+function openIdeas(kind){IKIND=kind;$('imodal').hidden=false;$('iTitle').firstChild.textContent=kind==='ideas'?'Ideas ':'Mutations ';renderIdeas();}
+function renderIdeas(){const bar=$('iBar');bar.innerHTML='';
+  if(IKIND==='ideas')bar.append(segF('imode','Mood',[['both','Both'],['calm','Calmer'],['wild','Wilder']],IMODE,v=>{IMODE=v;renderIdeas();}).lastChild,segF('icount','How many',[[12,'12'],[24,'24'],[48,'48']],ICOUNT,v=>{ICOUNT=v;renderIdeas();}).lastChild);
+  else bar.append(rangeF('imut','How different',.1,1,.01,IMUT,pct,(v,done)=>{IMUT=v;if(done)renderIdeas();}));
+  bar.append(h('button',{type:'button',onclick:renderIdeas},'🎲 Again'));
+  const grid=$('iGrid');grid.innerHTML='';const rnd=mulberry((Math.random()*1e9)|0);IDEAS=[];for(let i=0;i<(IKIND==='ideas'?ICOUNT:12);i++)IDEAS.push(IKIND==='ideas'?randomState(S,IMODE,rnd):mutate(S,IMUT,rnd));
+  const btns=IDEAS.map((T,i)=>{const b=h('button',{type:'button',title:'Use this one','aria-label':'Idea '+(i+1),onclick:()=>{const keepText=S.text,lines=S.lines,edits=S.edits;S=T;S.text=keepText;S.lines=lines;S.edits=edits;needFont(S.font);commit();renderAll();$('imodal').hidden=true;toast('Idea used. Undo brings the old look back.');}});grid.append(b);return b;});
+  let i=0;const step=()=>{if($('imodal').hidden||!btns.length)return;const end=Math.min(btns.length,i+3);for(;i<end;i++)btns[i].append(thumbOf(IDEAS[i],300,225));if(i<btns.length)setTimeout(step,0);};step();}
+$('ideasBtn').onclick=()=>openIdeas('ideas');$('mutateBtn').onclick=()=>openIdeas('mutate');
+$('iClose').onclick=()=>{$('imodal').hidden=true;};$('imodal').addEventListener('click',e=>{if(e.target===$('imodal'))$('imodal').hidden=true;});
+
+/* ================= saving ================= */
+let topLevel=false;try{topLevel=window.top===window.self;}catch(e){}
+let DL=null;try{if(window.claude&&typeof window.claude.use==='function')window.claude.use('downloads').then(d=>{DL=d||null;renderSave();}).catch(()=>{});}catch(e){}
+const canSave=()=>!!DL||topLevel;
+async function saveFile(blob,filename){
+  if(DL){try{await DL.save({filename,data:blob});return'Saved.';}catch(err){const c=err&&err.code;if(c==='declined')return'Not saved.';if(c==='rate_limited')return'A save prompt is already open.';if(c==='too_large')return'That file is too big to save here.';if(!topLevel)return'Saving isn’t available here.';}}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),60000);return'Saved to your downloads.';}
+const slug=()=>String(S.text||'sfx').split('\n')[0].replace(/[\\/:*?"<>|\s]+/g,'_').slice(0,24)||'sfx';
+/* the finished lettering, cut to its edges with a little room, at the scale you chose */
+async function makePNG(parts,bgWhite){await fontsReady();LAY=layout();const full=compose(LAY);const bb=S.fit==='page'?{l:0,t:0,r:W,b:H}:(alphaBox(full)||{l:0,t:0,r:W,b:H}),m=S.fit==='page'?0:Math.round(LAY.E.size*.15);
+  const box={l:Math.max(0,bb.l-m),t:Math.max(0,bb.t-m),r:Math.min(W,bb.r+m),b:Math.min(H,bb.b+m)};return makePNGBox(parts,box,bgWhite);}
+function makePNGBox(parts,box,bgWhite){const k=S.scale,c=can((box.r-box.l)*k,(box.b-box.t)*k),g=c.getContext('2d');if(bgWhite){g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);}
+  const src=k===1?compose(LAY,parts):composeScaled(parts,k);g.drawImage(src,box.l*k,box.t*k,(box.r-box.l)*k,(box.b-box.t)*k,0,0,c.width,c.height);return{canvas:c,box};}
+/* drawn again k times bigger (every measurement is in page units), so it stays crisp */
+function composeScaled(parts,k){const st=JSON.parse(JSON.stringify(S));st.size=S.size*k;st.lines=S.lines.map(P=>({p0:{x:P.p0.x*k,y:P.p0.y*k},p1:{x:P.p1.x*k,y:P.p1.y*k},c:{x:P.c.x*k,y:P.c.y*k}}));for(const key in st.edits){const e=st.edits[key];st.edits[key]={...e,dx:e.dx*k,dy:e.dy*k};}
+  const keepS=S,kw=W,kh=H;S=st;try{setWorld(W*k,H*k);return compose(layout(st),parts);}finally{S=keepS;setWorld(kw,kh);}}
+function setWorld(w,hh){W=w;H=hh;}
+async function fontsReady(){try{await Promise.race([document.fonts.load(`${fontWeight(S.font)} 40px ${fontCss(S.font)}`,S.text||'A'),new Promise(r=>setTimeout(r,2500))]);}catch(e){}}
+function renderSave(){const p=$('saveF');p.innerHTML='';
+  p.append(segF('bg','Background',[['clear','See-through'],['white','White']],S.bg,v=>{S.bg=v;$('wrap').classList.toggle('white',v==='white');save();renderSave();render();}),
+    segF('scale','Size',[[1,'1×'],[2,'2×'],[3,'3×'],[4,'4×']],S.scale,v=>{S.scale=v;save();renderSave();updateSums();}),
+    segF('fit','Cut to',[['crop','The lettering'],['page','The whole page']],S.fit||'crop',v=>{S.fit=v;save();renderSave();}));
+  const b=h('div',{class:'row'});
+  if(canSave())b.append(h('button',{type:'button',class:'primary',id:'savePng',onclick:()=>run(async()=>{say('Making the picture…');const{canvas}=await makePNG(null,S.bg==='white');const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));say(await saveFile(blob,`sfx-${slug()}.png`)+` ${canvas.width} × ${canvas.height}.`);})},'Save PNG'),
+    h('button',{type:'button',id:'saveSvg',onclick:()=>run(async()=>{const svg=makeSVG();say(await saveFile(new Blob([svg],{type:'image/svg+xml'}),`sfx-${slug()}.svg`));})},'Save SVG'),
+    h('button',{type:'button',id:'saveZip',title:'Text, outline, shadow and motion as separate PNGs, for layers in Clip Studio or Photoshop',onclick:()=>run(async()=>{say('Making the layers…');const names=[['text','1-text'],['outline','2-outline'],['shadow','3-shadow'],['after','4-afterimages'],['motion','5-motion-blur']],entries=[];
+      const full=await makePNG(null,false);for(const[part,nm]of names){if(part==='outline'&&!S.out.on)continue;if(part==='shadow'&&S.shadow.kind==='none')continue;if(part==='after'&&!eff().after.on)continue;if(part==='motion'&&!eff().blur.on)continue;
+        const{canvas}=makePNGBox(new Set([part]),full.box,false);entries.push({name:`${nm}.png`,blob:await new Promise(r=>canvas.toBlob(r,'image/png'))});}
+      entries.push({name:'0-all.png',blob:await new Promise(r=>full.canvas.toBlob(r,'image/png'))});const zip=await makeZip(entries);say(await saveFile(zip,`sfx-${slug()}-layers.zip`)+` ${entries.length} layers.`);})},'Layered ZIP'));
+  if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write)b.append(h('button',{type:'button',onclick:()=>run(async()=>{const{canvas}=await makePNG(null,S.bg==='white');const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));try{await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);say('Copied. Paste it anywhere.');}catch(err){say('Copying isn’t allowed here. Save it instead.');}})},'Copy'));
+  b.append(h('button',{type:'button',id:'shareBtn',onclick:async()=>{const u=shareLink();try{await navigator.clipboard.writeText(u);toast('Link copied. It carries the words and every setting.');}catch(e){prompt('Copy this link',u);}}},'Copy link'));
+  p.append(b,h('p',{class:'help'},'SVG keeps the letters as text (the fonts load from Google Fonts; your own fonts are embedded). Halftone, edges and squeeze only come out in PNG. Clip Studio drops SVG fills, so use PNG or the layered ZIP there.'));
+  if(!canSave())p.append(h('p',{class:'help'},'Saving isn’t available here. Open the Photo Tools website or app to save.'));}
+let busy=false;async function run(fn){if(busy)return;busy=true;try{await fn();}catch(err){say('That didn’t work: '+(err&&err.message||err)+'.');}finally{busy=false;}}
+/* SVG: each letter as text, with the same transforms, outlines, shadow and motion */
+function makeSVG(){const Lay=layout(),E=Lay.E,size=E.size,F=S.fill,O=S.out,all=[...Lay.letters,...Lay.sub],pic=compose(Lay),bb=alphaBox(pic)||{l:0,t:0,r:W,b:H},m=Math.round(size*.15),esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const fam=fontCss(S.font).replace(/"/g,"'"),wt=fontWeight(S.font),f=FONTS[S.font];let defs='';
+  if(f&&f.gf)defs+=`@import url('https://fonts.googleapis.com/css2?family=${f.gf.replace(/ /g,'+')}&amp;display=swap');`;
+  const fillCol=F.kind==='white'||F.kind==='nega'?'#FFFFFF':F.kind==='gray'?'#9A9A9A':F.kind==='none'?'none':F.color;
+  const letter=(L,extra)=>{const tr=`translate(${L.x.toFixed(1)} ${L.y.toFixed(1)}) rotate(${(L.rot*180/Math.PI).toFixed(2)})${E.lean?` skewX(${(-E.lean).toFixed(1)})`:''} scale(${(L.sc*L.sx).toFixed(3)} ${L.sc.toFixed(3)})`;
+    return`<text transform="${tr}" font-family="${fam}" font-weight="${wt}" font-size="${L.hh.toFixed(1)}" text-anchor="middle" dominant-baseline="central" ${extra}>${esc(L.ch)}</text>`;};
+  const join=O.sharp?'miter':'round',group=(attrs,extra)=>`<g ${attrs}>${all.map(L=>letter(L,extra)).join('')}</g>`;
+  const outlined=(fill,op)=>{let s='';if(F.kind==='nega')s+=group(`fill="none" stroke="#000000" stroke-width="${(size*1).toFixed(1)}" stroke-linejoin="round"${op}`,'');
+    if(O.on&&O.on2)s+=group(`fill="none" stroke="${O.color2}" stroke-width="${((E.outW+E.outW2)*size*2).toFixed(1)}" stroke-linejoin="${join}" stroke-miterlimit="3.5"${op}`,'');
+    if(O.on)s+=group(`fill="none" stroke="${O.color}" stroke-width="${(E.outW*size*2).toFixed(1)}" stroke-linejoin="${join}" stroke-miterlimit="3.5"${op}`,'');
+    s+=group(`fill="${fill}"${op}`,'');return s;};
+  let body='';const pathDir=(()=>{const P=S.lines[0];return P?Math.atan2(P.p1.y-P.p0.y,P.p1.x-P.p0.x):0;})();
+  if(E.blur.on){const d=E.blur.w*size,n=Math.max(2,E.blur.n|0),a=rad(E.blur.dir);for(let k=n;k>=1;k--)body+=`<g transform="translate(${(Math.cos(a)*d*k/n).toFixed(1)} ${(Math.sin(a)*d*k/n).toFixed(1)})" opacity="${((1-k/(n+1))*.55).toFixed(2)}">${outlined(fillCol,'')}</g>`;}
+  if(E.after.on){const n=Math.max(1,E.after.n|0),a=E.after.dir==null?pathDir+Math.PI:rad(E.after.dir),gap=E.after.gap*size;for(let k=n;k>=1;k--)body+=`<g transform="translate(${(Math.cos(a)*gap*k).toFixed(1)} ${(Math.sin(a)*gap*k).toFixed(1)})" opacity="${Math.pow(E.after.fade,k).toFixed(2)}">${outlined(fillCol,'')}</g>`;}
+  if(S.shadow.kind!=='none'){const a=rad(S.shadow.dir),d=S.shadow.len*size,n=S.shadow.kind==='drop'?1:Math.max(2,Math.ceil(d/3));for(let k=n;k>=1;k--){const dx=S.shadow.kind==='drop'?Math.cos(a)*d:Math.cos(a)*d*k/n,dy=S.shadow.kind==='drop'?Math.sin(a)*d:Math.sin(a)*d*k/n;
+      body+=`<g transform="translate(${dx.toFixed(1)} ${dy.toFixed(1)})" fill="${S.shadow.color}" stroke="${S.shadow.color}">${group(`fill="${S.shadow.color}" stroke="${S.shadow.color}" stroke-width="${(((O.on?E.outW+(O.on2?E.outW2:0):0)+(F.kind==='nega'?.5:0))*size*2).toFixed(1)}" stroke-linejoin="${join}"`,'')}</g>`;}}
+  body+=outlined(fillCol,'');
+  const vb=`${bb.l-m} ${bb.t-m} ${bb.r-bb.l+m*2} ${bb.b-bb.t+m*2}`;
+  return`<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="${bb.r-bb.l+m*2}" height="${bb.b-bb.t+m*2}">\n<style>${defs}</style>\n${S.bg==='white'?`<rect x="${bb.l-m}" y="${bb.t-m}" width="${bb.r-bb.l+m*2}" height="${bb.b-bb.t+m*2}" fill="#fff"/>`:''}${body}\n</svg>`;}
+/* a ZIP with no dates inside */
+const CRC_T=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRC_T[(c^u8[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0;}
+async function makeZip(entries){const parts=[],central=[];let off=0;const time=0,date=33;
+  for(const en of entries){const data=new Uint8Array(await en.blob.arrayBuffer()),name=new TextEncoder().encode(en.name),crc=crc32(data);
+    const lh=new DataView(new ArrayBuffer(30));lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(10,time,true);lh.setUint16(12,date,true);lh.setUint32(14,crc,true);lh.setUint32(18,data.length,true);lh.setUint32(22,data.length,true);lh.setUint16(26,name.length,true);
+    parts.push(new Uint8Array(lh.buffer),name,data);
+    const chd=new DataView(new ArrayBuffer(46));chd.setUint32(0,0x02014b50,true);chd.setUint16(4,20,true);chd.setUint16(6,20,true);chd.setUint16(8,0x0800,true);chd.setUint16(12,time,true);chd.setUint16(14,date,true);chd.setUint32(16,crc,true);chd.setUint32(20,data.length,true);chd.setUint32(24,data.length,true);chd.setUint16(28,name.length,true);chd.setUint32(42,off,true);
+    central.push(new Uint8Array(chd.buffer),name);off+=30+name.length+data.length;}
+  const cs=central.reduce((a,q)=>a+q.length,0),end=new DataView(new ArrayBuffer(22));end.setUint32(0,0x06054b50,true);end.setUint16(8,entries.length,true);end.setUint16(10,entries.length,true);end.setUint32(12,cs,true);end.setUint32(16,off,true);
+  return new Blob([...parts,...central,new Uint8Array(end.buffer)],{type:'application/zip'});}
+
+/* ================= switching tools ================= */
+(function(){
+  const ART={'photo-frame-studio.html':'https://claude.ai/artifact/BTFF4oB7m8EHQMWNwCo2Uw','photo-splitter.html':'https://claude.ai/artifact/ENVcKXEpCdopL6rRfj1fT9','chat-reel.html':'https://claude.ai/artifact/Tzehgnj1qjBYtpZ6oxKAhG','metadata-scrubber.html':'https://claude.ai/artifact/8kwiNFdeFAR3uZ8NTzKVnX','watermark.html':'https://claude.ai/artifact/KY6NSnRSjL5vHT5tjTEZeu','caption-maker.html':'https://claude.ai/artifact/5E6VdnrgfSVCytQtsQUNVc','background-remover.html':'https://claude.ai/artifact/FzXZ8jMRnT8kFRFXS4G3wF','video-layers.html':'https://claude.ai/artifact/HMnHFrAaDUyaiSg7H8uxwN','delivery-reel.html':'https://claude.ai/artifact/4XzpUcdVZdRCviwGjyvTNQ','visual-novel.html':'https://claude.ai/artifact/GUKwPgmd3o8tZarDH4ygRx','motion-comic.html':'https://claude.ai/artifact/QA3g3sR3Jy4etrFoq8rNBD','outfit-tags.html':'https://claude.ai/artifact/3GUgfTcEMSDbgj5TMVuARd','sfx-maker.html':''};
+  document.querySelectorAll('.switch a').forEach(a=>{
+    if(a.getAttribute('aria-current')){a.addEventListener('click',e=>e.preventDefault());return;}
+    if(!topLevel){const u=ART[a.getAttribute('href')];if(u&&u.startsWith('https:')){a.href=u;a.target='_blank';a.rel='noopener';}return;}
+    a.addEventListener('click',e=>{if(e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||e.button)return;writeState();});
+  });
+  addEventListener('pagehide',()=>{try{writeState();}catch(e){}});
+})();
+
+/* ================= start ================= */
+(async function start(){
+  const link=fromLink();let st=null;if(!link){try{st=JSON.parse(localStorage.getItem('sfx-state')||'null');}catch(e){}}
+  if(link||st){S=mergeDeep(DEF(),link||st);if(link){try{history.replaceState(null,'',location.pathname);}catch(e){}}}
+  await loadOwnFonts();if(!FONTS[S.font])S.font='bangers';needFont(S.font);['bangers','dela'].forEach(needFont);
+  $('txt').value=S.text;$('dirH').setAttribute('aria-pressed',String(S.dir==='h'));$('dirV').setAttribute('aria-pressed',String(S.dir==='v'));$('wrap').classList.toggle('white',S.bg==='white');
+  ensurePaths(prepLines().length);restored=true;HIST=[snap()];HI=0;syncUndo();renderAll();
+  document.fonts.addEventListener('loadingdone',()=>{MW.clear();LOOKPV.clear();renderSoon();renderLooks();renderFontF();});
+  if(link)toast('Opened the lettering from the link.');
+})();
+</script>
+</body>
+</html>
