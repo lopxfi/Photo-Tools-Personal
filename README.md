@@ -475,7 +475,11 @@ Puts words on a picture: a caption, a line of dialogue, a speech bubble or a tit
 Type a sound effect and it becomes manga lettering (描き文字). Everything runs on the device; nothing is uploaded, and no AI is involved: the wobble and the ideas come from random numbers and set rules. Made for English and Japanese, with Korean and Chinese fonts too.
 
 ### The page
-- The lettering sits on top and stays pinned while you scroll (📌 unpins it). Under it, a strip of lettering styles, then every setting spread across the width as cards, two to four columns depending on your screen, each one folding open and shut (**Open all** / **Close all**).
+- The lettering is on the left with its tool bars (undo, Points, Liquify, the stage background, handles on or off, and below it: add a sound effect, auto pick, ideas, resets, Save PNG and Copy). Every setting is on the right: a strip of lettering styles, then folding cards in two columns (one on narrower screens). The lettering stays on screen while you scroll the settings (📌 unpins it).
+- **Several sound effects on one page:** **+ Add SFX** adds another with its own words and settings; tap one on the page to edit it, ‹ › to step through them, **Delete** to remove one. Undo covers all of them.
+- **SFX dictionary** (in Text): common sound effects in groups (impact, hits, rumble, motion, soft and cute, water, small sounds, gags, machines, eating, fire and electric), in Japanese and English. Tap one to use it; a lettering style is picked from the word. **✨ Auto pick** does the same for whatever you typed.
+- **Page, underlay and script:** page size (wide to fit the screen, B5, SNS 4:5, square, 16:9); a picture of your own as an underlay (see Background below); and a **script**: one sound effect per line, `/` breaks it into lines, `|` adds a small note. **Place on page** turns each line into its own sound effect, spread down the page, with styles picked from the words and small differences between them.
+- **Save** cuts to all the lettering, just the sound effect being edited, or the whole page.
 
 ### Text
 - Type the sound effect; each line of text gets its own line of lettering. **Across** or **Down** (vertical writing, right to left).
@@ -492,7 +496,7 @@ Type a sound effect and it becomes manga lettering (描き文字). Everything ru
 - **◎ Liquify:** a brush with **Push**, **Bloat**, **Pinch**, **Twirl ↻** and **Twirl ↺**, with brush size, strength and hardness; hold Alt to reverse. It works on every letter under the brush.
 - Reshaped letters keep their new shape when you move, turn or resize them, and the SVG keeps them as paths. Undo covers every point and brush stroke.
 
-### Background
+### Background (underlay)
 - **Open a picture** (or drop one on the page) to put a page, a panel or a photo behind the lettering, fit inside or filling the page, at any opacity. The lettering saves on its own, see-through, unless you tick **Save it with the lettering**, which saves the whole page with it (PNG, copy and SVG). The picture is kept in the browser.
 
 ### Lettering styles and fonts
