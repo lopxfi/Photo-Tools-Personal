@@ -10,6 +10,7 @@ A small set of personal browser tools for dressing up photos, making short video
 - **Share straight from your gallery.** On Android, once the app is installed, it shows up in the Share menu for photos, videos and sounds. Pick it, then pick the tool.
 - **Tools pass work to each other.** A framed photo from Photo Frame Studio or a video from Chat Reel goes straight into Video Layers with one tap.
 - **Search engines are asked not to list it** (every page has `noindex, nofollow`).
+- **Made for big screens too.** On a wide computer monitor each tool spreads out: the picture or video in the middle with its buttons above and below, and the settings on both sides in sections you can fold away. Phones and smaller windows keep the compact layout.
 
 | Tool | What it does |
 |---|---|

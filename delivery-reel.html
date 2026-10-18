@@ -144,6 +144,21 @@ input[type=range]{accent-color:var(--accent);width:100%}
 }
 @media (max-width:900px) and (max-height:560px){.stage{position:static;box-shadow:none}canvas#cv{max-height:70vh}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* wide screens: the whole width, settings on both sides of the phone, sections fold */
+@media (min-width:1440px){
+  body{padding-inline:20px;padding-block:14px 24px}
+  .top,.app{max-width:none}
+  .top{margin-bottom:12px}
+  .app{grid-template-columns:400px minmax(0,1fr) 400px;grid-template-areas:"left stage side";gap:16px 20px}
+  .stage{grid-area:stage}.side{grid-area:side}.side.pt-left{grid-area:left}
+  .side{position:sticky;top:14px;max-height:calc(100vh - 28px);overflow:auto;overscroll-behavior:contain}
+  .canvas-wrap{min-height:360px}
+  canvas#cv{max-height:calc(100vh - 310px)}
+  .sec>h2.fold2{cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;user-select:none}
+  .sec>h2.fold2::after{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin-right:4px;flex:none;transition:transform .15s}
+  .sec.closed>h2.fold2::after{transform:rotate(-45deg)}
+  .sec.closed>*:not(h2){display:none}
+}
 </style>
 
 </head>
@@ -591,7 +606,31 @@ function pickF(id,label,key,help,vid){const inp=h('input',{type:'file',id,accept
   return h('div',{class:'field'},h('span',{class:'flabel'},label),row,help?h('p',{class:'help'},help):null);}
 function dropVid(key){const v=VID[key];if(!v)return;try{v.el.pause();}catch(e){}if(v.node){try{v.node.disconnect();}catch(e){}}URL.revokeObjectURL(v.el.src);VID[key]=null;}
 const fmtS=v=>v.toFixed(1)+' s';
-function renderSide(){const p=$('side');p.innerHTML='';const sec=(title,...kids)=>p.append(h('section',{class:'sec'},h('h2',{},title),...kids));
+/* ================= wide screens: full width, settings on both sides of the picture, sections fold ================= */
+const wideMQ=matchMedia('(min-width:1440px)'),isWide=()=>wideMQ.matches;
+const ptMoves=[];
+function ptMove(el,parent,before){if(!el||!parent)return;ptMoves.push({el,p:el.parentNode,n:el.nextSibling});parent.insertBefore(el,before||null);}
+function ptUnmove(){while(ptMoves.length){const m=ptMoves.pop();m.p.insertBefore(m.el,m.n);}}
+/* everything in the settings panel before the section called firstRight moves to a second panel on the left */
+function ptSplit(panel,firstRight){if(!panel)return;let left=document.querySelector('.pt-left');
+  if(isWide()){if(!left){left=document.createElement('aside');left.className=panel.className+' pt-left';left.setAttribute('aria-label','Settings');left.id='';panel.before(left);}
+    for(const el of[...panel.children]){const f=el.querySelector&&(el.querySelector('.fold')||el.querySelector(':scope>h2'));if(f&&f.firstChild.textContent.trim()===firstRight)break;left.append(el);}}
+  else if(left){panel.prepend(...left.children);left.remove();}}
+/* o: {panel, key, open:[sections open the first time], firstRight, fold(panel), wide(), narrow()} */
+function ptWide(o){globalThis.ptKey=o.key||'';const p=o.panel;const apply=()=>{
+  if(isWide()&&!apply.loaded){apply.loaded=true;let v=null;try{v=JSON.parse(localStorage.getItem(o.key)||'null');}catch(e){}(Array.isArray(v)?v:o.open||[]).forEach(n=>openSecs.add(n));}
+  if(isWide()&&p&&!p.querySelector('.fsec'))(o.fold||(x=>foldSections(x,'h4.fhead')))(p);
+  ptUnmove();if(o.firstRight)ptSplit(p,o.firstRight);if(isWide()&&o.wide)o.wide();if(!isWide()&&o.narrow)o.narrow();};
+  apply();wideMQ.addEventListener('change',apply);return apply;}
+
+/* on a wide screen the settings sit on both sides of the phone, and each section folds away when you click its name */
+const drClosed=new Set((()=>{try{const v=JSON.parse(localStorage.getItem('dr-closed')||'null');if(Array.isArray(v))return v;}catch(e){}return['Timing','Map'];})());
+function renderSide(){renderSideInner();const side=$('side');
+  if(isWide())side.querySelectorAll(':scope>.sec>h2').forEach(h2=>{const s=h2.parentNode,n=h2.textContent.trim();s.classList.toggle('closed',drClosed.has(n));h2.classList.add('fold2');
+    h2.onclick=()=>{const c=!s.classList.contains('closed');s.classList.toggle('closed',c);if(c)drClosed.add(n);else drClosed.delete(n);try{localStorage.setItem('dr-closed',JSON.stringify([...drClosed]));}catch(e){}};});
+  const L=document.querySelector('.pt-left');if(L)L.replaceChildren();ptSplit(side,'Times');}
+wideMQ.addEventListener('change',()=>renderSide());
+function renderSideInner(){const p=$('side');p.innerHTML='';const sec=(title,...kids)=>p.append(h('section',{class:'sec'},h('h2',{},title),...kids));
   sec('App',segB('s-brand','Delivery app',Object.entries(BRANDS).map(([k,b])=>[k,b.name,b.p]),P.brand,v=>{P.brand=v;doorKey='';hard();}),
     h('p',{class:'help'},'Made-up apps with their own names and colors, so the reel can’t be mistaken for a real service.'),
     h('label',{class:'chk',for:'s-snd'},h('input',{type:'checkbox',id:'s-snd',checked:P.sound,onchange:e=>{P.sound=e.target.checked;save();}}),'Notification sounds'));

@@ -13,6 +13,12 @@ https://lopxfi.github.io/Photo-Tools-Personal/ (owner renamed from `latieros` to
 - `vendor/mediapipe/` is the background remover used by Video Layers (see its README). `.tflite` models can't be served
   inside Claude artifacts, so `video-layers.html` falls back to `<model>.tflite.txt` (base64) when the `.tflite` is missing.
 - `dev/` holds helpers only (not part of the site). `dist/` is scratch output and is git-ignored.
+- Every tool has three layouts: phone (`max-width:900px`), a plain desktop, and a wide screen (`min-width:1440px`, the
+  `/* wide screens */` block at the end of each page's CSS). On wide screens the page uses the whole width, the settings sit on
+  both sides of the picture (the shared `ptWide`/`ptSplit`/`ptMove` helpers move the existing sections into a `.pt-left`
+  panel), the main buttons go above the picture, and the `foldSections` fold-outs that phones use are turned on too, with
+  the open sections remembered in localStorage (`<tool>-open`). Motion Comic and Visual Novel show the Pages/Scenes tab on
+  the left and the other tabs on the right (`ptDual`). Keep the phone and plain-desktop looks unchanged when touching these.
 
 ## Workflow after changing anything
 1. `python3 dev/build.py stamp` — syncs the in-Claude tool links (`const ART=` in the older tools) from

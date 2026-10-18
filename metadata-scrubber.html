@@ -151,6 +151,16 @@ summary{cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);list-st
 }
 @media (max-width:480px){.file{grid-template-columns:64px minmax(0,1fr);gap:12px}.thumb{width:64px;height:64px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* wide screens: the whole width, settings on both sides of the file list */
+@media (min-width:1440px){
+  body{padding-inline:20px;padding-block:14px 24px}
+  .top,.app{max-width:none}
+  .top{margin-bottom:12px}
+  .app{grid-template-columns:340px minmax(0,1fr) 340px;grid-template-areas:"left drop side" "left list side";gap:16px 20px}
+  .side.pt-left{grid-area:left}
+  .side>hr.sep:first-child,.side>hr.sep:last-child{display:none}
+  .drop{padding:20px 20px}
+}
 /* phone touches */
 @media (max-width:900px){
   body{padding-inline:12px}
@@ -216,6 +226,17 @@ summary{cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);list-st
 </main>
 
 <script>
+
+/* ================= wide screens: settings on both sides of the list ================= */
+const wideMQ=matchMedia('(min-width:1440px)'),isWide=()=>wideMQ.matches;
+(function(){const side=document.querySelector('.side');if(!side)return;const seps=()=>[...side.querySelectorAll(':scope>hr.sep')];
+  function apply(){let left=document.querySelector('.pt-left');
+    if(isWide()){if(!left){left=document.createElement('aside');left.className='card side pt-left';left.setAttribute('aria-label','Settings');side.before(left);}
+      /* everything up to and including the second divider goes left: how to save, and the video date */
+      let n=0;for(const el of[...side.children]){left.append(el);if(el.matches('hr.sep')&&++n===2)break;}
+      const last=left.lastElementChild;if(last&&last.matches('hr.sep'))last.remove();}
+    else if(left){const kids=[...left.children];const hr=document.createElement('hr');hr.className='sep';side.prepend(...kids,hr);left.remove();}}
+  apply();wideMQ.addEventListener('change',apply);})();
 const $=id=>document.getElementById(id);
 function h(tag,props,...kids){const e=document.createElement(tag);for(const[k,v]of Object.entries(props||{})){if(k==='class')e.className=v;else if(k==='text')e.textContent=v;else if(k.startsWith('on'))e[k]=v;else if(v===true)e.setAttribute(k,'');else if(v!==false&&v!=null)e.setAttribute(k,v);}
   kids.flat().forEach(c=>{if(c!=null&&c!==false)e.append(c.nodeType?c:document.createTextNode(c));});return e;}
