@@ -22,6 +22,7 @@ A small set of personal browser tools for dressing up photos, making short video
 | [SFX Maker](#sfx-maker) | Turns a typed sound effect into manga lettering (BOOM, ドカーン): letters along a curve, comic, brush, lightning and other styles in free fonts, outlines, halftone, 3D, motion and jagged edges, with a sheet of random ideas. PNG, SVG or layers. |
 | [Effect Lines](#effect-lines) | Manga effect lines and screentones: focus lines, black flash, speed lines, rain, cross-hatching and rope hatching, halftone, gradients, 19 patterns, sparkles, petals and more. Drag the center, shape with sliders, stack layers, save as transparent PNG, SVG or a ZIP by layer. |
 | [Panel Layouts](#panel-layouts) | Manga and comic page layouts in batches of 12, 24 or 48 from a seed: orderly, standard, action or splash pages, slanted borders, bleeds and split panels, right-to-left or left-to-right. Drag borders, remove panels, mutate a layout into variations, and save as SVG or PNG with a clear, white or black background. |
+| [Bubble Maker](#bubble-maker) | Manga speech and thought bubbles: 15 styles (classic, thought, shout, whisper, shaky, radio, narration, shoujo, pop, echo, horror and more), any words in about 100 fonts or your own, tails you point by dragging, patterns, double lines, shadows and decorations. Several bubbles on a page, random ideas, a bubble sheet to cut up, and saving as see-through PNG, SVG or a ZIP of each bubble. |
 | [Watermark](#watermark) | Puts your name or logo on one photo or a whole batch, with ready-made looks (corner signature, label, stamp, proof band, tiled) or your own saved watermarks. |
 | [Background Remover](#background-remover) | Takes the background out of photos and videos: people, animals, everyday things, a plain background or green screen, or any color you pick like a chroma key. Touch-up brush for photos, and see-through, color, blurred or picture backgrounds. |
 | [Video Layers](#video-layers) | Puts pictures, videos, text, music and your voice together and exports a new video or GIF. Automatic background removal, green screen, motion paths with keyframes and one-tap layouts. |
@@ -596,6 +597,39 @@ Manga and comic panel layouts (コマ割り) in batches, rebuilt after the Manga
 
 ---
 
+## Bubble Maker
+
+Manga speech and thought bubbles (吹き出し), made on the device from shapes and random numbers; nothing is uploaded.
+
+### Styles
+- The strip at the top: **Classic**, **Thought**, **Shout**, **Whisper**, **Shaky**, **Radio**, **Narration**, **Soft**, **Shoujo**, **Flowers**, **Pop**, **Echo**, **Horror**, **Flash** and **Tone**. A style sets the shape, tail, outline, fill, decorations and font; your words, place and size stay. Every setting can then be changed.
+- **Shapes:** speech (oval), thought (bumps), shout (spikes), zigzag, flash (many small spikes), wobbly, whisper (dashed), rounded box, box, or no bubble (words only). **Hand-drawn wobble** roughens any shape. The spikes, bumps and wobble come from a random seed; ⚄ rolls a new one.
+
+### Words
+- Type the words; a new line starts a new line. **Across** or **Down** (vertical, for Japanese, with long marks and brackets turned). Size, line spacing, letter spacing and color.
+- About 100 free fonts (a Dialogue group for easy reading, plus comic, bold, rounded, brush, pen, fun, spooky, Japanese, Korean and Chinese) and your own font files, kept in the browser and shared with Caption Maker and SFX Maker.
+- The bubble **fits itself round the words** with as much room as you like, or untick that and set the width and height (dragging a corner does the same).
+
+### Tails
+- One tail, or a second one for two speakers. **Pointed**, **Curved** (with a curl) or **Thought bubbles**. Drag ● at the tip on the page to point it, or use the direction, length, width and curl sliders.
+
+### Fill, outline and extras
+- Fill color and opacity, with a dot, line or cross-hatch pattern. Outline color and thickness, a **double line** with a gap, or **dashed** for whispers.
+- A drop shadow, and **decorations** round the bubble: hearts, stars, sparkles, flowers, bubbles, lines or drops, in any color, count and size.
+
+### The page
+- Several bubbles on one page: **+ Add bubble**, Duplicate, Delete, ▲ ▼ for the stacking order, ‹ › to switch, or tap one. Drag to move, □ to resize, ○ to turn. Arrow keys nudge, Delete removes, Ctrl+Z undoes, Ctrl+D duplicates.
+- **🎲 Draw ideas** shows 12 random takes on the current bubble (styles, shapes and tails); **🧬 Mutate** makes small changes. Tap one to use it.
+- **▦ Bubble sheet** fills the page with 6 to 16 bubbles in rows, empty or with sample words, in this style or a mix, ready to save see-through and cut up in your drawing app.
+- Page sizes: wide, B5, 4:5, square or 16:9. An **underlay** picture (a panel layout from Panel Layouts, or your page) can sit behind the bubbles while you place them; choose whether it is kept in the saved picture.
+- **Start over** clears the page (it asks first; Undo brings the work back).
+
+### Saving
+- **Save PNG**: everything cut to the edges, this bubble only, or the whole page, at 1×, 2× or 3×, with a **clear**, white or black background. **Each bubble (ZIP)** saves every bubble as its own see-through PNG.
+- **Save SVG** keeps the shapes as paths and the words as text (the font by name). **Copy** puts the picture on the clipboard; **Share link** carries the whole page.
+
+---
+
 ## Watermark
 
 Puts your name or logo on your photos. Add one photo or a whole batch; every photo gets the same watermark in the same spot, sized to match.
@@ -873,6 +907,7 @@ Open each tool once while you're online so everything, fonts included, is saved 
 | `sfx-maker.html` | SFX Maker |
 | `effect-lines.html` | Effect Lines |
 | `panel-layouts.html` | Panel Layouts |
+| `bubble-maker.html` | Bubble Maker |
 | `background-remover.html` | Background Remover |
 | `video-layers.html` | Video Layers |
 | `outfit-tags.html` | Outfit Tags (built from the Outfit-Idenitfy repository) |
