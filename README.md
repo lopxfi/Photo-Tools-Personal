@@ -615,7 +615,8 @@ Manga speech and thought bubbles (吹き出し), made on the device from shapes 
 
 ### Fill, outline and extras
 - Fill color and opacity, with a dot, line or cross-hatch pattern. Outline color and thickness, a **double line** with a gap, or **dashed** for whispers.
-- A drop shadow, and **decorations** round the bubble: hearts, stars, sparkles, flowers, bubbles, lines or drops, in any color, count and size.
+- A drop shadow.
+- **Decorations** round the bubble: hearts, stars, sparkles, flowers, bubbles, lines or drops. Set how many, their size and how much it varies, how far from the bubble they sit and how far they scatter outward; place them at random (⚄ scatters them again) or evenly spaced, all the way round or only on one side (a start side and how far round), and nudge them. Each one can spin at random, all the same way, or away from the bubble, with an angle. Fill color and opacity (or no fill), and an outline with its own color, thickness and solid, dashed or dotted look.
 
 ### The page
 - Several bubbles on one page: **+ Add bubble**, Duplicate, Delete, ▲ ▼ for the stacking order, ‹ › to switch, or tap one. Drag to move, □ to resize, ○ to turn. Arrow keys nudge, Delete removes, Ctrl+Z undoes, Ctrl+D duplicates.

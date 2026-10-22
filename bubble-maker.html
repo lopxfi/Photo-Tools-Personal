@@ -260,8 +260,10 @@ canvas#cv{display:block;max-width:100%;height:auto;touch-action:none;border-radi
       <div class="field" id="fillF"></div>
       <h4 class="fhead">Outline</h4>
       <div class="field" id="outF"></div>
-      <h4 class="fhead">Shadow and decorations</h4>
+      <h4 class="fhead">Shadow</h4>
       <div class="field" id="fxF"></div>
+      <h4 class="fhead">Decorations</h4>
+      <div class="field" id="decoF"></div>
       <h4 class="fhead">Save</h4>
       <div class="field" id="saveF"></div>
       <h4 class="fhead">Page and underlay</h4>
@@ -308,7 +310,7 @@ canvas#cv{display:block;max-width:100%;height:auto;touch-action:none;border-radi
 <script>
 /* ================= phones: fold-out sections ================= */
 const phoneMQ=matchMedia('(max-width:900px)'),isPhone=()=>phoneMQ.matches;
-const openSecs=new Set((()=>{try{const v=JSON.parse(localStorage.getItem('bubble-open')||'null');if(Array.isArray(v))return v;}catch(e){}return['Words','Font','Bubble','Tail','Fill','Outline','Shadow and decorations','Save','Page and underlay'];})());
+const openSecs=new Set((()=>{try{const v=JSON.parse(localStorage.getItem('bubble-open')||'null');if(Array.isArray(v))return v;}catch(e){}return['Words','Font','Bubble','Tail','Fill','Outline','Shadow','Decorations','Save','Page and underlay'];})());
 const keepOpen=()=>{try{localStorage.setItem('bubble-open',JSON.stringify([...openSecs]));}catch(e){}};
 function $id(id){return document.getElementById(id);}
 function foldSections(p,sel){let body=null;
@@ -427,7 +429,7 @@ const DEF=()=>({text:'Hello!',font:'comicneue',size:60,lineH:1.15,spacing:0,dir:
   fill:{color:'#FFFFFF',op:1,pat:'none',pat2:'#000000'},
   out:{color:'#000000',w:5,double:false,gap:5,dash:false},
   shadow:{on:false,dx:8,dy:8,color:'#000000'},
-  deco:{kind:'none',color:'#000000',n:10,size:.5}});
+  deco:{kind:'none',n:10,size:.5,vary:.4,dist:.25,spread:.3,mode:'random',arcStart:0,arcSweep:360,spin:'random',angle:0,dx:0,dy:0,seed:1,fill:{on:true,color:'#000000',op:1},out:{on:false,color:'#000000',w:2,style:'solid'}}});
 const PGDEF=()=>({kind:'auto',bg:'clear',scale:2,fit:'crop',exbg:'clear',bgi:{on:false,fit:'contain',op:1,save:true}});
 let PG=PGDEF();
 const PAGES={auto:[1400,1000],b5:[1000,1414],sns:[1000,1250],square:[1200,1200],wide:[1600,900]};
@@ -439,16 +441,16 @@ const LOOKS=[
   ['thought','Thought',{shape:'thought',font:['comicneue','kosugimaru'],rough:0,tail:{kind:'bumps',curl:0},fill:{color:'#FFFFFF',op:1,pat:'none'},out:{color:'#000000',w:5,double:false,dash:false},shadow:{on:false},deco:{kind:'none'},color:'#000000'}],
   ['shout','Shout',{shape:'shout',font:['bangers','dela'],rough:0,tail:{kind:'point',curl:0},fill:{color:'#FFFFFF',op:1,pat:'none'},out:{color:'#000000',w:7,double:false,dash:false},shadow:{on:false},deco:{kind:'none'},color:'#000000'}],
   ['whisper','Whisper',{shape:'whisper',font:['patrick','klee'],rough:0,tail:{kind:'point',curl:0},fill:{color:'#FFFFFF',op:1,pat:'none'},out:{color:'#000000',w:3,double:false,dash:true},shadow:{on:false},deco:{kind:'none'},color:'#333333'}],
-  ['shaky','Shaky',{shape:'wobbly',font:['gloria','yomogi'],rough:55,tail:{kind:'point',curl:0},fill:{color:'#FFFFFF',op:1,pat:'none'},out:{color:'#000000',w:4,double:false,dash:false},shadow:{on:false},deco:{kind:'drops'},color:'#000000'}],
+  ['shaky','Shaky',{shape:'wobbly',font:['gloria','yomogi'],rough:55,tail:{kind:'point',curl:0},fill:{color:'#FFFFFF',op:1,pat:'none'},out:{color:'#000000',w:4,double:false,dash:false},shadow:{on:false},deco:{kind:'drops',fill:{on:true,color:'#000000'},out:{on:false}},color:'#000000'}],
   ['radio','Radio',{shape:'electric',font:['comicneue','mplus1p'],rough:0,tail:{kind:'point',curl:0},fill:{color:'#FFFFFF',op:1,pat:'none'},out:{color:'#000000',w:5,double:false,dash:false},shadow:{on:false},deco:{kind:'none'},color:'#000000'}],
   ['narration','Narration',{shape:'box',font:['comicneue','notosansjp'],rough:0,tail:{kind:'none'},fill:{color:'#FFFFFF',op:1,pat:'none'},out:{color:'#000000',w:4,double:false,dash:false},shadow:{on:false},deco:{kind:'none'},color:'#000000'}],
   ['soft','Soft',{shape:'round',font:['fredoka','zenmaru'],rough:0,tail:{kind:'curve',curl:.5},fill:{color:'#FFFFFF',op:1,pat:'none'},out:{color:'#000000',w:4,double:false,dash:false},shadow:{on:false},deco:{kind:'none'},color:'#000000'}],
-  ['shoujo','Shoujo',{shape:'speech',font:['indie','hachimaru'],rough:0,tail:{kind:'curve',curl:.4},fill:{color:'#FFFFFF',op:1,pat:'none'},out:{color:'#000000',w:3,double:false,dash:false},shadow:{on:false},deco:{kind:'sparkles',color:'#000000',n:9,size:.5},color:'#000000'}],
-  ['flowers','Flowers',{shape:'speech',font:['indie','hachimaru'],rough:0,tail:{kind:'point',curl:0},fill:{color:'#FFF4F8',op:1,pat:'none'},out:{color:'#D64B8A',w:3,double:false,dash:false},shadow:{on:false},deco:{kind:'flowers',color:'#D64B8A',n:8,size:.6},color:'#7A1F4A'}],
+  ['shoujo','Shoujo',{shape:'speech',font:['indie','hachimaru'],rough:0,tail:{kind:'curve',curl:.4},fill:{color:'#FFFFFF',op:1,pat:'none'},out:{color:'#000000',w:3,double:false,dash:false},shadow:{on:false},deco:{kind:'sparkles',fill:{on:true,color:'#000000'},out:{on:false},n:9,size:.5},color:'#000000'}],
+  ['flowers','Flowers',{shape:'speech',font:['indie','hachimaru'],rough:0,tail:{kind:'point',curl:0},fill:{color:'#FFF4F8',op:1,pat:'none'},out:{color:'#D64B8A',w:3,double:false,dash:false},shadow:{on:false},deco:{kind:'flowers',fill:{on:true,color:'#D64B8A'},out:{on:false},n:8,size:.6},color:'#7A1F4A'}],
   ['pop','Pop',{shape:'round',font:['lilita','mochiy'],rough:0,tail:{kind:'point',curl:0},fill:{color:'#FFD60A',op:1,pat:'none'},out:{color:'#1A1A1A',w:7,double:false,dash:false},shadow:{on:true,dx:10,dy:10,color:'#1A1A1A'},deco:{kind:'none'},color:'#1A1A1A'}],
   ['echo','Echo',{shape:'speech',font:['comicneue','kosugimaru'],rough:0,tail:{kind:'point',curl:0},fill:{color:'#FFFFFF',op:1,pat:'none'},out:{color:'#000000',w:4,double:true,gap:5,dash:false},shadow:{on:false},deco:{kind:'none'},color:'#000000'}],
   ['horror','Horror',{shape:'wobbly',font:['creepster','shizuru'],rough:80,tail:{kind:'point',curl:0},fill:{color:'#000000',op:1,pat:'none'},out:{color:'#000000',w:6,double:false,dash:false},shadow:{on:false},deco:{kind:'none'},color:'#FFFFFF'}],
-  ['flash','Flash',{shape:'flash',font:['bangers','dela'],rough:0,tail:{kind:'none'},fill:{color:'#FFFFFF',op:1,pat:'none'},out:{color:'#000000',w:4,double:false,dash:false},shadow:{on:false},deco:{kind:'lines',color:'#000000',n:16,size:.6},color:'#000000'}],
+  ['flash','Flash',{shape:'flash',font:['bangers','dela'],rough:0,tail:{kind:'none'},fill:{color:'#FFFFFF',op:1,pat:'none'},out:{color:'#000000',w:4,double:false,dash:false},shadow:{on:false},deco:{kind:'lines',fill:{on:true,color:'#000000'},out:{on:false,color:'#000000'},n:16,size:.6},color:'#000000'}],
   ['tone','Tone',{shape:'speech',font:['comicneue','kosugimaru'],rough:0,tail:{kind:'point',curl:0},fill:{color:'#FFFFFF',op:1,pat:'dots',pat2:'#000000'},out:{color:'#000000',w:5,double:false,dash:false},shadow:{on:false},deco:{kind:'none'},color:'#000000'}],
 ];
 const LOOK=Object.fromEntries(LOOKS.map(l=>[l[0],l]));
@@ -509,7 +511,7 @@ function outlinePts(B,w,hh){const a=w/2,b=hh/2,sh=B.shape,r=mulberry(B.seed*7919
   if(B.rough>0){normals(pts);const amp=B.rough/100*B.size*.09,ph=[r()*6.3,r()*6.3,r()*6.3,r()*6.3],n=pts.length;
     pts=pts.map((q,i)=>{const t=i/n*2*Math.PI,d=amp*(Math.sin(11*t+ph[0])+.7*Math.sin(23*t+ph[1])+.5*Math.sin(41*t+ph[2])+.4*Math.sin(67*t+ph[3]));return{p:[q.p[0]+q.n[0]*d,q.p[1]+q.n[1]*d],s:q.s};});}
   return{pts:normals(pts),sharp};}
-function ptAtAngle(pts,ang){let best=null,bd=9;for(const q of pts){let d=Math.abs(Math.atan2(q.p[1],q.p[0])-ang);d=Math.min(d,2*Math.PI-d);if(d<bd){bd=d;best=q;}}return best;}
+function ptAtAngle(pts,ang){let best=null,bd=9;for(const q of pts){let d=Math.abs(Math.atan2(q.p[1],q.p[0])-ang)%(2*Math.PI);d=Math.min(d,2*Math.PI-d);if(d<bd){bd=d;best=q;}}return best;}
 /* a tail: a pointed or curved one is a shape joined to the bubble; a thought tail is a few small bubbles */
 function tailGeom(B,T,pts,w,hh){if(!T||T.kind==='none'||!pts.length)return null;const ang=rad(T.ang),d=[Math.cos(ang),Math.sin(ang)],n=[-d[1],d[0]];
   const q=ptAtAngle(pts,ang);if(!q)return null;const P=q.p,R=Math.hypot(P[0],P[1]),L=T.len*(w+hh)/2,bw=T.w*Math.min(w,hh)/2,inset=Math.min(bw*1.2,R*.4);
@@ -524,9 +526,12 @@ function pathOfTail(t){const p=new Path2D();if(t.kind==='poly'){p.moveTo(t.pts[0
   else{p.moveTo(t.b1[0],t.b1[1]);p.quadraticCurveTo(t.c[0],t.c[1],t.tip[0],t.tip[1]);p.quadraticCurveTo(t.c[0],t.c[1],t.b2[0],t.b2[1]);p.closePath();}return p;}
 
 /* ================= decorations round the bubble ================= */
-function decoList(B,G){const D=B.deco;if(!D||D.kind==='none'||!G.pts.length)return[];const r=mulberry(B.seed*31+77),R=(G.w+G.h)/4,out=[];
-  for(let i=0;i<D.n;i++){const q=G.pts[Math.floor(r()*G.pts.length)],dist=R*(.12+.35*r()),sz=B.size*D.size*(.6+.8*r()),rot=r()*6.3;
-    out.push({x:q.p[0]+q.n[0]*dist,y:q.p[1]+q.n[1]*dist,sz,rot,n:q.n,k:D.kind,len:R*(.25+.35*r())});}return out;}
+/* where the decorations go: spread round the bubble (or part of it), at random or evenly, each with its own size and spin */
+function decoList(B,G){const D=B.deco;if(!D||D.kind==='none'||!G.pts.length)return[];const r=mulberry((D.seed|0)*7919+B.seed*31+77),R=(G.w+G.h)/4,out=[],a0=rad(D.arcStart),sw=rad(D.arcSweep);
+  for(let i=0;i<D.n;i++){const f=D.mode==='even'?(i+.5)/D.n:r(),q=ptAtAngle(G.pts,a0+sw*f)||G.pts[0],dist=R*(D.dist+D.spread*r()),sz=Math.max(2,B.size*D.size*(1-D.vary/2+D.vary*r()));
+    const outAng=Math.atan2(q.n[1],q.n[0]),rot=D.spin==='random'?r()*6.3:D.spin==='same'?rad(D.angle):outAng+Math.PI/2+rad(D.angle);
+    out.push({x:q.p[0]+q.n[0]*dist+D.dx,y:q.p[1]+q.n[1]*dist+D.dy,sz,rot,n:q.n,k:D.kind,len:R*(.25+.35*r())});}return out;}
+const decoDash=(D,w)=>D.out.style==='dashed'?[Math.max(3,w*3),Math.max(3,w*2)]:D.out.style==='dotted'?[Math.max(1,w*.8),Math.max(2,w*1.6)]:[];
 function decoPath(d){const p=new Path2D(),s=d.sz;
   if(d.k==='hearts'){p.moveTo(0,s*.35);p.bezierCurveTo(-s*.9,-s*.3,-s*.35,-s*.85,0,-s*.3);p.bezierCurveTo(s*.35,-s*.85,s*.9,-s*.3,0,s*.35);p.closePath();}
   else if(d.k==='stars'){for(let i=0;i<10;i++){const a=i*Math.PI/5-Math.PI/2,rr=i%2?s*.2:s*.5;p[i?'lineTo':'moveTo'](rr*Math.cos(a),rr*Math.sin(a));}p.closePath();}
@@ -554,8 +559,9 @@ function drawBubble(g,B,k,G){k=k||1;G=G||geom(B);g.save();g.translate(B.x,B.y);g
   strokeAll(2*lw,O.color,O.dash);fillAll();
   bumps.forEach(t=>t.circles.forEach(c=>{const p=new Path2D();p.arc(c.c[0],c.c[1],c.r,0,Math.PI*2);g.lineJoin='round';if(O.double){g.lineWidth=2*(lw*2+O.gap);g.strokeStyle=O.color;g.stroke(p);g.lineWidth=2*(lw+O.gap);g.strokeStyle=B.fill.color;g.stroke(p);}
     g.lineWidth=2*lw;g.strokeStyle=O.color;g.setLineDash(O.dash?[Math.max(6,lw*2.2),Math.max(5,lw*1.8)]:[]);g.stroke(p);g.setLineDash([]);g.fillStyle=B.fill.color;g.globalAlpha=B.fill.op;g.fill(p);g.globalAlpha=1;}));
-  for(const d of decoList(B,G)){g.save();g.translate(d.x,d.y);if(d.k==='lines'){const a=Math.atan2(d.n[1],d.n[0]);g.rotate(a);g.lineWidth=Math.max(1.5,B.size*.06);g.lineCap='round';g.strokeStyle=B.deco.color;g.beginPath();g.moveTo(0,0);g.lineTo(d.len,0);g.stroke();}
-    else{g.rotate(d.rot);g.fillStyle=B.deco.color;g.fill(decoPath(d));}g.restore();}
+  const D=B.deco;for(const d of decoList(B,G)){g.save();g.translate(d.x,d.y);
+    if(d.k==='lines'){const a=Math.atan2(d.n[1],d.n[0])+(D.spin==='same'?rad(D.angle):0);g.rotate(a);const w=D.out.on?D.out.w:Math.max(1.5,B.size*.06);g.lineWidth=w;g.lineCap=D.out.style==='dotted'?'round':'round';g.strokeStyle=D.out.on?D.out.color:D.fill.color;g.setLineDash(D.out.on?decoDash(D,w):[]);g.globalAlpha=D.fill.op;g.beginPath();g.moveTo(0,0);g.lineTo(d.len,0);g.stroke();g.setLineDash([]);g.globalAlpha=1;}
+    else{g.rotate(d.rot);const p=decoPath(d);if(D.fill.on){g.fillStyle=D.fill.color;g.globalAlpha=D.fill.op;g.fill(p);g.globalAlpha=1;}if(D.out.on&&D.out.w>0){g.lineWidth=D.out.w;g.lineJoin='round';g.lineCap='round';g.strokeStyle=D.out.color;g.setLineDash(decoDash(D,D.out.w));g.stroke(p);g.setLineDash([]);}}g.restore();}
   drawText(g,B,G.T);g.restore();}
 /* where a bubble is on the page: its box, corners and tail tips, for tapping and dragging */
 function boxOf(B,G){G=G||geom(B);const c=Math.cos(rad(B.rot)),s=Math.sin(rad(B.rot)),to=(x,y)=>[B.x+x*c-y*s,B.y+x*s+y*c],w=G.w/2,hh=G.h/2;
@@ -649,7 +655,7 @@ $('rOk').onclick=()=>{const dropBg=!!(BGIMG&&$('rBg').checked),bgOn=PG.bgi.on;$(
 /* ================= the settings panel ================= */
 const ch=(fn)=>(v,done)=>{fn(v);if(done===false){render();commitSoon();}else{commit();renderAll();}};
 function renderAll(){renderPanel();render();}
-function renderPanel(){renderLooks();renderText();renderFontF();renderShape();renderTail();renderFill();renderOut();renderFx();renderSave();renderBg();renderNav();updateSums();}
+function renderPanel(){renderLooks();renderText();renderFontF();renderShape();renderTail();renderFill();renderOut();renderFx();renderDeco();renderSave();renderBg();renderNav();updateSums();}
 const lookPreview=new Map();
 function thumbOf(B,w,hh,k){const c=can(w,hh),g=c.getContext('2d');const G=geom(B);let bw=G.w,bh=G.h;[G.t1,G.t2].forEach(t=>{if(t){bw=Math.max(bw,2*Math.abs(t.tip[0]));bh=Math.max(bh,2*Math.abs(t.tip[1]));}});
   const s=Math.min(w/(bw*1.25+B.out.w*4),hh/(bh*1.25+B.out.w*4))*(k||1);g.translate(w/2,hh/2);g.scale(s,s);const b=JSON.parse(JSON.stringify(B));b.x=0;b.y=0;drawBubble(g,b,s,G);return c;}
@@ -701,8 +707,22 @@ function renderOut(){const p=$('outF');p.innerHTML='';const O=S.out;
 function renderFx(){const p=$('fxF');p.innerHTML='';const Sh=S.shadow,D=S.deco;
   p.append(checkF('shOn','Drop shadow',Sh.on,v=>{Sh.on=v;commit();renderAll();}));
   if(Sh.on)p.append(h('div',{class:'grid2'},rangeF('shX','Across',-40,40,1,Sh.dx,px,ch(v=>Sh.dx=v)),rangeF('shY','Down',-40,40,1,Sh.dy,px,ch(v=>Sh.dy=v))),colorF('shCol','Shadow color',Sh.color,ch(v=>Sh.color=v)));
-  p.append(segF('dk','Decorations round the bubble',DECOS,D.kind,v=>{D.kind=v;commit();renderAll();}));
-  if(D.kind!=='none')p.append(h('div',{class:'grid2'},rangeF('dN','How many',1,40,1,D.n,String,ch(v=>D.n=v)),rangeF('dS','Size',.15,1.5,.05,D.size,pct,ch(v=>D.size=v))),colorF('dCol','Color',D.color,ch(v=>D.color=v)),h('p',{class:'help'},'Where they land comes from the random seed; roll ⚄ for another spread.'));}
+}
+function renderDeco(){const p=$('decoF');p.innerHTML='';const D=S.deco;
+  p.append(segF('dk','Kind',DECOS,D.kind,v=>{D.kind=v;commit();renderAll();}));if(D.kind==='none')return;
+  p.append(h('div',{class:'grid2'},rangeF('dN','How many',1,60,1,D.n,String,ch(v=>D.n=v)),rangeF('dS','Size',.15,2,.05,D.size,pct,ch(v=>D.size=v)),rangeF('dV','Size variety',0,1,.05,D.vary,pct,ch(v=>D.vary=v)),rangeF('dD','Distance from the bubble',-.2,1.2,.02,D.dist,pct,ch(v=>D.dist=v)),rangeF('dSp','Scatter outward',0,1.2,.02,D.spread,pct,ch(v=>D.spread=v))),
+    h('p',{class:'sub-h'},'Where round the bubble'),
+    h('div',{class:'row'},segF('dMode','Spacing',[['random','Random'],['even','Evenly spaced']],D.mode,v=>{D.mode=v;commit();renderAll();}),h('button',{type:'button',class:'dice',title:'Scatter them again',onclick:()=>{D.seed=Math.floor(Math.random()*1e6);commit();renderAll();}},'⚄'),h('span',{class:'help'},'Scatter again')),
+    h('div',{class:'grid2'},rangeF('dA0','Start side',0,360,1,D.arcStart,deg,ch(v=>D.arcStart=v)),rangeF('dA1','How far round',10,360,1,D.arcSweep,deg,ch(v=>D.arcSweep=v)),rangeF('dX','Nudge across',-200,200,1,D.dx,px,ch(v=>D.dx=v)),rangeF('dY','Nudge down',-200,200,1,D.dy,px,ch(v=>D.dy=v))),
+    h('p',{class:'help'},'Start side 0° is the right of the bubble, 90° the bottom; How far round limits them to part of it (360° is all the way round).'),
+    h('p',{class:'sub-h'},'Spin'),
+    segF('dSpin','Each one is turned',[['random','At random'],['same','The same way'],['out','Away from the bubble']],D.spin,v=>{D.spin=v;commit();renderAll();}));
+  if(D.spin!=='random')p.append(rangeF('dAng','Angle',-180,180,1,D.angle,deg,ch(v=>D.angle=v)));
+  p.append(h('p',{class:'sub-h'},'Fill'),h('div',{class:'row'},checkF('dFOn','Filled',D.fill.on,v=>{D.fill.on=v;commit();renderAll();})));
+  if(D.fill.on||D.kind==='lines')p.append(colorF('dFCol','Fill color',D.fill.color,ch(v=>D.fill.color=v)),rangeF('dFOp','Opacity',.05,1,.05,D.fill.op,pct,ch(v=>D.fill.op=v)));
+  p.append(h('p',{class:'sub-h'},'Outline'),h('div',{class:'row'},checkF('dOOn','Outlined',D.out.on,v=>{D.out.on=v;commit();renderAll();})));
+  if(D.out.on)p.append(colorF('dOCol','Outline color',D.out.color,ch(v=>D.out.color=v)),rangeF('dOW','Thickness',.5,12,.5,D.out.w,px,ch(v=>D.out.w=v)),segF('dOSt','Line look',[['solid','Solid'],['dashed','Dashed'],['dotted','Dotted']],D.out.style,v=>{D.out.style=v;commit();renderAll();}));
+  p.append(h('p',{class:'help'},'Lines use the fill color unless they are outlined; then the outline color, thickness and look apply.'));}
 function renderSave(){const p=$('saveF');p.innerHTML='';
   p.append(segF('fit','What to save',[['crop','Everything, cut to the edges'],['current','This bubble only'],['page','The whole page']],PG.fit,v=>{PG.fit=v;save();renderSave();}),
     segF('exbg','Background in the file',[['clear','Clear'],['white','White'],['black','Black']],PG.exbg,v=>{PG.exbg=v;save();renderSave();}),
@@ -721,7 +741,7 @@ function renderBg(){const p=$('bgF');p.innerHTML='';const inp=h('input',{type:'f
     rangeF('bgOp','Opacity',.1,1,.05,PG.bgi.op,pct,(v,d)=>{PG.bgi.op=v;render();if(d!==false)save();}),checkF('bgSave','Keep it in the saved picture',PG.bgi.save,v=>{PG.bgi.save=v;save();}),
     h('p',{class:'help'},'Open a panel layout from Panel Layouts or a page of your art to place the bubbles on it, then save with the underlay left out.'));}
 function updateSums(){setSum('Words',(S.text||'').split('\n')[0].slice(0,18)||'empty');setSum('Font',(FONTS[S.font]||{}).name||'');setSum('Bubble',(SHAPES.find(s=>s[0]===S.shape)||[])[1]);setSum('Tail',(TAILS.find(t=>t[0]===S.tail.kind)||[])[1]+(S.tail2.kind!=='none'?' + 1':''));
-  setSum('Fill',S.fill.color+(S.fill.pat!=='none'?' · '+S.fill.pat:''));setSum('Outline',`${S.out.w} px${S.out.double?' double':''}${S.out.dash?' dashed':''}`);setSum('Shadow and decorations',(S.shadow.on?'shadow':'')+(S.deco.kind!=='none'?(S.shadow.on?' · ':'')+S.deco.kind:'')||'none');
+  setSum('Fill',S.fill.color+(S.fill.pat!=='none'?' · '+S.fill.pat:''));setSum('Outline',`${S.out.w} px${S.out.double?' double':''}${S.out.dash?' dashed':''}`);setSum('Shadow',S.shadow.on?'on':'none');setSum('Decorations',S.deco.kind==='none'?'none':`${S.deco.n} ${S.deco.kind}`);
   setSum('Save',`${PG.exbg} · ${PG.scale}×`);setSum('Page and underlay',(PG.kind==='auto'?'wide':PG.kind)+(BGIMG&&PG.bgi.on?' · underlay':''));}
 
 /* ================= ideas and mutations ================= */
@@ -729,7 +749,7 @@ let IMODE='ideas';
 const pick=(r,a)=>a[Math.floor(r()*a.length)];
 function randomState(base,r,amt){const b=JSON.parse(JSON.stringify(base));b.seed=Math.floor(r()*1e6);
   if(amt>=1){applyLook(b,pick(r,LOOKS)[0]);if(r()<.5)b.shape=pick(r,SHAPES.slice(0,9))[0];b.tail.kind=b.shape==='thought'?'bumps':pick(r,['point','point','curve','none']);b.tail.ang=Math.round(r()*360);b.tail.len=.2+r()*.6;b.tail.w=.12+r()*.3;b.tail.curl=b.tail.kind==='curve'?(r()*2-1)*.8:0;
-    b.out.w=+(2+r()*8).toFixed(1);b.rough=r()<.3?Math.round(r()*80):0;b.pad=.3+r()*.5;if(r()<.35)b.deco.kind=pick(r,DECOS)[0];if(r()<.2)b.out.double=true;if(r()<.15)b.fill.pat=pick(r,['dots','lines','cross']);}
+    b.out.w=+(2+r()*8).toFixed(1);b.rough=r()<.3?Math.round(r()*80):0;b.pad=.3+r()*.5;if(r()<.35){b.deco.kind=pick(r,DECOS)[0];b.deco.seed=Math.floor(r()*1e6);b.deco.mode=r()<.3?'even':'random';b.deco.spin=pick(r,['random','random','same','out']);b.deco.out.on=r()<.3;}if(r()<.2)b.out.double=true;if(r()<.15)b.fill.pat=pick(r,['dots','lines','cross']);}
   else{if(r()<.5)b.tail.ang=Math.round(((b.tail.ang+(r()*2-1)*50)%360+360)%360);if(r()<.5)b.tail.len=clamp(b.tail.len+(r()*2-1)*.2,.05,1.5);if(r()<.4)b.tail.w=clamp(b.tail.w+(r()*2-1)*.1,.05,.7);
     if(r()<.4)b.out.w=clamp(+(b.out.w+(r()*2-1)*3).toFixed(1),0,24);if(r()<.3)b.rough=clamp(Math.round(b.rough+(r()*2-1)*30),0,100);if(r()<.3)b.pad=clamp(b.pad+(r()*2-1)*.2,.1,1.4);if(r()<.2)b.shape=pick(r,SHAPES.slice(0,9))[0];}
   return b;}
@@ -787,14 +807,15 @@ function makeSVG(){const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&l
     if(O.double)s+=`<g fill="none" stroke="${O.color}" stroke-width="${f(2*(lw*2+O.gap))}" stroke-linejoin="${join}"${dash}>${parts.join('')}</g><g fill="none" stroke="${B.fill.pat==='none'?B.fill.color:'#FFFFFF'}" stroke-width="${f(2*(lw+O.gap))}" stroke-linejoin="${join}">${parts.join('')}</g>`;
     s+=`<g fill="none" stroke="${O.color}" stroke-width="${f(2*lw)}" stroke-linejoin="${join}" stroke-miterlimit="6"${dash}>${parts.join('')}</g><g fill="${fill}" fill-opacity="${B.fill.op}">${parts.join('')}</g>`;
     circles.forEach(c=>{s+=`<g fill="none" stroke="${O.color}" stroke-width="${f(2*lw)}"${dash}>${c}</g><g fill="${B.fill.color}" fill-opacity="${B.fill.op}">${c}</g>`;});
-    for(const d of decoList(B,G)){if(d.k==='lines'){const a=Math.atan2(d.n[1],d.n[0]);s+=`<line x1="${f(d.x)}" y1="${f(d.y)}" x2="${f(d.x+Math.cos(a)*d.len)}" y2="${f(d.y+Math.sin(a)*d.len)}" stroke="${B.deco.color}" stroke-width="${f(Math.max(1.5,B.size*.06))}" stroke-linecap="round"/>`;continue;}
+    const D=B.deco,dAttr=(w)=>{const da=D.out.on?decoDash(D,w):[];return da.length?` stroke-dasharray="${da.map(f).join(' ')}"`:'';};
+    for(const d of decoList(B,G)){if(d.k==='lines'){const a=Math.atan2(d.n[1],d.n[0])+(D.spin==='same'?rad(D.angle):0),w=D.out.on?D.out.w:Math.max(1.5,B.size*.06);s+=`<line x1="${f(d.x)}" y1="${f(d.y)}" x2="${f(d.x+Math.cos(a)*d.len)}" y2="${f(d.y+Math.sin(a)*d.len)}" stroke="${D.out.on?D.out.color:D.fill.color}" stroke-opacity="${D.fill.op}" stroke-width="${f(w)}" stroke-linecap="round"${dAttr(w)}/>`;continue;}
       const sz=d.sz,dp=d.k==='hearts'?`M0 ${f(sz*.35)}C${f(-sz*.9)} ${f(-sz*.3)} ${f(-sz*.35)} ${f(-sz*.85)} 0 ${f(-sz*.3)}C${f(sz*.35)} ${f(-sz*.85)} ${f(sz*.9)} ${f(-sz*.3)} 0 ${f(sz*.35)}Z`
         :d.k==='stars'?Array.from({length:10},(_,i)=>{const a=i*Math.PI/5-Math.PI/2,rr=i%2?sz*.2:sz*.5;return(i?'L':'M')+f(rr*Math.cos(a))+' '+f(rr*Math.sin(a));}).join('')+'Z'
         :d.k==='sparkles'?`M0 ${f(-sz*.55)}Q0 0 ${f(sz*.55)} 0Q0 0 0 ${f(sz*.55)}Q0 0 ${f(-sz*.55)} 0Q0 0 0 ${f(-sz*.55)}Z`
         :d.k==='flowers'?Array.from({length:5},(_,i)=>{const a=i*Math.PI*2/5,cx=sz*.3*Math.cos(a),cy=sz*.3*Math.sin(a),r=sz*.22;return`M${f(cx+r)} ${f(cy)}A${f(r)} ${f(r)} 0 1 0 ${f(cx-r)} ${f(cy)}A${f(r)} ${f(r)} 0 1 0 ${f(cx+r)} ${f(cy)}Z`;}).join('')
         :d.k==='bubbles'?`M${f(sz*.3)} 0A${f(sz*.3)} ${f(sz*.3)} 0 1 0 ${f(-sz*.3)} 0A${f(sz*.3)} ${f(sz*.3)} 0 1 0 ${f(sz*.3)} 0Z`
         :`M0 ${f(-sz*.55)}Q${f(sz*.42)} ${f(sz*.1)} 0 ${f(sz*.45)}Q${f(-sz*.42)} ${f(sz*.1)} 0 ${f(-sz*.55)}Z`;
-      s+=`<path d="${dp}" fill="${B.deco.color}" transform="translate(${f(d.x)} ${f(d.y)}) rotate(${f(d.rot*180/Math.PI)})"/>`;}
+      s+=`<path d="${dp}" fill="${D.fill.on?D.fill.color:'none'}" fill-opacity="${D.fill.op}"${D.out.on&&D.out.w>0?` stroke="${D.out.color}" stroke-width="${f(D.out.w)}" stroke-linejoin="round" stroke-linecap="round"${dAttr(D.out.w)}`:''} transform="translate(${f(d.x)} ${f(d.y)}) rotate(${f(d.rot*180/Math.PI)})"/>`;}
     const T=G.T;if(!T.empty){const fam=fontCss(B.font).replace(/"/g,"'"),wt=fontWeight(B.font);s+=`<g font-family="${esc(fam)}" font-weight="${wt}" font-size="${B.size}" fill="${B.color}" text-anchor="middle" dominant-baseline="central"${B.spacing&&!T.v?` letter-spacing="${B.spacing}"`:''}>`;
       if(T.v){const n=T.cols.length;let x=(n-1)*T.colW/2;for(const c of T.cols){let y=-c.len/2+T.pitch/2;for(const chr of c.ch){s+=ROT_V.test(chr)?`<text transform="translate(${f(x)} ${f(y)}) rotate(90)">${esc(chr)}</text>`:`<text x="${f(x)}" y="${f(y)}">${esc(chr)}</text>`;y+=T.pitch;}x-=T.colW;}}
       else{let y=-T.th/2+T.lh/2;for(const l of T.lines){s+=`<text x="0" y="${f(y)}">${esc(l.t)}</text>`;y+=T.lh;}}s+='</g>';}
